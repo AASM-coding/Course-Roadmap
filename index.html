@@ -1,0 +1,2828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#07111f">
+  <title>CUFE Mechatronics Engineering Degree Navigator</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <style>
+    :root {
+      --bg: #050b14;
+      --panel: #0a1321;
+      --panel-2: #0d1828;
+      --panel-3: #111e30;
+      --border: rgba(148, 163, 184, 0.16);
+      --text: #e5edf7;
+      --muted: #8fa2b8;
+      --cyan: #22d3ee;
+      --blue: #38bdf8;
+      --amber: #f59e0b;
+      --orange: #fb923c;
+      --green: #34d399;
+      --indigo: #818cf8;
+      --red: #fb7185;
+      --purple: #c084fc;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(14, 116, 144, 0.10), transparent 30%),
+        radial-gradient(circle at 80% 20%, rgba(79, 70, 229, 0.08), transparent 28%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow: hidden;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .app-shell {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      flex: 0 0 auto;
+      border-bottom: 1px solid var(--border);
+      background: rgba(5, 11, 20, 0.96);
+      backdrop-filter: blur(14px);
+      z-index: 50;
+    }
+
+    .topbar-inner {
+      padding: 12px 18px 10px;
+    }
+
+    .brand-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+    }
+
+    .brand-subtitle {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 8px;
+      min-width: 440px;
+    }
+
+    .metric {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: rgba(13, 24, 40, 0.72);
+    }
+
+    .metric-label {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+
+    .metric-value {
+      margin-top: 2px;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .metric-sub {
+      color: var(--muted);
+      font-size: 8px;
+    }
+
+    .action-row {
+      margin-top: 10px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .action-button {
+      border: 1px solid var(--border);
+      background: rgba(17, 30, 48, 0.9);
+      color: #dce8f6;
+      border-radius: 7px;
+      padding: 6px 9px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      font-weight: 700;
+      transition: 0.16s ease;
+    }
+
+    .action-button:hover {
+      border-color: rgba(56, 189, 248, 0.45);
+      background: rgba(20, 39, 61, 0.95);
+      transform: translateY(-1px);
+    }
+
+    .action-button.primary {
+      background: linear-gradient(135deg, #075985, #0e7490);
+      border-color: rgba(34, 211, 238, 0.5);
+      color: white;
+    }
+
+    .action-button.purple {
+      background: linear-gradient(135deg, #6b21a8, #7e22ce);
+      border-color: rgba(192, 132, 252, 0.5);
+      color: white;
+    }
+
+    .action-button.danger:hover {
+      border-color: rgba(251, 113, 133, 0.5);
+      color: #fecdd3;
+    }
+
+    .icon {
+      width: 13px;
+      height: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+    }
+
+    .filter-row {
+      margin-top: 8px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-label {
+      color: var(--muted);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      font-weight: 700;
+    }
+
+    .control {
+      min-height: 28px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #091322;
+      color: #dce8f6;
+      padding: 4px 7px;
+      font-size: 9.5px;
+      outline: none;
+    }
+
+    .control:focus {
+      border-color: rgba(34, 211, 238, 0.55);
+      box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.08);
+    }
+
+    .search-control {
+      min-width: 220px;
+      flex: 1;
+    }
+
+    .training-strip {
+      display: flex;
+      gap: 5px;
+      margin-left: auto;
+      flex-wrap: wrap;
+    }
+
+    .milestone {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 7px;
+      font-size: 8.5px;
+      color: var(--muted);
+      background: rgba(8, 17, 29, 0.8);
+      white-space: nowrap;
+    }
+
+    .milestone.ready {
+      color: #a7f3d0;
+      border-color: rgba(52, 211, 153, 0.35);
+      background: rgba(6, 78, 59, 0.18);
+    }
+
+    .milestone.current {
+      color: #fde68a;
+      border-color: rgba(245, 158, 11, 0.35);
+      background: rgba(120, 53, 15, 0.18);
+    }
+
+    .workspace {
+      min-height: 0;
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .graph-panel {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(rgba(148, 163, 184, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.045) 1px, transparent 1px),
+        #06101c;
+      background-size: 24px 24px;
+    }
+
+    .graph-toolbar {
+      position: absolute;
+      z-index: 20;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      gap: 5px;
+      padding: 4px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(5, 11, 20, 0.86);
+      backdrop-filter: blur(10px);
+    }
+
+    .graph-tool {
+      width: 27px;
+      height: 27px;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      background: #0b1727;
+      color: #a9bbcf;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .graph-tool:hover {
+      color: white;
+      border-color: rgba(56, 189, 248, 0.35);
+    }
+
+    .graph-help {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      z-index: 20;
+      color: #70859d;
+      font-size: 8.5px;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      background: rgba(5, 11, 20, 0.75);
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    #graphViewport {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      cursor: grab;
+    }
+
+    #graphViewport.dragging {
+      cursor: grabbing;
+    }
+
+    #graphWorld {
+      position: absolute;
+      width: 4400px;
+      height: 1600px;
+      transform-origin: 0 0;
+    }
+
+    #edgeSvg {
+      position: absolute;
+      inset: 0;
+      width: 4400px;
+      height: 1600px;
+      overflow: visible;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .edge {
+      fill: none;
+      stroke: #52677e;
+      stroke-width: 1.45;
+      opacity: 0.45;
+      transition: opacity 0.16s ease, stroke 0.16s ease, stroke-width 0.16s ease, filter 0.16s ease;
+    }
+
+    .edge.upstream {
+      stroke: var(--cyan);
+      stroke-width: 2.8;
+      opacity: 1;
+      filter: drop-shadow(0 0 5px rgba(34, 211, 238, 0.8));
+    }
+
+    .edge.downstream {
+      stroke: var(--amber);
+      stroke-width: 2.8;
+      opacity: 1;
+      filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.8));
+    }
+
+    .edge.critical {
+      stroke: var(--purple);
+      stroke-width: 3.2;
+      opacity: 1;
+      filter: drop-shadow(0 0 7px rgba(192, 132, 252, 0.95));
+    }
+
+    .edge.dimmed {
+      opacity: 0.12;
+    }
+
+    .semester-column {
+      position: absolute;
+      top: 24px;
+      width: 260px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .semester-title {
+      height: 32px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      color: #9fb1c6;
+      font-size: 9.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 800;
+      padding: 7px 6px;
+    }
+
+    .semester-title.summer-header {
+      border-bottom-color: rgba(245, 158, 11, 0.3);
+      color: #fde68a;
+    }
+
+    .semester-subtitle {
+      color: #586c82;
+      font-size: 8px;
+      margin-left: 6px;
+      margin-top: 2px;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 500;
+    }
+
+    .semester-stats {
+      font-size: 7.5px;
+      margin-left: 6px;
+      margin-top: 2px;
+      color: #94a3b8;
+    }
+
+    .semester-stats.warning {
+      color: #fb7185;
+      font-weight: 800;
+    }
+
+    .course-node {
+      position: absolute;
+      width: 242px;
+      min-height: 114px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 9px;
+      background: linear-gradient(145deg, rgba(16, 30, 47, 0.98), rgba(9, 19, 32, 0.98));
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.23);
+      padding: 8px;
+      z-index: 5;
+      transition: opacity 0.16s ease, transform 0.15s ease, border-color 0.15s ease, box-shadow 0.16s ease;
+      user-select: none;
+    }
+
+    .course-node:hover {
+      transform: translateY(-2px);
+    }
+
+    .course-node.selected {
+      border-color: rgba(129, 140, 248, 0.95);
+      box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.25), 0 0 18px rgba(99, 102, 241, 0.3);
+    }
+
+    .course-node.upstream {
+      border-color: rgba(34, 211, 238, 0.9);
+      box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.2), 0 0 18px rgba(34, 211, 238, 0.45);
+    }
+
+    .course-node.downstream {
+      border-color: rgba(245, 158, 11, 0.9);
+      box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2), 0 0 18px rgba(245, 158, 11, 0.45);
+    }
+
+    .course-node.critical {
+      border-color: rgba(192, 132, 252, 0.95);
+      box-shadow: 0 0 0 1px rgba(192, 132, 252, 0.3), 0 0 20px rgba(192, 132, 252, 0.5);
+    }
+
+    .course-node.dimmed {
+      opacity: 0.14;
+    }
+
+    .course-node.hidden-filter {
+      display: none;
+    }
+
+    .node-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 5px;
+    }
+
+    .node-code {
+      color: #f3f8ff;
+      font-weight: 900;
+      font-size: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    .node-ch {
+      font-size: 8px;
+      color: #cbd5e1;
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: rgba(148, 163, 184, 0.10);
+      border: 1px solid rgba(148, 163, 184, 0.13);
+      white-space: nowrap;
+    }
+
+    .node-category {
+      display: inline-flex;
+      margin-top: 4px;
+      padding: 1.5px 5px;
+      border-radius: 4px;
+      font-size: 7px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .cat-university { color: #c4b5fd; background: rgba(124, 58, 237, 0.14); border: 1px solid rgba(167, 139, 250, 0.2); }
+    .cat-faculty { color: #93c5fd; background: rgba(37, 99, 235, 0.14); border: 1px solid rgba(96, 165, 250, 0.2); }
+    .cat-discipline { color: #5eead4; background: rgba(13, 148, 136, 0.14); border: 1px solid rgba(45, 212, 191, 0.2); }
+    .cat-program { color: #67e8f9; background: rgba(8, 145, 178, 0.14); border: 1px solid rgba(34, 211, 238, 0.2); }
+    .cat-elective { color: #fcd34d; background: rgba(180, 83, 9, 0.14); border: 1px solid rgba(251, 191, 36, 0.2); }
+
+    .node-title {
+      margin-top: 5px;
+      min-height: 26px;
+      color: #c7d5e5;
+      font-size: 9px;
+      line-height: 1.35;
+      font-weight: 600;
+    }
+
+    .node-bottom {
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      min-height: 19px;
+      border-radius: 999px;
+      padding: 2px 6px;
+      font-size: 7px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .status-passed { color: #a7f3d0; background: rgba(6, 78, 59, 0.38); border: 1px solid rgba(52, 211, 153, 0.28); }
+    .status-ready { color: #c7d2fe; background: rgba(49, 46, 129, 0.28); border: 1px solid rgba(129, 140, 248, 0.8); box-shadow: 0 0 10px rgba(99, 102, 241, 0.18); }
+    .status-locked { color: #94a3b8; background: rgba(71, 85, 105, 0.22); border: 1px solid rgba(100, 116, 139, 0.2); }
+    .status-ip { color: #fde68a; background: rgba(120, 53, 15, 0.28); border: 1px solid rgba(245, 158, 11, 0.32); }
+
+    .node-controls {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+    }
+
+    .grade-select, .slot-select {
+      min-height: 20px;
+      padding: 1px 3px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 4px;
+      background: #07111e;
+      color: #dbeafe;
+      font-size: 8px;
+      outline: none;
+    }
+
+    .grade-select { width: 50px; }
+    .slot-select { width: 56px; }
+
+    .node-anchor {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #60758c;
+      opacity: 0.7;
+    }
+    .anchor-in { left: -3px; top: 50%; transform: translateY(-50%); }
+    .anchor-out { right: -3px; top: 50%; transform: translateY(-50%); }
+
+    .drawer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 380px;
+      max-width: 90vw;
+      background: rgba(8, 17, 29, 0.98);
+      border-left: 1px solid var(--border);
+      box-shadow: -15px 0 35px rgba(0, 0, 0, 0.45);
+      z-index: 60;
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      display: none;
+    }
+
+    .drawer.open {
+      display: block;
+      transform: translateX(0);
+    }
+
+    .drawer-inner { padding: 16px; }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .drawer-code { font-size: 19px; font-weight: 900; letter-spacing: -0.03em; }
+    .drawer-title { margin-top: 4px; color: #b8c7d8; font-size: 11.5px; line-height: 1.4; }
+    .drawer-close { width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 6px; background: #0d1828; color: #9fb1c6; }
+    .drawer-meta { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
+    .meta-chip { border: 1px solid var(--border); border-radius: 5px; background: rgba(17, 30, 48, 0.75); color: #aebfd2; font-size: 8.5px; padding: 4px 6px; }
+
+    .drawer-section { margin-top: 15px; }
+    .drawer-section-title { font-size: 8.5px; color: #7489a0; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 800; margin-bottom: 6px; }
+    .prereq-list { display: flex; flex-wrap: wrap; gap: 5px; }
+    .course-badge { border: 1px solid rgba(34, 211, 238, 0.22); background: rgba(8, 51, 68, 0.28); color: #a5f3fc; border-radius: 5px; padding: 4px 6px; font-size: 8.5px; font-weight: 800; }
+    .course-badge:hover { border-color: rgba(34, 211, 238, 0.6); background: rgba(8, 51, 68, 0.55); }
+    .drawer-grade, .drawer-term { width: 100%; margin-top: 6px; min-height: 34px; border: 1px solid var(--border); border-radius: 6px; background: #07111e; color: #dce8f6; padding: 6px 8px; font-size: 10px; }
+    .pass-toggle { width: 100%; min-height: 34px; margin-top: 6px; border-radius: 6px; border: 1px solid rgba(52, 211, 153, 0.25); background: rgba(6, 78, 59, 0.16); color: #a7f3d0; font-size: 9.5px; font-weight: 800; }
+    .pass-toggle.off { border-color: var(--border); background: rgba(71, 85, 105, 0.14); color: #94a3b8; }
+    .drawer-note { margin-top: 8px; color: #71859c; font-size: 8.5px; line-height: 1.45; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.68);
+      backdrop-filter: blur(7px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      width: min(960px, 96vw);
+      max-height: 90vh;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #091322;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+    .modal-title { font-size: 15px; font-weight: 900; }
+    .modal-subtitle { margin-top: 3px; color: var(--muted); font-size: 9.5px; line-height: 1.4; }
+    .modal-body { padding: 12px 16px; overflow: auto; }
+
+    .elective-group { border: 1px solid var(--border); border-radius: 9px; background: rgba(13, 24, 40, 0.68); margin-bottom: 10px; overflow: hidden; }
+    .elective-group-header { padding: 9px 11px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .elective-group-title { font-size: 10.5px; font-weight: 900; }
+    .elective-count { font-size: 8.5px; color: #a5f3fc; border: 1px solid rgba(34, 211, 238, 0.22); background: rgba(8, 51, 68, 0.3); padding: 3px 6px; border-radius: 999px; }
+    .elective-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 8px; }
+    .elective-item { border: 1px solid rgba(148, 163, 184, 0.13); border-radius: 7px; background: #0a1524; padding: 8px; transition: 0.15s ease; cursor: pointer; }
+    .elective-item.selected { border-color: rgba(34, 211, 238, 0.65); background: rgba(8, 51, 68, 0.3); box-shadow: 0 0 14px rgba(34, 211, 238, 0.09); }
+    .elective-top { display: flex; gap: 7px; align-items: flex-start; }
+    .elective-checkbox { margin-top: 2px; accent-color: #22d3ee; }
+    .elective-code { color: #e9f2fb; font-size: 9.5px; font-weight: 900; }
+    .elective-name { margin-top: 1px; color: #aebfd2; font-size: 8.5px; line-height: 1.35; }
+    .elective-prereqs { margin-top: 4px; color: #71859c; font-size: 7.5px; line-height: 1.35; }
+    .modal-footer { border-top: 1px solid var(--border); padding: 10px 16px; display: flex; justify-content: flex-end; gap: 6px; }
+
+    .toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 200;
+      max-width: 420px;
+      border: 1px solid rgba(34, 211, 238, 0.35);
+      border-radius: 8px;
+      background: rgba(8, 17, 29, 0.98);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+      padding: 10px 14px;
+      color: #cfe7f7;
+      font-size: 10px;
+      line-height: 1.45;
+      transform: translateY(18px);
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.18s ease;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    .legend {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      z-index: 20;
+      display: flex;
+      gap: 6px;
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: rgba(5, 11, 20, 0.82);
+      color: #8195ab;
+      font-size: 8px;
+      pointer-events: none;
+    }
+    .legend-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 3px; }
+    .legend-cyan { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+    .legend-amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+    .legend-purple { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
+    .legend-green { background: var(--green); }
+
+    /* PRINTABLE TABLE STYLES */
+    @media print {
+      body * { visibility: hidden; }
+      #printContainer, #printContainer * { visibility: visible; }
+      #printContainer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        color: #000;
+        background: #fff;
+        padding: 20px;
+      }
+    }
+
+    /* AUTH SCREEN */
+    #authScreen {
+      position: fixed; inset: 0; z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg);
+    }
+    #authScreen.hidden { display: none; }
+    .auth-card {
+      width: min(380px, 92vw);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #091322;
+      padding: 22px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+    }
+    .auth-title { font-size: 16px; font-weight: 900; }
+    .auth-sub { margin-top: 4px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .auth-field { width: 100%; margin-top: 10px; min-height: 36px; border: 1px solid var(--border); border-radius: 7px; background: #07111e; color: #dce8f6; padding: 8px 10px; font-size: 11px; outline: none; }
+    .auth-field:focus { border-color: rgba(34, 211, 238, 0.55); }
+    .auth-btn { width: 100%; margin-top: 12px; min-height: 38px; border-radius: 7px; background: linear-gradient(135deg, #075985, #0e7490); border: 1px solid rgba(34, 211, 238, 0.5); color: white; font-weight: 800; font-size: 11px; }
+    .auth-toggle { margin-top: 12px; text-align: center; color: var(--muted); font-size: 9.5px; }
+    .auth-toggle button { background: none; border: none; color: var(--cyan); font-weight: 700; padding: 0; font-size: 9.5px; }
+    .auth-error { margin-top: 8px; color: var(--red); font-size: 9.5px; display: none; }
+    .auth-status { margin-top: 10px; color: var(--muted); font-size: 8.5px; line-height: 1.5; }
+    .user-chip { display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 7px; background: rgba(17, 30, 48, 0.9); padding: 5px 9px; font-size: 9.5px; color: #dce8f6; font-weight: 700; }
+    .user-chip button { background: none; border: none; color: var(--red); font-size: 9px; font-weight: 800; padding: 0; }
+
+    /* TERM HIGHLIGHT COLORS FOR PATHWAY SUGGESTION */
+    .course-node.plan-t1 { border-color: #34d399 !important; box-shadow: 0 0 0 1px rgba(52,211,153,0.3), 0 0 16px rgba(52,211,153,0.4) !important; }
+    .course-node.plan-t2 { border-color: #38bdf8 !important; box-shadow: 0 0 0 1px rgba(56,189,248,0.3), 0 0 16px rgba(56,189,248,0.4) !important; }
+    .course-node.plan-t3 { border-color: #818cf8 !important; box-shadow: 0 0 0 1px rgba(129,140,248,0.3), 0 0 16px rgba(129,140,248,0.4) !important; }
+    .course-node.plan-t4 { border-color: #f59e0b !important; box-shadow: 0 0 0 1px rgba(245,158,11,0.3), 0 0 16px rgba(245,158,11,0.4) !important; }
+    .course-node.plan-t5 { border-color: #fb7185 !important; box-shadow: 0 0 0 1px rgba(251,113,133,0.3), 0 0 16px rgba(251,113,133,0.4) !important; }
+    .course-node.plan-t6 { border-color: #a78bfa !important; box-shadow: 0 0 0 1px rgba(167,139,250,0.3), 0 0 16px rgba(167,139,250,0.4) !important; }
+    .plan-badge { position: absolute; top: -8px; right: -8px; z-index: 6; border-radius: 999px; font-size: 8px; font-weight: 900; padding: 2px 6px; color: #06111e; }
+
+    .pathway-panel, .willing-panel { padding: 4px 0 2px; }
+    .pathway-term-block { border: 1px solid var(--border); border-radius: 8px; background: rgba(13,24,40,0.6); padding: 8px 10px; margin-bottom: 8px; }
+    .pathway-term-title { font-size: 9.5px; font-weight: 900; color: #e5edf7; display: flex; justify-content: space-between; }
+    .pathway-term-courses { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 5px; }
+    .willing-item { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border: 1px solid rgba(148,163,184,0.13); border-radius: 7px; background: #0a1524; margin-bottom: 5px; }
+    .willing-item.selected { border-color: rgba(34,211,238,0.6); background: rgba(8,51,68,0.28); }
+    .willing-cap-bar { height: 6px; border-radius: 999px; background: rgba(148,163,184,0.15); margin-top: 6px; overflow: hidden; }
+    .willing-cap-fill { height: 100%; background: linear-gradient(90deg,#22d3ee,#818cf8); transition: width 0.2s ease; }
+    .willing-cap-fill.over { background: #fb7185; }
+  </style>
+</head>
+
+<body>
+  <!-- AUTH SCREEN -->
+  <div id="authScreen">
+    <div class="auth-card">
+      <div class="auth-title" id="authTitle">Log In</div>
+      <div class="auth-sub">Create a username &amp; password to save your course plan. No email or verification needed.</div>
+      <input id="authUsername" class="auth-field" type="text" placeholder="Username" autocomplete="username">
+      <input id="authPassword" class="auth-field" type="password" placeholder="Password" autocomplete="current-password">
+      <button id="authSubmitBtn" class="auth-btn" type="button">Log In</button>
+      <div class="auth-error" id="authError"></div>
+      <div class="auth-toggle">
+        <span id="authToggleText">Don't have an account?</span>
+        <button id="authToggleBtn" type="button">Sign Up</button>
+      </div>
+      <div class="auth-status" id="authStatus">Connecting to database...</div>
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand-row">
+          <div>
+            <h1 class="brand-title">CUFE Mechatronics Engineering (MEE) Degree Navigator &amp; Prerequisite DAG</h1>
+            <div class="brand-subtitle">155 CH · 3 Terms/Year Structure (Fall/Spring/Summer) · Prerequisite Chronology &amp; Credit Limits Enforced</div>
+          </div>
+
+          <div class="user-chip" id="userChip" style="display:none;">
+            <span class="icon" data-lucide="user"></span>
+            <span id="userChipName"></span>
+            <button id="logoutBtn" type="button">Log Out</button>
+          </div>
+
+          <div class="metrics">
+            <div class="metric">
+              <div class="metric-label">Completed Credits</div>
+              <div class="metric-value" id="creditsMetric">0 / 155 CH</div>
+              <div class="metric-sub" id="creditsSub">0% Completed</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Cumulative GPA</div>
+              <div class="metric-value" id="gpaMetric">0.00</div>
+              <div class="metric-sub" id="gpaSub">0 graded credits</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Remaining Credits</div>
+              <div class="metric-value" id="remainingMetric">155 CH</div>
+              <div class="metric-sub">Target: 155 CH</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button class="action-button primary" id="quickPasteBtn" type="button">
+            <span class="icon" data-lucide="clipboard-list"></span>
+            Import / Paste Grades
+          </button>
+
+          <button class="action-button" id="electivesBtn" type="button">
+            <span class="icon" data-lucide="list-checks"></span>
+            Elective Planner (E1: 14, E2: 22, E3: 10)
+          </button>
+
+          <button class="action-button purple" id="criticalPathBtn" type="button">
+            <span class="icon" data-lucide="route"></span>
+            Longest Critical Path
+          </button>
+
+          <button class="action-button" id="printPlanBtn" type="button">
+            <span class="icon" data-lucide="printer"></span>
+            Print Study Plan
+          </button>
+
+          <button class="action-button primary" id="pathwayBtn" type="button">
+            <span class="icon" data-lucide="sparkles"></span>
+            Suggest Pathway
+          </button>
+
+          <button class="action-button" id="willingBtn" type="button">
+            <span class="icon" data-lucide="list-plus"></span>
+            My Term List
+          </button>
+
+          <button class="action-button" id="exportBtn" type="button">
+            <span class="icon" data-lucide="download"></span>
+            Export Backup
+          </button>
+
+          <button class="action-button" id="importBtn" type="button">
+            <span class="icon" data-lucide="upload"></span>
+            Import Progress
+          </button>
+
+          <button class="action-button danger" id="resetBtn" type="button">
+            <span class="icon" data-lucide="rotate-ccw"></span>
+            Reset All
+          </button>
+
+          <input id="importFile" type="file" accept=".json,application/json" hidden>
+        </div>
+
+        <div class="filter-row">
+          <span class="filter-label">Years of Study</span>
+          <select id="yearsFilter" class="control">
+            <option value="4">4 Years (12 Terms Total: Fall/Spring/Summer)</option>
+            <option value="5">5 Years (15 Terms Total: Fall/Spring/Summer)</option>
+          </select>
+
+          <span class="filter-label">Status</span>
+          <select id="statusFilter" class="control">
+            <option value="all">All</option>
+            <option value="passed">Passed</option>
+            <option value="ready">Unlocked / Eligible</option>
+            <option value="locked">Locked</option>
+          </select>
+
+          <span class="filter-label">Department</span>
+          <select id="categoryFilter" class="control">
+            <option value="all">All Departments</option>
+            <option value="University">University</option>
+            <option value="Faculty">Faculty</option>
+            <option value="Discipline">Discipline / Program</option>
+            <option value="Program">Program Core</option>
+            <option value="Elective">Electives</option>
+          </select>
+
+          <input id="searchInput" class="control search-control" type="search" placeholder="Type course code (e.g. MDPS372) to auto-pan & highlight" autocomplete="off">
+
+          <div class="training-strip">
+            <div class="milestone" id="it1Milestone">IT1 · 60 CH</div>
+            <div class="milestone" id="it2Milestone">IT2 · IT1 passed</div>
+            <div class="milestone" id="labMilestone">LAB · 108 CH</div>
+            <div class="milestone" id="projectMilestone">PROJECT · 110 CH</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="graph-panel">
+        <div class="graph-toolbar">
+          <button class="graph-tool" id="zoomInBtn" title="Zoom in" type="button"><span class="icon" data-lucide="zoom-in"></span></button>
+          <button class="graph-tool" id="zoomOutBtn" title="Zoom out" type="button"><span class="icon" data-lucide="zoom-out"></span></button>
+          <button class="graph-tool" id="fitBtn" title="Fit graph" type="button"><span class="icon" data-lucide="maximize-2"></span></button>
+          <button class="graph-tool" id="resetViewBtn" title="Reset view" type="button"><span class="icon" data-lucide="crosshair"></span></button>
+        </div>
+
+        <div class="graph-help">
+          Hover = highlight paths · Click = pin/inspect · Change semester slot from card dropdown
+        </div>
+
+        <div id="graphViewport">
+          <div id="graphWorld">
+            <svg id="edgeSvg" viewBox="0 0 4400 1600" aria-hidden="true"></svg>
+            <div id="semesterLayer"></div>
+            <div id="nodeLayer"></div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <span><span class="legend-dot legend-cyan"></span>Prerequisites</span>
+          <span><span class="legend-dot legend-amber"></span>Downstream Unlocks</span>
+          <span><span class="legend-dot legend-purple"></span>Critical Chain</span>
+          <span><span class="legend-dot legend-green"></span>Passed</span>
+        </div>
+      </section>
+
+      <!-- SLIDE-OVER OVERLAY DRAWER -->
+      <aside class="drawer" id="courseDrawer">
+        <div class="drawer-inner" id="drawerContent"></div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- PRINTABLE STUDY PLAN MODAL -->
+  <div class="modal-backdrop" id="printModal">
+    <div class="modal" style="width: min(1000px, 96vw);">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Custom Study Plan Table (Official Format)</div>
+          <div class="modal-subtitle">Ready for academic advisor review, registration week, and PDF printing.</div>
+        </div>
+        <button class="drawer-close" id="closePrintModal" type="button"><span class="icon" data-lucide="x"></span></button>
+      </div>
+      <div class="modal-body" id="printModalContent"></div>
+      <div class="modal-footer">
+        <button class="action-button" id="cancelPrintModal" type="button">Close</button>
+        <button class="action-button primary" id="triggerBrowserPrintBtn" type="button">
+          <span class="icon" data-lucide="printer"></span>
+          Print / Save as PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK GRADE PASTE MODAL -->
+  <div class="modal-backdrop" id="pasteModal">
+    <div class="modal" style="max-width: 560px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Batch Import / Paste Transcript</div>
+          <div class="modal-subtitle">Paste your transcript records or load an official student preset.</div>
+        </div>
+        <button class="drawer-close" id="closePasteModal" type="button"><span class="icon" data-lucide="x"></span></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 8.5px; color: #8fa2b8; margin-bottom: 8px; line-height: 1.5;">
+          Format examples:<br>
+          • Course Code with Letter Grade: <code>MTHS002: A, PHYS001: B+, EMCS001: A-</code><br>
+          • Or list of passed course codes: <code>MTHS002, PHYS001, EMCS001, GENS001</code>
+        </p>
+        <textarea id="gradePasteArea" rows="7" style="width: 100%; border: 1px solid var(--border); border-radius: 8px; background: #07111e; color: #dce8f6; padding: 8px; font-size: 10px; font-family: monospace; outline: none;" placeholder="MTHS002: A, PHYS001: B+ ..."></textarea>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+        <div style="display: flex; gap: 6px;">
+          <button class="action-button" id="loadFreshmanPresetBtn" type="button">Level 0 Preset (38 CH)</button>
+          <button class="action-button" id="loadSeniorPresetBtn" type="button">Junior Preset (79 CH)</button>
+        </div>
+        <button class="action-button primary" id="applyPastedGradesBtn" type="button">
+          <span class="icon" data-lucide="check"></span>
+          Apply to Transcript
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ELECTIVE PLANNER MODAL -->
+  <div class="modal-backdrop" id="electiveModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">CUFE Mechatronics Elective Selection Planner</div>
+          <div class="modal-subtitle">
+            Choose your electives according to the CUFE 2023 Bylaws (Group 1: 2 CH, Group 2: 15 CH, Group 3: 6 CH). Selected electives render directly on the course graph with active prerequisite dependency arrows.
+          </div>
+        </div>
+        <button class="drawer-close" id="closeElectiveModal" type="button" title="Close"><span class="icon" data-lucide="x"></span></button>
+      </div>
+
+      <div class="modal-body">
+        <section class="elective-group">
+          <div class="elective-group-header">
+            <div class="elective-group-title">Elective Group (1) · Humanities &amp; General · (14 Courses / Choose 1 · 2 CH)</div>
+            <div class="elective-count" id="e1Count">1 selected</div>
+          </div>
+          <div class="elective-grid" id="e1Grid"></div>
+        </section>
+
+        <section class="elective-group">
+          <div class="elective-group-header">
+            <div class="elective-group-title">Elective Group (2) · Mechatronics &amp; Computing · (22 Courses / Choose 5 · 15 CH)</div>
+            <div class="elective-count" id="e2Count">0 / 5 selected</div>
+          </div>
+          <div class="elective-grid" id="e2Grid"></div>
+        </section>
+
+        <section class="elective-group">
+          <div class="elective-group-header">
+            <div class="elective-group-title">Elective Group (3) · Manufacturing &amp; Energy · (10 Courses / Choose 2 · 6 CH)</div>
+            <div class="elective-count" id="e3Count">0 / 2 selected</div>
+          </div>
+          <div class="elective-grid" id="e3Grid"></div>
+        </section>
+      </div>
+
+      <div class="modal-footer">
+        <button class="action-button" id="cancelElectivesBtn" type="button">Cancel</button>
+        <button class="action-button primary" id="saveElectivesBtn" type="button">
+          <span class="icon" data-lucide="check"></span>
+          Apply Electives to Graph
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PATHWAY SUGGESTION MODAL -->
+  <div class="modal-backdrop" id="pathwayModal">
+    <div class="modal" style="max-width: 640px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Suggested Pathway</div>
+          <div class="modal-subtitle">Based on your finished credit hours and completed courses, this plans out eligible courses across the number of terms you choose.</div>
+        </div>
+        <button class="drawer-close" id="closePathwayModal" type="button"><span class="icon" data-lucide="x"></span></button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+          <div>
+            <div class="filter-label" style="margin-bottom:4px;">Terms from now</div>
+            <input id="pathwayTermsInput" class="control" type="number" min="1" max="12" value="2" style="width:90px;">
+          </div>
+          <div>
+            <div class="filter-label" style="margin-bottom:4px;">Max CH per term</div>
+            <input id="pathwayCapInput" class="control" type="number" min="1" max="21" value="18" style="width:90px;">
+          </div>
+          <button class="action-button primary" id="generatePathwayBtn" type="button">
+            <span class="icon" data-lucide="sparkles"></span>
+            Generate Suggestion
+          </button>
+          <button class="action-button" id="clearPathwayBtn" type="button">
+            <span class="icon" data-lucide="x"></span>
+            Clear Highlight
+          </button>
+        </div>
+        <div class="pathway-panel" id="pathwayResults" style="margin-top:14px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WILLING LIST / TERM PLAN MODAL -->
+  <div class="modal-backdrop" id="willingModal">
+    <div class="modal" style="max-width: 640px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">My Term List</div>
+          <div class="modal-subtitle">Build the list of courses you're willing to take this term. Capped at the credit hours you enter below (max 21 CH). Only currently-eligible courses are shown.</div>
+        </div>
+        <button class="drawer-close" id="closeWillingModal" type="button"><span class="icon" data-lucide="x"></span></button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; gap:10px; align-items:flex-end; margin-bottom:10px;">
+          <div>
+            <div class="filter-label" style="margin-bottom:4px;">Credit hours needed this term (max 21)</div>
+            <input id="willingCapInput" class="control" type="number" min="1" max="21" value="18" style="width:120px;">
+          </div>
+          <div id="willingTotalLabel" style="font-size:9.5px; color: var(--muted);">0 / 18 CH selected</div>
+        </div>
+        <div class="willing-cap-bar"><div class="willing-cap-fill" id="willingCapFill" style="width:0%;"></div></div>
+        <div class="willing-panel" id="willingList" style="margin-top:12px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="action-button" id="clearWillingBtn" type="button">Clear List</button>
+        <button class="action-button primary" id="saveWillingBtn" type="button">
+          <span class="icon" data-lucide="check"></span>
+          Save Term List
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="printContainer" style="display:none;"></div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    "use strict";
+
+    // ===== SUPABASE CONFIG =====
+    const SUPABASE_URL = "https://mxgxbadhfozioolijthp.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im14Z3hiYWRoZm96aW9vbGlqdGhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNTY4ODMsImV4cCI6MjEwMjgzMjg4M30.sbPg3xJDz89unTaQJjMMwseW0xAVOVTcZ-FtBUWHtIQ";
+    const supabaseClient = (SUPABASE_URL.startsWith("http"))
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : null;
+
+    const SESSION_KEY = "cufe_nav_session_user";
+    let currentUser = null; // { id, username }
+
+    async function hashPassword(pw) {
+      const enc = new TextEncoder().encode(pw);
+      const buf = await crypto.subtle.digest("SHA-256", enc);
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    const TOTAL_DEGREE_CREDITS = 155;
+    const STORAGE_KEY = "cufe_mechatronics_navigator_v11";
+
+    const LETTER_POINTS = {
+      "A+": 4.0, "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7,
+      "C+": 2.3, "C": 2.0, "C-": 1.7, "D+": 1.3, "D": 1.0, "F": 0.0
+    };
+
+    const PASSING_GRADES = {
+      "A+": true, "A": true, "A-": true, "B+": true, "B": true, "B-": true,
+      "C+": true, "C": true, "C-": true, "D+": true, "D": true
+    };
+
+    const GRADE_OPTIONS = ["", "A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "F"];
+
+    const BASE_COURSES = [
+      // Year 1 Fall (Semester 1)
+      { code: "GENS001", title: "Critical and Creative Thinking", ch: 2, defaultTerm: "Y1F", prereqs: [], cat: "University" },
+      { code: "GENS004", title: "Proficiency and Capacity Building", ch: 1, defaultTerm: "Y1F", prereqs: [], cat: "University" },
+      { code: "CHES001", title: "Chemistry for Engineers", ch: 2, defaultTerm: "Y1F", prereqs: [], cat: "Faculty" },
+      { code: "INTS001", title: "Engineering Graphics", ch: 3, defaultTerm: "Y1F", prereqs: [], cat: "Faculty" },
+      { code: "PHYS001", title: "Properties of Matter & Thermo.", ch: 3, defaultTerm: "Y1F", prereqs: [], cat: "Faculty" },
+      { code: "EMCS001", title: "Engineering Mechanics - Dynamics", ch: 3, defaultTerm: "Y1F", prereqs: [], cat: "Faculty" },
+      { code: "INTS005", title: "Information Technology", ch: 2, defaultTerm: "Y1F", prereqs: [], cat: "Faculty" },
+      { code: "MTHS002", title: "Calculus 1", ch: 3, defaultTerm: "Y1F", prereqs: [], cat: "Faculty" },
+
+      // Year 1 Spring (Semester 2)
+      { code: "GENS005", title: "Writing and Presentation Skills", ch: 2, defaultTerm: "Y1S", prereqs: [], cat: "University" },
+      { code: "GENS002", title: "Societal Issues (E-0)", ch: 2, defaultTerm: "Y1S", prereqs: [], cat: "University" },
+      { code: "MDPS133", title: "Materials for Mechatronics", ch: 3, defaultTerm: "Y1S", prereqs: [], cat: "Discipline" },
+      { code: "MCNS101", title: "Thermodynamics", ch: 3, defaultTerm: "Y1S", prereqs: ["PHYS001"], cat: "Discipline" },
+      { code: "EMCS002", title: "Engineering Mechanics - Statics", ch: 2, defaultTerm: "Y1S", prereqs: [], cat: "Faculty" },
+      { code: "PHYS002", title: "Electricity and Magnetism", ch: 3, defaultTerm: "Y1S", prereqs: [], cat: "Faculty" },
+      { code: "MCNS202", title: "Fluid Mechanics", ch: 3, defaultTerm: "Y1S", prereqs: ["MTHS002"], cat: "Discipline" },
+      { code: "MTHS003", title: "Calculus 2", ch: 3, defaultTerm: "Y1S", prereqs: ["MTHS002"], cat: "Faculty" },
+
+      // Year 2 Fall (Semester 3)
+      { code: "GENS120", title: "Fund. of Economics & Accounting", ch: 2, defaultTerm: "Y2F", prereqs: [], cat: "University" },
+      { code: "GENS110", title: "Fund. of Management & Risk", ch: 2, defaultTerm: "Y2F", prereqs: [], cat: "University" },
+      { code: "MDPS217", title: "Machine Drawing", ch: 3, defaultTerm: "Y2F", prereqs: ["INTS001"], cat: "Discipline" },
+      { code: "MDPS261", title: "Stress Analysis", ch: 3, defaultTerm: "Y2F", prereqs: ["EMCS002"], cat: "Discipline" },
+      { code: "MDPS241", title: "Manufacturing Processes I", ch: 3, defaultTerm: "Y2F", prereqs: ["PHYS001"], cat: "Discipline" },
+      { code: "MTHS102", title: "Linear Algebra & Multivariable", ch: 3, defaultTerm: "Y2F", prereqs: ["MTHS003"], cat: "Discipline" },
+      { code: "MTHS104", title: "Differential Equations", ch: 3, defaultTerm: "Y2F", prereqs: ["MTHS002"], cat: "Discipline" },
+
+      // Year 2 Spring (Semester 4)
+      { code: "MTHS204", title: "Probability and Statistics", ch: 3, defaultTerm: "Y2S", prereqs: ["MTHS102"], cat: "Discipline" },
+      { code: "EPES201", title: "Electrical Engineering Fund.", ch: 3, defaultTerm: "Y2S", prereqs: ["PHYS002"], cat: "Discipline" },
+      { code: "CMPS118", title: "Intro to Logic Design", ch: 3, defaultTerm: "Y2S", prereqs: ["INTS005"], cat: "Program" },
+      { code: "MDPS251", title: "Kinematics of Machine Comp.", ch: 3, defaultTerm: "Y2S", prereqs: ["EMCS001"], cat: "Discipline" },
+      { code: "MDPS242", title: "Manufacturing Processes II", ch: 3, defaultTerm: "Y2S", prereqs: ["MDPS133"], cat: "Discipline" },
+      { code: "MTHS114", title: "Numerical Analysis", ch: 3, defaultTerm: "Y2S", prereqs: ["MTHS102", "MTHS104"], cat: "Discipline" },
+      { code: "MEES280", title: "Engineering Seminar", ch: 1, defaultTerm: "Y2S", prereqs: [], cat: "Discipline" },
+      
+      // Year 2 Summer
+      { code: "MEES281", title: "Industrial Training-1", ch: 1, defaultTerm: "Y2U", prereqs: [], isTraining: true, minCredits: 60, cat: "Faculty" },
+
+      // Year 3 Fall (Semester 5)
+      { code: "EPES303", title: "Electric Drive Systems", ch: 3, defaultTerm: "Y3F", prereqs: ["EPES201"], cat: "Discipline" },
+      { code: "MDPS355", title: "Dynamics of Machine Comp.", ch: 3, defaultTerm: "Y3F", prereqs: ["MDPS251"], cat: "Discipline" },
+      { code: "MCNS326", title: "Heat Transfer", ch: 3, defaultTerm: "Y3F", prereqs: ["MCNS101"], cat: "Discipline" },
+      { code: "MDPS352", title: "Machine Design", ch: 3, defaultTerm: "Y3F", prereqs: ["MDPS261"], cat: "Discipline" },
+      { code: "CMPS102", title: "Programming Techniques", ch: 3, defaultTerm: "Y3F", prereqs: ["INTS005"], cat: "Program" },
+
+      // Year 3 Spring (Semester 6)
+      { code: "MDPS423", title: "Robotics Engineering", ch: 3, defaultTerm: "Y3S", prereqs: ["MDPS251"], cat: "Program" },
+      { code: "EPES305", title: "Industrial Instrumentation", ch: 3, defaultTerm: "Y3S", prereqs: ["EPES303"], cat: "Discipline" },
+      { code: "MDPS372", title: "Control System Dynamics", ch: 3, defaultTerm: "Y3S", prereqs: ["MDPS355"], cat: "Discipline" },
+      { code: "MDPS374", title: "Design of Mechatronic Systems", ch: 4, defaultTerm: "Y3S", prereqs: ["MDPS352", "MDPS355"], cat: "Program" },
+      
+      // Year 3 Summer
+      { code: "MEES381", title: "Industrial Training-2", ch: 2, defaultTerm: "Y3U", prereqs: ["MEES281"], isTraining: true, cat: "Discipline" },
+
+      // Year 4 Fall (Semester 7)
+      { code: "CMPS201", title: "Microprocessor Systems", ch: 3, defaultTerm: "Y4F", prereqs: ["CMPS118"], cat: "Program" },
+      { code: "EPES450", title: "Programmable Logic Controllers", ch: 3, defaultTerm: "Y4F", prereqs: ["EPES303"], cat: "Discipline" },
+      { code: "MDPS473", title: "Automatic Control I", ch: 3, defaultTerm: "Y4F", prereqs: ["MDPS372"], cat: "Discipline" },
+      { code: "EPES451", title: "Industrial Comm. & Networks", ch: 3, defaultTerm: "Y4F", prereqs: ["EPES305"], cat: "Program" },
+      { code: "MEES481", title: "Graduation Project-1", ch: 1, defaultTerm: "Y4F", prereqs: [], minCredits: 110, cat: "Faculty" },
+
+      // Year 4 Spring (Semester 8)
+      { code: "MDPS479", title: "Embedded Systems for Mechatronics", ch: 2, defaultTerm: "Y4S", prereqs: ["CMPS201"], cat: "Program" },
+      { code: "MDPS371", title: "Mechanical Vibrations", ch: 3, defaultTerm: "Y4S", prereqs: ["MDPS355"], cat: "Discipline" },
+      { code: "MDPS470", title: "Mechatronics Lab", ch: 2, defaultTerm: "Y4S", prereqs: [], minCredits: 108, cat: "Program" },
+      { code: "MEES482", title: "Graduation Project-2", ch: 3, defaultTerm: "Y4S", prereqs: ["MEES481"], cat: "Discipline" }
+    ];
+
+    const ELECTIVES_E1_POOL = [
+      { code: "GENS009", title: "Introduction to Design Thinking", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
+      { code: "GENS201", title: "Ethics and Legislation", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
+      { code: "GENS202", title: "Advanced Critical Thinking", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
+      { code: "GENS203", title: "Entrepreneurship", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
+      { code: "GENS204", title: "Interdisciplinary Project", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
+      { code: "GENS205", title: "Advanced Risk Management", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
+      { code: "GENS206", title: "Technical Writing in Arabic", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
+      { code: "GENS207", title: "Foreign Language", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
+      { code: "GENS208", title: "Marketing", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
+      { code: "GENS209", title: "Selections of Life Long Skills", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
+      { code: "GENS210", title: "Scientific Research Methods", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
+      { code: "GENS235", title: "Business Communication", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
+      { code: "GENS236", title: "Service Management", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
+      { code: "GENS237", title: "Ethics & Legislation in Construction", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" }
+    ];
+
+    const ELECTIVES_E2_POOL = [
+      { code: "CMPS103", title: "Data Structures and Algorithms", ch: 3, prereqs: ["INTS005", "CMPS102"], cat: "Elective", group: "E2" },
+      { code: "CMPS202", title: "Introduction to Database Management", ch: 3, prereqs: ["CMPS102"], cat: "Elective", group: "E2" },
+      { code: "CMPS302", title: "Algorithms Design and Analysis", ch: 3, prereqs: ["CMPS103"], cat: "Elective", group: "E2" },
+      { code: "CMPS402", title: "Machine Intelligence", ch: 3, prereqs: ["CMPS202"], cat: "Elective", group: "E2" },
+      { code: "CMPS446", title: "Image Processing and Computer Vision", ch: 3, prereqs: ["MTHS204"], cat: "Elective", group: "E2" },
+      { code: "CMPS450", title: "Pattern Recognition & Neural Networks", ch: 3, prereqs: ["MTHS204"], cat: "Elective", group: "E2" },
+      { code: "EECS303", title: "Signal Analysis for Mechatronic Systems", ch: 3, prereqs: ["EPES201", "MTHS102"], cat: "Elective", group: "E2" },
+      { code: "EPES452", title: "Digital Control of Mechatronic Systems", ch: 3, prereqs: ["EECS303", "MDPS473"], cat: "Elective", group: "E2" },
+      { code: "EPES453", title: "Intelligent Control of Mechatronic Systems", ch: 3, prereqs: ["EECS303", "MDPS473"], cat: "Elective", group: "E2" },
+      { code: "MDPS353", title: "Mechanism Design", ch: 3, prereqs: ["MDPS355"], cat: "Elective", group: "E2" },
+      { code: "MDPS363", title: "Finite Element Analysis", ch: 3, prereqs: ["MDPS261"], cat: "Elective", group: "E2" },
+      { code: "MDPS399", title: "Product Development and Innovation", ch: 3, prereqs: ["MDPS352"], cat: "Elective", group: "E2" },
+      { code: "MDPS453", title: "Advanced Robotics and Artificial Intelligence", ch: 3, prereqs: ["MDPS423"], cat: "Elective", group: "E2" },
+      { code: "MDPS457", title: "Fluid Power Systems", ch: 3, prereqs: ["MCNS202", "MDPS372"], cat: "Elective", group: "E2" },
+      { code: "MDPS458", title: "Hydraulic Servo Control", ch: 3, prereqs: ["MDPS457", "MDPS473"], cat: "Elective", group: "E2" },
+      { code: "MDPS469", title: "Selected Topics in Mechatronics", ch: 3, prereqs: [], minCredits: 85, cat: "Elective", group: "E2" },
+      { code: "MDPS474", title: "Automatic Control II", ch: 3, prereqs: ["MDPS473"], cat: "Elective", group: "E2" },
+      { code: "MDPS476", title: "Mobile Robots and Autonomous Systems", ch: 3, prereqs: ["MDPS423"], cat: "Elective", group: "E2" },
+      { code: "MDPS477", title: "Micro and Nano-Electromechanical Systems", ch: 3, prereqs: ["MDPS372"], cat: "Elective", group: "E2" },
+      { code: "MDPS478", title: "Vehicle System Dynamics and Control", ch: 3, prereqs: ["MDPS372"], cat: "Elective", group: "E2" },
+      { code: "MDPS492", title: "Computer Integrated Manufacturing CIM", ch: 3, prereqs: ["MDPS381", "MDPS242"], cat: "Elective", group: "E2" },
+      { code: "MDPS496", title: "Machine Learning for Industrial Eng.", ch: 3, prereqs: ["MTHS204"], cat: "Elective", group: "E2" }
+    ];
+
+    const ELECTIVES_E3_POOL = [
+      { code: "MDPS323", title: "Modern Manufacturing Processes", ch: 3, prereqs: ["MDPS241", "MDPS242"], cat: "Elective", group: "E3" },
+      { code: "MDPS332", title: "CAD / CAM", ch: 3, prereqs: ["MDPS241"], cat: "Elective", group: "E3" },
+      { code: "MDPS381", title: "Fundamentals of Industrial Engineering", ch: 3, prereqs: [], cat: "Elective", group: "E3" },
+      { code: "MDPS390", title: "Project Management", ch: 3, prereqs: ["MDPS381"], cat: "Elective", group: "E3" },
+      { code: "MDPS432", title: "Pressure Vessels and Piping", ch: 3, prereqs: [], minCredits: 85, cat: "Elective", group: "E3" },
+      { code: "MDPS444", title: "Sheet Metal Processing", ch: 3, prereqs: ["MDPS242"], cat: "Elective", group: "E3" },
+      { code: "MDPS482", title: "Quality Management", ch: 3, prereqs: ["MTHS204"], cat: "Elective", group: "E3" },
+      { code: "MDPS490", title: "Design for Manufacturing", ch: 3, prereqs: ["MDPS242", "MDPS381"], cat: "Elective", group: "E3" },
+      { code: "MEPS415", title: "Power Generation", ch: 3, prereqs: [], minCredits: 85, cat: "Elective", group: "E3" },
+      { code: "MEPS425", title: "Renewable Energy", ch: 3, prereqs: [], minCredits: 85, cat: "Elective", group: "E3" }
+    ];
+
+    const FRESHMAN_PRESET = {
+      "GENS001": "A", "GENS004": "A", "CHES001": "B+", "INTS001": "A",
+      "PHYS001": "B+", "EMCS001": "A-", "INTS005": "B", "MTHS002": "B+",
+      "GENS005": "A", "GENS002": "A", "MDPS133": "B+", "MCNS101": "A",
+      "EMCS002": "B", "PHYS002": "B+", "MCNS202": "A", "MTHS003": "B+"
+    };
+
+    const JUNIOR_PRESET = {
+      "CHES001": "A-", "EMCS001": "A-", "GENS001": "B+", "GENS004": "A-", "INTS001": "A", "INTS005": "B-", "MTHS002": "B+", "PHYS001": "B+",
+      "EMCS002": "C", "GENS002": "B+", "GENS005": "B+", "MCNS101": "A", "MCNS202": "A+", "MDPS133": "A", "MTHS003": "B-", "PHYS002": "B+",
+      "MTHS102": "B-", "CMPS118": "B", "EPES201": "C+", "GENS120": "C+", "MDPS217": "C-", "MDPS241": "D", "MDPS261": "A", "MEES280": "P",
+      "EPES303": "C", "MCNS326": "B", "MDPS242": "D+", "MDPS251": "C+", "MDPS352": "B+", "MTHS104": "C-",
+      "MEES281": "IP"
+    };
+
+    const state = {
+      grades: {},
+      manualPass: {},
+      courseTerms: {},
+      totalYears: 4,
+      selectedElectives: {
+        E1: "GENS201",
+        E2: ["CMPS103", "MDPS363", "MDPS476", "EPES452", "MDPS478"],
+        E3: ["MDPS381", "MDPS332"]
+      },
+      willingList: [],
+      willingTermCap: 18,
+      pinnedCode: null,
+      hoveredCode: null,
+      criticalPathMode: false,
+      zoom: 0.62,
+      panX: 25,
+      panY: 18
+    };
+
+    const nodePositions = {};
+    const graphViewport = document.getElementById("graphViewport");
+    const graphWorld = document.getElementById("graphWorld");
+    const edgeSvg = document.getElementById("edgeSvg");
+    const nodeLayer = document.getElementById("nodeLayer");
+    const semesterLayer = document.getElementById("semesterLayer");
+    const drawer = document.getElementById("courseDrawer");
+    const drawerContent = document.getElementById("drawerContent");
+    const toast = document.getElementById("toast");
+
+    let isPanning = false;
+    let panStartX = 0, panStartY = 0, startPanX = 0, startPanY = 0;
+    let toastTimer = null;
+
+    function cloneObject(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+    function getTermDefinitionList() {
+      const list = [];
+      const years = Number(state.totalYears) || 4;
+      for (let y = 1; y <= years; y++) {
+        list.push({ id: `Y${y}F`, year: y, season: "Fall", title: `Year ${y} · Fall`, isSummer: false, index: (y - 1) * 3 });
+        list.push({ id: `Y${y}S`, year: y, season: "Spring", title: `Year ${y} · Spring`, isSummer: false, index: (y - 1) * 3 + 1 });
+        list.push({ id: `Y${y}U`, year: y, season: "Summer", title: `Year ${y} · Summer`, isSummer: true, index: (y - 1) * 3 + 2 });
+      }
+      return list;
+    }
+
+    function getTermIndex(termId) {
+      const defs = getTermDefinitionList();
+      const found = defs.find(t => t.id === termId);
+      return found ? found.index : 0;
+    }
+
+    function getFullActiveCatalog() {
+      const list = [];
+      for (let i = 0; i < BASE_COURSES.length; i++) {
+        list.push(cloneObject(BASE_COURSES[i]));
+      }
+
+      const e1Course = ELECTIVES_E1_POOL.find(c => c.code === state.selectedElectives.E1) || ELECTIVES_E1_POOL[0];
+      const e1Obj = cloneObject(e1Course);
+      e1Obj.defaultTerm = "Y3F";
+      list.push(e1Obj);
+
+      const e2DefaultTerms = ["Y3S", "Y3S", "Y4F", "Y4S", "Y4S"];
+      state.selectedElectives.E2.forEach((code, idx) => {
+        const found = ELECTIVES_E2_POOL.find(c => c.code === code);
+        if (found) {
+          const item = cloneObject(found);
+          item.defaultTerm = e2DefaultTerms[idx] || "Y4S";
+          list.push(item);
+        }
+      });
+
+      const e3DefaultTerms = ["Y4F", "Y4S"];
+      state.selectedElectives.E3.forEach((code, idx) => {
+        const found = ELECTIVES_E3_POOL.find(c => c.code === code);
+        if (found) {
+          const item = cloneObject(found);
+          item.defaultTerm = e3DefaultTerms[idx] || "Y4S";
+          list.push(item);
+        }
+      });
+
+      list.forEach(c => {
+        if (state.courseTerms[c.code]) {
+          c.term = state.courseTerms[c.code];
+        } else {
+          c.term = c.defaultTerm;
+        }
+      });
+
+      return list;
+    }
+
+    function getCourseMap() {
+      const map = {};
+      const catalog = getFullActiveCatalog();
+      for (let i = 0; i < catalog.length; i++) {
+        map[catalog[i].code] = catalog[i];
+      }
+      return map;
+    }
+
+    function getGrade(code) { return state.grades[code] || ""; }
+
+    function isPassed(code) {
+      const grade = getGrade(code);
+      if (grade === "P" || PASSING_GRADES[grade] || state.manualPass[code] === true) return true;
+      return false;
+    }
+
+    function getCompletedCredits() {
+      const map = getCourseMap();
+      let total = 0;
+      for (const code in map) {
+        if (isPassed(code)) total += Number(map[code].ch) || 0;
+      }
+      return total;
+    }
+
+    function getGpaData() {
+      const map = getCourseMap();
+      let qualityPoints = 0, gradedCredits = 0;
+      for (const code in map) {
+        const grade = getGrade(code);
+        if (LETTER_POINTS.hasOwnProperty(grade)) {
+          const ch = Number(map[code].ch) || 0;
+          qualityPoints += LETTER_POINTS[grade] * ch;
+          gradedCredits += ch;
+        }
+      }
+      return {
+        qualityPoints,
+        gradedCredits,
+        gpa: gradedCredits > 0 ? qualityPoints / gradedCredits : 0
+      };
+    }
+
+    function isEligible(course) {
+      if (!course || isPassed(course.code)) return false;
+      if (course.minCredits && getCompletedCredits() < course.minCredits) return false;
+      for (let i = 0; i < course.prereqs.length; i++) {
+        if (!isPassed(course.prereqs[i])) return false;
+      }
+      if (course.code === "MEES381" && !isPassed("MEES281")) return false;
+      return true;
+    }
+
+    function missingPrerequisites(course) {
+      const missing = [];
+      for (let i = 0; i < course.prereqs.length; i++) {
+        if (!isPassed(course.prereqs[i])) missing.push(course.prereqs[i]);
+      }
+      if (course.minCredits && getCompletedCredits() < course.minCredits) {
+        missing.push(course.minCredits + "+ CH");
+      }
+      return missing;
+    }
+
+    function getStatus(course) {
+      if (isPassed(course.code)) return "passed";
+      if (getGrade(course.code) === "IP") return "ip";
+      if (isEligible(course)) return "ready";
+      return "locked";
+    }
+
+    function getDirectDependents(code) {
+      const catalog = getFullActiveCatalog();
+      const res = [];
+      for (let i = 0; i < catalog.length; i++) {
+        if (catalog[i].prereqs.includes(code)) res.push(catalog[i].code);
+      }
+      if (code === "MEES281" && !res.includes("MEES381")) res.push("MEES381");
+      return res;
+    }
+
+    function getUpstreamCodes(code) {
+      const map = getCourseMap();
+      const visited = {}, result = [], queue = [code];
+      while (queue.length > 0) {
+        const curr = queue.shift();
+        const crs = map[curr];
+        if (!crs) continue;
+        for (let i = 0; i < crs.prereqs.length; i++) {
+          const p = crs.prereqs[i];
+          if (!visited[p]) {
+            visited[p] = true;
+            result.push(p);
+            queue.push(p);
+          }
+        }
+      }
+      return result;
+    }
+
+    function getDownstreamCodes(code) {
+      const map = getCourseMap();
+      const visited = {}, result = [], queue = [code];
+      while (queue.length > 0) {
+        const curr = queue.shift();
+        const children = getDirectDependents(curr);
+        for (let i = 0; i < children.length; i++) {
+          const ch = children[i];
+          if (map[ch] && !visited[ch]) {
+            visited[ch] = true;
+            result.push(ch);
+            queue.push(ch);
+          }
+        }
+      }
+      return result;
+    }
+
+    // CRITICAL PATH ANALYSIS: Longest Prerequisite Chain Finding
+    function findLongestCriticalPath() {
+      const catalog = getFullActiveCatalog();
+      const map = getCourseMap();
+      const memo = {};
+
+      function getChain(code) {
+        if (memo[code]) return memo[code];
+        const crs = map[code];
+        if (!crs || !crs.prereqs || crs.prereqs.length === 0) {
+          memo[code] = [code];
+          return [code];
+        }
+
+        let longestSub = [];
+        crs.prereqs.forEach(p => {
+          const sub = getChain(p);
+          if (sub.length > longestSub.length) longestSub = sub;
+        });
+
+        memo[code] = [...longestSub, code];
+        return memo[code];
+      }
+
+      let longestOverall = [];
+      catalog.forEach(c => {
+        const chain = getChain(c.code);
+        if (chain.length > longestOverall.length) longestOverall = chain;
+      });
+
+      return longestOverall;
+    }
+
+    function highlightCriticalPath() {
+      state.criticalPathMode = true;
+      state.pinnedCode = null;
+      const chain = findLongestCriticalPath();
+      const chainSet = new Set(chain);
+
+      document.querySelectorAll(".course-node").forEach(node => {
+        const c = node.dataset.code;
+        node.classList.remove("upstream", "downstream", "dimmed", "selected", "critical");
+        if (chainSet.has(c)) {
+          node.classList.add("critical");
+        } else {
+          node.classList.add("dimmed");
+        }
+      });
+
+      document.querySelectorAll(".edge").forEach(edge => {
+        const src = edge.dataset.source;
+        const tgt = edge.dataset.target;
+        edge.classList.remove("upstream", "downstream", "dimmed", "critical");
+
+        const srcIdx = chain.indexOf(src);
+        const tgtIdx = chain.indexOf(tgt);
+        if (srcIdx !== -1 && tgtIdx !== -1 && tgtIdx === srcIdx + 1) {
+          edge.classList.add("critical");
+        } else {
+          edge.classList.add("dimmed");
+        }
+      });
+
+      showToast(`Longest Critical Chain: ${chain.length} courses (${chain.join(' → ')})`);
+    }
+
+    // AUTO-PAN & FOCUS HELPER
+    function panToCourseAndHighlight(code) {
+      const pos = nodePositions[code];
+      if (!pos) return;
+
+      const rect = graphViewport.getBoundingClientRect();
+      state.zoom = 0.85;
+      state.panX = (rect.width / 2) - (pos.x + pos.width / 2) * state.zoom;
+      state.panY = (rect.height / 2) - (pos.y + pos.height / 2) * state.zoom;
+      setTransform();
+
+      state.pinnedCode = code;
+      state.criticalPathMode = false;
+      applyPathHighlight(code);
+      openDrawer(code);
+    }
+
+    function validateTermMove(code, targetTerm) {
+      const targetIndex = getTermIndex(targetTerm);
+      const catalog = getFullActiveCatalog();
+      const currentCourse = catalog.find(c => c.code === code);
+      if (!currentCourse) return { valid: true };
+
+      for (let i = 0; i < currentCourse.prereqs.length; i++) {
+        const prereqCode = currentCourse.prereqs[i];
+        if (!isPassed(prereqCode)) {
+          const prereqObj = catalog.find(c => c.code === prereqCode);
+          if (prereqObj) {
+            const prereqIndex = getTermIndex(prereqObj.term);
+            if (targetIndex <= prereqIndex) {
+              return {
+                valid: false,
+                reason: `Prerequisite Violation: ${code} requires ${prereqCode} (placed in ${prereqObj.term}). You must register ${code} in a subsequent semester!`
+              };
+            }
+          }
+        }
+      }
+
+      const downstream = getDirectDependents(code);
+      for (let i = 0; i < downstream.length; i++) {
+        const downCode = downstream[i];
+        const downObj = catalog.find(c => c.code === downCode);
+        if (downObj) {
+          const downIndex = getTermIndex(downObj.term);
+          if (targetIndex >= downIndex && !isPassed(code)) {
+            return {
+              valid: false,
+              reason: `Dependency Violation: ${downCode} in ${downObj.term} depends on ${code}. You cannot move ${code} to or past ${downObj.term}!`
+            };
+          }
+        }
+      }
+
+      if (targetTerm.endsWith("U")) {
+        const isMths = code.startsWith("MTHS");
+        const isGens = code.startsWith("GENS");
+        const isTraining = code === "MEES281" || code === "MEES381";
+
+        if (!isMths && !isGens && !isTraining) {
+          return { valid: false, reason: `Summer Term Restriction: Only MTHS and GENS courses are allowed in Summer! (${code} is not permitted)` };
+        }
+
+        const targetCourses = catalog.filter(c => (c.term === targetTerm && c.code !== code && !c.isTraining));
+        const targetCourseCount = targetCourses.length;
+        const targetCredits = targetCourses.reduce((sum, c) => sum + Number(c.ch), 0);
+        const courseCH = Number(currentCourse.ch) || 3;
+
+        if (!isTraining) {
+          if (targetCourseCount + 1 > 2) {
+            return { valid: false, reason: `Summer Limit Exceeded: Maximum 2 academic courses permitted per summer.` };
+          }
+          if (targetCredits + courseCH > 6) {
+            return { valid: false, reason: `Summer Limit Exceeded: Maximum 6 Credit Hours permitted per summer.` };
+          }
+        }
+      }
+
+      return { valid: true };
+    }
+
+    function buildPositions() {
+      const catalog = getFullActiveCatalog();
+      const grouped = {};
+      const termDefs = getTermDefinitionList();
+
+      termDefs.forEach(t => { grouped[t.id] = []; });
+      catalog.forEach(c => {
+        if (!grouped[c.term]) grouped[c.term] = [];
+        grouped[c.term].push(c);
+      });
+
+      termDefs.forEach((t, colIdx) => {
+        const courses = grouped[t.id] || [];
+        const x = 30 + colIdx * 280;
+
+        courses.forEach((c, rowIdx) => {
+          const y = 86 + rowIdx * 132;
+          nodePositions[c.code] = { x, y, width: 242, height: 114 };
+        });
+      });
+    }
+
+    function renderSemesterHeaders() {
+      semesterLayer.innerHTML = "";
+      const termDefs = getTermDefinitionList();
+      const catalog = getFullActiveCatalog();
+
+      termDefs.forEach((t, idx) => {
+        const col = document.createElement("div");
+        col.className = "semester-column";
+        col.style.left = (30 + idx * 280) + "px";
+
+        const termCourses = catalog.filter(c => c.term === t.id);
+        const totalCH = termCourses.reduce((sum, c) => sum + Number(c.ch), 0);
+        const totalCourses = termCourses.filter(c => !c.isTraining).length;
+
+        // CUFE Load Warnings: Regular term must be 12 to 21 CH (if active); Summer max 6 CH / 2 courses
+        let warningText = "";
+        let isWarning = false;
+
+        if (t.isSummer) {
+          if (totalCH > 6 || totalCourses > 2) {
+            isWarning = true;
+            warningText = "⚠ SUMMER OVERLOAD (>6 CH / >2 Crs)";
+          }
+        } else {
+          if (totalCH > 0 && totalCH < 12) {
+            isWarning = true;
+            warningText = "⚠ UNDERLOAD (<12 CH Limit)";
+          } else if (totalCH > 21) {
+            isWarning = true;
+            warningText = "⚠ OVERLOAD (>21 CH Limit)";
+          }
+        }
+
+        col.innerHTML = `
+          <div class="semester-title ${t.isSummer ? 'summer-header' : ''}">${t.title}</div>
+          <div class="semester-subtitle">${t.isSummer ? 'Summer Term (Max 6 CH / 2 Courses)' : 'Regular Term (12 - 21 CH)'}</div>
+          <div class="semester-stats ${isWarning ? 'warning' : ''}">${termCourses.length} Courses · ${totalCH} CH ${warningText ? `· ${warningText}` : ''}</div>
+        `;
+        semesterLayer.appendChild(col);
+      });
+    }
+
+    function renderNodes() {
+      nodeLayer.innerHTML = "";
+      buildPositions();
+      const catalog = getFullActiveCatalog();
+      const termDefs = getTermDefinitionList();
+
+      catalog.forEach(course => {
+        const pos = nodePositions[course.code];
+        if (!pos) return;
+
+        const node = document.createElement("div");
+        node.className = "course-node";
+        node.dataset.code = course.code;
+        node.style.left = pos.x + "px";
+        node.style.top = pos.y + "px";
+
+        const top = document.createElement("div");
+        top.className = "node-top";
+        top.innerHTML = `<div class="node-code">${course.code}</div><div class="node-ch">${course.ch} CH</div>`;
+
+        let catClass = "cat-discipline";
+        if (course.cat === "University") catClass = "cat-university";
+        if (course.cat === "Faculty") catClass = "cat-faculty";
+        if (course.cat === "Program") catClass = "cat-program";
+        if (course.cat === "Elective") catClass = "cat-elective";
+
+        const category = document.createElement("div");
+        category.className = "node-category " + catClass;
+        category.textContent = course.group ? `${course.cat} (${course.group})` : course.cat;
+
+        const title = document.createElement("div");
+        title.className = "node-title";
+        title.textContent = course.title;
+
+        const bottom = document.createElement("div");
+        bottom.className = "node-bottom";
+
+        const status = getStatus(course);
+        const pill = document.createElement("div");
+        if (status === "passed") {
+          pill.className = "status-pill status-passed";
+          pill.innerHTML = `<span class="icon" data-lucide="check"></span> Passed · ${getGrade(course.code)}`;
+        } else if (status === "ip") {
+          pill.className = "status-pill status-ip";
+          pill.innerHTML = `<span class="icon" data-lucide="clock-3"></span> In Progress`;
+        } else if (status === "ready") {
+          pill.className = "status-pill status-ready";
+          pill.innerHTML = `<span class="icon" data-lucide="sparkles"></span> Eligible`;
+        } else {
+          pill.className = "status-pill status-locked";
+          pill.innerHTML = `<span class="icon" data-lucide="lock"></span> Locked (${missingPrerequisites(course).length})`;
+        }
+
+        const controls = document.createElement("div");
+        controls.className = "node-controls";
+
+        const termSelect = document.createElement("select");
+        termSelect.className = "slot-select";
+        termSelect.title = "Change Semester Slot";
+        termDefs.forEach(t => {
+          const opt = document.createElement("option");
+          opt.value = t.id;
+          opt.textContent = t.id;
+          if (course.term === t.id) opt.selected = true;
+          termSelect.appendChild(opt);
+        });
+
+        termSelect.addEventListener("change", (e) => {
+          e.stopPropagation();
+          const targetTerm = e.target.value;
+          const validation = validateTermMove(course.code, targetTerm);
+          if (!validation.valid) {
+            showToast(validation.reason);
+            e.target.value = course.term;
+            return;
+          }
+          state.courseTerms[course.code] = targetTerm;
+          saveState();
+          renderAll();
+          showToast(`Moved ${course.code} to ${targetTerm}`);
+        });
+        termSelect.addEventListener("click", e => e.stopPropagation());
+
+        const sel = document.createElement("select");
+        sel.className = "grade-select";
+        GRADE_OPTIONS.forEach(opt => {
+          const o = document.createElement("option");
+          o.value = opt;
+          o.textContent = opt === "" ? "Grade" : opt;
+          if (opt === getGrade(course.code)) o.selected = true;
+          sel.appendChild(o);
+        });
+
+        sel.addEventListener("change", (e) => {
+          e.stopPropagation();
+          if (e.target.value === "") delete state.grades[course.code];
+          else state.grades[course.code] = e.target.value;
+          delete state.manualPass[course.code];
+          saveState();
+          renderAll();
+        });
+        sel.addEventListener("click", e => e.stopPropagation());
+
+        controls.appendChild(termSelect);
+        controls.appendChild(sel);
+
+        bottom.appendChild(pill);
+        bottom.appendChild(controls);
+
+        const inA = document.createElement("span"); inA.className = "node-anchor anchor-in";
+        const outA = document.createElement("span"); outA.className = "node-anchor anchor-out";
+
+        node.appendChild(top);
+        node.appendChild(category);
+        node.appendChild(title);
+        node.appendChild(bottom);
+        node.appendChild(inA);
+        node.appendChild(outA);
+
+        node.addEventListener("mouseenter", () => {
+          if (state.criticalPathMode) return;
+          state.hoveredCode = course.code;
+          applyPathHighlight(course.code);
+        });
+
+        node.addEventListener("mouseleave", () => {
+          if (state.criticalPathMode) return;
+          state.hoveredCode = null;
+          if (state.pinnedCode) applyPathHighlight(state.pinnedCode);
+          else clearPathHighlight();
+        });
+
+        node.addEventListener("click", (e) => {
+          if (e.target.tagName === "SELECT") return;
+          state.criticalPathMode = false;
+          state.pinnedCode = course.code;
+          applyPathHighlight(course.code);
+          openDrawer(course.code);
+        });
+
+        nodeLayer.appendChild(node);
+      });
+
+      if (window.lucide) window.lucide.createIcons();
+      applyFilters();
+    }
+
+    function drawEdges() {
+      edgeSvg.innerHTML = "";
+      const catalog = getFullActiveCatalog();
+      const map = getCourseMap();
+
+      catalog.forEach(target => {
+        const targetPos = nodePositions[target.code];
+        if (!targetPos) return;
+
+        target.prereqs.forEach(sourceCode => {
+          const sourcePos = nodePositions[sourceCode];
+          if (!sourcePos) return;
+
+          const startX = sourcePos.x + sourcePos.width;
+          const startY = sourcePos.y + sourcePos.height / 2;
+          const endX = targetPos.x;
+          const endY = targetPos.y + targetPos.height / 2;
+          const dx = Math.max(45, Math.abs(endX - startX) * 0.45);
+
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute("d", `M ${startX} ${startY} C ${startX + dx} ${startY}, ${endX - dx} ${endY}, ${endX} ${endY}`);
+          path.setAttribute("class", "edge");
+          path.dataset.source = sourceCode;
+          path.dataset.target = target.code;
+          edgeSvg.appendChild(path);
+        });
+      });
+    }
+
+    function applyPathHighlight(code) {
+      const upstream = getUpstreamCodes(code);
+      const downstream = getDownstreamCodes(code);
+      const upSet = new Set(upstream);
+      const downSet = new Set(downstream);
+
+      document.querySelectorAll(".course-node").forEach(node => {
+        const c = node.dataset.code;
+        node.classList.remove("upstream", "downstream", "dimmed", "selected", "critical");
+        if (c === code) node.classList.add("selected");
+        else if (upSet.has(c)) node.classList.add("upstream");
+        else if (downSet.has(c)) node.classList.add("downstream");
+        else node.classList.add("dimmed");
+      });
+
+      document.querySelectorAll(".edge").forEach(edge => {
+        const src = edge.dataset.source;
+        const tgt = edge.dataset.target;
+        edge.classList.remove("upstream", "downstream", "dimmed", "critical");
+
+        if (tgt === code || (upSet.has(src) && upSet.has(tgt)) || upSet.has(tgt)) {
+          edge.classList.add("upstream");
+        } else if (src === code || (downSet.has(src) && downSet.has(tgt)) || downSet.has(src)) {
+          edge.classList.add("downstream");
+        } else {
+          edge.classList.add("dimmed");
+        }
+      });
+    }
+
+    function clearPathHighlight() {
+      document.querySelectorAll(".course-node").forEach(node => {
+        node.classList.remove("upstream", "downstream", "dimmed", "critical");
+        if (state.pinnedCode && node.dataset.code === state.pinnedCode) node.classList.add("selected");
+        else node.classList.remove("selected");
+      });
+      document.querySelectorAll(".edge").forEach(edge => {
+        edge.classList.remove("upstream", "downstream", "dimmed", "critical");
+      });
+    }
+
+    function applyFilters() {
+      const statusFilter = document.getElementById("statusFilter").value;
+      const categoryFilter = document.getElementById("categoryFilter").value;
+      const query = document.getElementById("searchInput").value.trim().toUpperCase();
+      const map = getCourseMap();
+
+      document.querySelectorAll(".course-node").forEach(node => {
+        const course = map[node.dataset.code];
+        if (!course) return;
+
+        const st = getStatus(course);
+        const statusMatch = (statusFilter === "all" || statusFilter === st);
+        const categoryMatch = (categoryFilter === "all" || course.cat === categoryFilter);
+        const queryMatch = (!query || course.code.toUpperCase().includes(query) || course.title.toUpperCase().includes(query));
+
+        if (statusMatch && categoryMatch && queryMatch) {
+          node.classList.remove("hidden-filter");
+        } else {
+          node.classList.add("hidden-filter");
+        }
+      });
+    }
+
+    function openDrawer(code) {
+      const map = getCourseMap();
+      const course = map[code];
+      if (!course) return;
+
+      const downstream = getDirectDependents(code);
+      const termDefs = getTermDefinitionList();
+
+      let html = `
+        <div class="drawer-header">
+          <div>
+            <div class="drawer-code">${course.code}</div>
+            <div class="drawer-title">${course.title}</div>
+          </div>
+          <button class="drawer-close" id="drawerCloseBtn" type="button"><span class="icon" data-lucide="x"></span></button>
+        </div>
+        <div class="drawer-meta">
+          <div class="meta-chip">${course.ch} Credit Hours</div>
+          <div class="meta-chip">${course.cat}</div>
+          <div class="meta-chip">${course.term}</div>
+        </div>
+        <div class="drawer-section">
+          <div class="drawer-section-title">Term Slot Placement</div>
+          <select id="drawerTerm" class="drawer-term">
+            ${termDefs.map(t => `<option value="${t.id}" ${course.term === t.id ? 'selected' : ''}>${t.title} (${t.id})</option>`).join('')}
+          </select>
+        </div>
+        <div class="drawer-section">
+          <div class="drawer-section-title">Grade &amp; Completion</div>
+          <select id="drawerGrade" class="drawer-grade">
+            ${GRADE_OPTIONS.map(g => `<option value="${g}" ${g === getGrade(code) ? 'selected' : ''}>${g === "" ? 'No Grade' : g}</option>`).join('')}
+          </select>
+          <button id="drawerPassToggle" class="pass-toggle ${isPassed(code) ? '' : 'off'}" type="button">
+            ${isPassed(code) ? 'Marked as Completed' : 'Mark as Passed'}
+          </button>
+        </div>
+        <div class="drawer-section">
+          <div class="drawer-section-title">Prerequisites</div>
+          <div class="prereq-list">
+            ${course.prereqs.length === 0 ? '<span class="drawer-note">No course prerequisites.</span>' : course.prereqs.map(p => `<span class="course-badge">${p}</span>`).join('')}
+          </div>
+        </div>
+        <div class="drawer-section">
+          <div class="drawer-section-title">Unlocks Downstream</div>
+          <div class="prereq-list">
+            ${downstream.length === 0 ? '<span class="drawer-note">No downstream courses.</span>' : downstream.map(d => `<span class="course-badge">${d}</span>`).join('')}
+          </div>
+        </div>
+      `;
+
+      drawerContent.innerHTML = html;
+      drawer.classList.add("open");
+
+      document.getElementById("drawerCloseBtn").addEventListener("click", () => {
+        state.pinnedCode = null;
+        drawer.classList.remove("open");
+        clearPathHighlight();
+      });
+
+      document.getElementById("drawerTerm").addEventListener("change", (e) => {
+        const targetTerm = e.target.value;
+        const validation = validateTermMove(code, targetTerm);
+        if (!validation.valid) {
+          showToast(validation.reason);
+          e.target.value = course.term;
+          return;
+        }
+        state.courseTerms[code] = targetTerm;
+        saveState();
+        renderAll();
+        openDrawer(code);
+        showToast(`Moved ${code} to ${targetTerm}`);
+      });
+
+      document.getElementById("drawerGrade").addEventListener("change", (e) => {
+        if (e.target.value === "") delete state.grades[code];
+        else state.grades[code] = e.target.value;
+        delete state.manualPass[code];
+        saveState();
+        renderAll();
+        openDrawer(code);
+      });
+
+      document.getElementById("drawerPassToggle").addEventListener("click", () => {
+        if (isPassed(code)) {
+          delete state.manualPass[code];
+          if (getGrade(code) === "P") delete state.grades[code];
+        } else {
+          state.manualPass[code] = true;
+          delete state.grades[code];
+        }
+        saveState();
+        renderAll();
+        openDrawer(code);
+      });
+
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function updateMetrics() {
+      const completed = getCompletedCredits();
+      const gpaData = getGpaData();
+      const remaining = Math.max(0, TOTAL_DEGREE_CREDITS - completed);
+
+      document.getElementById("creditsMetric").textContent = `${completed} / ${TOTAL_DEGREE_CREDITS} CH`;
+      document.getElementById("creditsSub").textContent = `${((completed / TOTAL_DEGREE_CREDITS) * 100).toFixed(1)}% completed`;
+      document.getElementById("gpaMetric").textContent = gpaData.gpa.toFixed(2);
+      document.getElementById("gpaSub").textContent = `${gpaData.gradedCredits} graded credits`;
+      document.getElementById("remainingMetric").textContent = `${remaining} CH`;
+
+      const updateMS = (id, pass, ready, text) => {
+        const el = document.getElementById(id);
+        el.classList.remove("ready", "current");
+        if (pass) { el.classList.add("ready"); el.textContent = "✓ " + text; }
+        else if (ready) { el.classList.add("current"); el.textContent = "Ready · " + text; }
+        else el.textContent = text;
+      };
+
+      updateMS("it1Milestone", isPassed("MEES281"), completed >= 60, "IT1 · 60 CH");
+      updateMS("it2Milestone", isPassed("MEES381"), isPassed("MEES281"), "IT2 · IT1 passed");
+      updateMS("labMilestone", isPassed("MDPS470"), completed >= 108, "LAB · 108 CH");
+      updateMS("projectMilestone", isPassed("MEES481"), completed >= 110, "PROJECT · 110 CH");
+    }
+
+    function renderAll() {
+      updateMetrics();
+      renderSemesterHeaders();
+      renderNodes();
+      drawEdges();
+    }
+
+    // PRINTABLE STUDY PLAN COMPILATION
+    function renderPrintPlan() {
+      const termDefs = getTermDefinitionList();
+      const catalog = getFullActiveCatalog();
+      const gpaData = getGpaData();
+      const completed = getCompletedCredits();
+
+      let tableHtml = `
+        <div style="font-family: Inter, sans-serif; color: #dce8f6;">
+          <div style="border-bottom: 2px solid #38bdf8; padding-bottom: 8px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+              <h2 style="font-size: 16px; font-weight: 800; margin: 0; color: #fff;">Cairo University - Faculty of Engineering</h2>
+              <p style="font-size: 12px; margin: 3px 0 0; color: #38bdf8; font-weight: 700;">Mechatronics Engineering Program · Official Degree Plan (155 CH)</p>
+            </div>
+            <div style="text-align: right; font-size: 10px; color: #94a3b8;">
+              <div><strong>Progress:</strong> ${completed} / ${TOTAL_DEGREE_CREDITS} CH (${((completed/TOTAL_DEGREE_CREDITS)*100).toFixed(1)}%)</div>
+              <div><strong>CGPA:</strong> ${gpaData.gpa.toFixed(2)} (${gpaData.gradedCredits} Graded CH)</div>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+      `;
+
+      termDefs.forEach(t => {
+        const termCourses = catalog.filter(c => c.term === t.id);
+        const totalCH = termCourses.reduce((sum, c) => sum + Number(c.ch), 0);
+
+        tableHtml += `
+          <div style="border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 8px; background: rgba(13, 24, 40, 0.7); padding: 8px; break-inside: avoid;">
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(148, 163, 184, 0.2); padding-bottom: 4px; margin-bottom: 6px;">
+              <span style="font-weight: 800; font-size: 10.5px; color: ${t.isSummer ? '#fde68a' : '#93c5fd'};">${t.title}</span>
+              <span style="font-weight: 800; font-size: 10px; color: #a5f3fc;">${totalCH} CH</span>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 8.5px;">
+              <thead>
+                <tr style="color: #71859c; text-align: left;">
+                  <th style="padding: 2px;">Code</th>
+                  <th style="padding: 2px;">Course Title</th>
+                  <th style="padding: 2px; text-align: center;">CH</th>
+                  <th style="padding: 2px; text-align: center;">Grade</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+
+        if (termCourses.length === 0) {
+          tableHtml += `<tr><td colspan="4" style="text-align: center; color: #64748b; padding: 6px;">No courses registered</td></tr>`;
+        } else {
+          termCourses.forEach(c => {
+            const grade = getGrade(c.code) || (isPassed(c.code) ? "P" : "-");
+            tableHtml += `
+              <tr style="border-bottom: 1px solid rgba(148, 163, 184, 0.08);">
+                <td style="padding: 3px 2px; font-weight: 700; color: #f3f8ff;">${c.code}</td>
+                <td style="padding: 3px 2px; color: #cbd5e1;">${c.title}</td>
+                <td style="padding: 3px 2px; text-align: center; color: #94a3b8;">${c.ch}</td>
+                <td style="padding: 3px 2px; text-align: center; font-weight: 800; color: ${isPassed(c.code) ? '#34d399' : '#e2e8f0'};">${grade}</td>
+              </tr>
+            `;
+          });
+        }
+
+        tableHtml += `
+              </tbody>
+            </table>
+          </div>
+        `;
+      });
+
+      tableHtml += `</div></div>`;
+      document.getElementById("printModalContent").innerHTML = tableHtml;
+      document.getElementById("printContainer").innerHTML = tableHtml;
+    }
+
+    let saveDebounceTimer = null;
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        grades: state.grades,
+        manualPass: state.manualPass,
+        courseTerms: state.courseTerms,
+        totalYears: state.totalYears,
+        selectedElectives: state.selectedElectives,
+        willingList: state.willingList,
+        willingTermCap: state.willingTermCap
+      }));
+
+      if (!supabaseClient || !currentUser) return;
+      clearTimeout(saveDebounceTimer);
+      saveDebounceTimer = setTimeout(async () => {
+        const { error } = await supabaseClient.from("student_state").upsert({
+          user_id: currentUser.id,
+          grades: state.grades,
+          manual_pass: state.manualPass,
+          course_terms: state.courseTerms,
+          total_years: state.totalYears,
+          selected_electives: state.selectedElectives,
+          willing_list: state.willingList,
+          willing_term_cap: state.willingTermCap,
+          updated_at: new Date().toISOString()
+        }, { onConflict: "user_id" });
+        if (error) console.error("Supabase save failed:", error.message);
+      }, 600);
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        if (saved) {
+          state.grades = saved.grades || {};
+          state.manualPass = saved.manualPass || {};
+          state.courseTerms = saved.courseTerms || {};
+          state.totalYears = saved.totalYears || 4;
+          if (saved.selectedElectives) state.selectedElectives = saved.selectedElectives;
+          state.willingList = saved.willingList || [];
+          state.willingTermCap = saved.willingTermCap || 18;
+        }
+      } catch (e) {}
+    }
+
+    async function loadStateFromSupabase() {
+      if (!supabaseClient || !currentUser) return;
+      const { data, error } = await supabaseClient
+        .from("student_state")
+        .select("*")
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+      if (error) { console.error("Supabase load failed:", error.message); return; }
+      if (data) {
+        state.grades = data.grades || {};
+        state.manualPass = data.manual_pass || {};
+        state.courseTerms = data.course_terms || {};
+        state.totalYears = data.total_years || 4;
+        if (data.selected_electives) state.selectedElectives = data.selected_electives;
+        state.willingList = data.willing_list || [];
+        state.willingTermCap = data.willing_term_cap || 18;
+      }
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 3800);
+    }
+
+    function renderElectiveModal() {
+      const e1Grid = document.getElementById("e1Grid");
+      const e2Grid = document.getElementById("e2Grid");
+      const e3Grid = document.getElementById("e3Grid");
+
+      e1Grid.innerHTML = ELECTIVES_E1_POOL.map(c => `
+        <label class="elective-item ${state.selectedElectives.E1 === c.code ? 'selected' : ''}">
+          <div class="elective-top">
+            <input type="radio" name="e1Choice" class="elective-checkbox" value="${c.code}" ${state.selectedElectives.E1 === c.code ? 'checked' : ''}>
+            <div>
+              <div class="elective-code">${c.code} · ${c.ch} CH</div>
+              <div class="elective-name">${c.title}</div>
+              <div class="elective-prereqs">Prerequisites: None</div>
+            </div>
+          </div>
+        </label>
+      `).join('');
+
+      e2Grid.innerHTML = ELECTIVES_E2_POOL.map(c => {
+        const sel = state.selectedElectives.E2.includes(c.code);
+        return `
+          <label class="elective-item ${sel ? 'selected' : ''}">
+            <div class="elective-top">
+              <input type="checkbox" class="elective-checkbox e2-cb" value="${c.code}" ${sel ? 'checked' : ''}>
+              <div>
+                <div class="elective-code">${c.code} · ${c.ch} CH</div>
+                <div class="elective-name">${c.title}</div>
+                <div class="elective-prereqs">Prerequisites: ${c.minCredits ? c.minCredits + '+ CH' : (c.prereqs.length ? c.prereqs.join(', ') : 'None')}</div>
+              </div>
+            </div>
+          </label>
+        `;
+      }).join('');
+
+      e3Grid.innerHTML = ELECTIVES_E3_POOL.map(c => {
+        const sel = state.selectedElectives.E3.includes(c.code);
+        return `
+          <label class="elective-item ${sel ? 'selected' : ''}">
+            <div class="elective-top">
+              <input type="checkbox" class="elective-checkbox e3-cb" value="${c.code}" ${sel ? 'checked' : ''}>
+              <div>
+                <div class="elective-code">${c.code} · ${c.ch} CH</div>
+                <div class="elective-name">${c.title}</div>
+                <div class="elective-prereqs">Prerequisites: ${c.minCredits ? c.minCredits + '+ CH' : (c.prereqs.length ? c.prereqs.join(', ') : 'None')}</div>
+              </div>
+            </div>
+          </label>
+        `;
+      }).join('');
+
+      e1Grid.querySelectorAll("input[type=radio]").forEach(r => {
+        r.addEventListener("change", (e) => {
+          state.selectedElectives.E1 = e.target.value;
+          renderElectiveModal();
+        });
+      });
+
+      e2Grid.querySelectorAll(".e2-cb").forEach(cb => {
+        cb.addEventListener("change", (e) => {
+          const val = e.target.value;
+          if (e.target.checked) {
+            if (state.selectedElectives.E2.length >= 5) {
+              showToast("E2 allows maximum 5 courses (15 Credits).");
+              e.target.checked = false;
+              return;
+            }
+            state.selectedElectives.E2.push(val);
+          } else {
+            state.selectedElectives.E2 = state.selectedElectives.E2.filter(x => x !== val);
+          }
+          renderElectiveModal();
+        });
+      });
+
+      e3Grid.querySelectorAll(".e3-cb").forEach(cb => {
+        cb.addEventListener("change", (e) => {
+          const val = e.target.value;
+          if (e.target.checked) {
+            if (state.selectedElectives.E3.length >= 2) {
+              showToast("E3 allows maximum 2 courses (6 Credits).");
+              e.target.checked = false;
+              return;
+            }
+            state.selectedElectives.E3.push(val);
+          } else {
+            state.selectedElectives.E3 = state.selectedElectives.E3.filter(x => x !== val);
+          }
+          renderElectiveModal();
+        });
+      });
+
+      document.getElementById("e1Count").textContent = state.selectedElectives.E1 ? "1 selected (2 CH)" : "0 selected";
+      document.getElementById("e2Count").textContent = `${state.selectedElectives.E2.length} / 5 selected (${state.selectedElectives.E2.length * 3}/15 CH)`;
+      document.getElementById("e3Count").textContent = `${state.selectedElectives.E3.length} / 2 selected (${state.selectedElectives.E3.length * 3}/6 CH)`;
+    }
+
+    function setTransform() {
+      graphWorld.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
+    }
+
+    // ===== AUTH =====
+    let authMode = "login";
+
+    function showApp() {
+      document.getElementById("authScreen").classList.add("hidden");
+      document.getElementById("userChip").style.display = "flex";
+      document.getElementById("userChipName").textContent = currentUser.username;
+    }
+
+    async function signUp(username, password) {
+      const password_hash = await hashPassword(password);
+      const { data, error } = await supabaseClient
+        .from("users")
+        .insert({ username, password_hash })
+        .select()
+        .single();
+      if (error) {
+        if (error.message.includes("duplicate") || error.code === "23505") {
+          throw new Error("That username is already taken.");
+        }
+        throw new Error(error.message);
+      }
+      return { id: data.id, username: data.username };
+    }
+
+    async function logIn(username, password) {
+      const password_hash = await hashPassword(password);
+      const { data, error } = await supabaseClient
+        .from("users")
+        .select("id, username, password_hash")
+        .eq("username", username)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!data || data.password_hash !== password_hash) {
+        throw new Error("Incorrect username or password.");
+      }
+      return { id: data.id, username: data.username };
+    }
+
+    function logOut() {
+      currentUser = null;
+      localStorage.removeItem(SESSION_KEY);
+      location.reload();
+    }
+
+    function setupAuthScreen() {
+      const errorEl = document.getElementById("authError");
+      const statusEl = document.getElementById("authStatus");
+
+      statusEl.textContent = supabaseClient ? "" : "Supabase isn't configured — check SUPABASE_URL / SUPABASE_ANON_KEY.";
+
+      document.getElementById("authToggleBtn").addEventListener("click", () => {
+        authMode = authMode === "login" ? "signup" : "login";
+        document.getElementById("authTitle").textContent = authMode === "login" ? "Log In" : "Sign Up";
+        document.getElementById("authSubmitBtn").textContent = authMode === "login" ? "Log In" : "Create Account";
+        document.getElementById("authToggleText").textContent = authMode === "login" ? "Don't have an account?" : "Already have an account?";
+        document.getElementById("authToggleBtn").textContent = authMode === "login" ? "Sign Up" : "Log In";
+        errorEl.style.display = "none";
+      });
+
+      document.getElementById("authSubmitBtn").addEventListener("click", handleAuthSubmit);
+      document.getElementById("authPassword").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") handleAuthSubmit();
+      });
+      document.getElementById("logoutBtn").addEventListener("click", logOut);
+
+      const savedUser = localStorage.getItem(SESSION_KEY);
+      if (savedUser && supabaseClient) {
+        try {
+          currentUser = JSON.parse(savedUser);
+          loadStateFromSupabase().then(() => {
+            showApp();
+            initApp();
+          });
+        } catch (e) { localStorage.removeItem(SESSION_KEY); }
+      }
+    }
+
+    async function handleAuthSubmit() {
+      const errorEl = document.getElementById("authError");
+      errorEl.style.display = "none";
+
+      if (!supabaseClient) {
+        errorEl.textContent = "Supabase isn't configured yet.";
+        errorEl.style.display = "block";
+        return;
+      }
+
+      const username = document.getElementById("authUsername").value.trim();
+      const password = document.getElementById("authPassword").value;
+      if (!username || !password) {
+        errorEl.textContent = "Enter both a username and a password.";
+        errorEl.style.display = "block";
+        return;
+      }
+
+      try {
+        currentUser = authMode === "signup"
+          ? await signUp(username, password)
+          : await logIn(username, password);
+        localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+        await loadStateFromSupabase();
+        showApp();
+        initApp();
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.style.display = "block";
+      }
+    }
+
+    function init() {
+      loadState();
+      setupAuthScreen();
+    }
+
+    function initApp() {
+      document.getElementById("yearsFilter").value = state.totalYears;
+
+      // CRITICAL PATH ANALYSIS LISTENER
+      document.getElementById("criticalPathBtn").addEventListener("click", () => {
+        highlightCriticalPath();
+      });
+
+      // PRINT STUDY PLAN LISTENERS
+      document.getElementById("printPlanBtn").addEventListener("click", () => {
+        renderPrintPlan();
+        document.getElementById("printModal").classList.add("open");
+      });
+
+      document.getElementById("closePrintModal").addEventListener("click", () => document.getElementById("printModal").classList.remove("open"));
+      document.getElementById("cancelPrintModal").addEventListener("click", () => document.getElementById("printModal").classList.remove("open"));
+      document.getElementById("triggerBrowserPrintBtn").addEventListener("click", () => {
+        window.print();
+      });
+
+      // SMART AUTO-PAN SEARCH BAR
+      document.getElementById("searchInput").addEventListener("input", (e) => {
+        const query = e.target.value.trim().toUpperCase();
+        applyFilters();
+        const map = getCourseMap();
+        if (map[query]) {
+          panToCourseAndHighlight(query);
+        }
+      });
+
+      // QUICK PASTE MODAL LISTENERS
+      document.getElementById("quickPasteBtn").addEventListener("click", () => {
+        document.getElementById("pasteModal").classList.add("open");
+      });
+
+      document.getElementById("closePasteModal").addEventListener("click", () => {
+        document.getElementById("pasteModal").classList.remove("open");
+      });
+
+      document.getElementById("loadFreshmanPresetBtn").addEventListener("click", () => {
+        state.grades = cloneObject(FRESHMAN_PRESET);
+        state.manualPass = {};
+        saveState();
+        renderAll();
+        document.getElementById("pasteModal").classList.remove("open");
+        showToast("Freshman Level 0 preset loaded (38 CH completed).");
+      });
+
+      document.getElementById("loadSeniorPresetBtn").addEventListener("click", () => {
+        state.grades = cloneObject(JUNIOR_PRESET);
+        state.manualPass = {};
+        saveState();
+        renderAll();
+        document.getElementById("pasteModal").classList.remove("open");
+        showToast("Junior sample preset loaded (79 CH completed).");
+      });
+
+      document.getElementById("applyPastedGradesBtn").addEventListener("click", () => {
+        const rawText = document.getElementById("gradePasteArea").value;
+        if (!rawText.trim()) return;
+
+        const entries = rawText.split(/[\n,;]+/);
+        let count = 0;
+
+        entries.forEach(entry => {
+          const parts = entry.split(/[:=\s\t]+/);
+          const code = parts[0]?.trim().toUpperCase();
+          const grade = parts[1]?.trim().toUpperCase() || "P";
+
+          if (code) {
+            state.grades[code] = GRADE_OPTIONS.includes(grade) ? grade : "P";
+            count++;
+          }
+        });
+
+        saveState();
+        renderAll();
+        document.getElementById("pasteModal").classList.remove("open");
+        showToast(`Successfully applied ${count} course records.`);
+      });
+
+      document.getElementById("electivesBtn").addEventListener("click", () => {
+        renderElectiveModal();
+        document.getElementById("electiveModal").classList.add("open");
+      });
+
+      document.getElementById("closeElectiveModal").addEventListener("click", () => document.getElementById("electiveModal").classList.remove("open"));
+      document.getElementById("cancelElectivesBtn").addEventListener("click", () => document.getElementById("electiveModal").classList.remove("open"));
+      document.getElementById("saveElectivesBtn").addEventListener("click", () => {
+        if (state.selectedElectives.E2.length !== 5) { showToast("Please select exactly 5 E2 electives (15 CH)."); return; }
+        if (state.selectedElectives.E3.length !== 2) { showToast("Please select exactly 2 E3 electives (6 CH)."); return; }
+        saveState();
+        document.getElementById("electiveModal").classList.remove("open");
+        renderAll();
+        showToast("Electives locked & graph updated.");
+      });
+
+      document.getElementById("yearsFilter").addEventListener("change", (e) => {
+        state.totalYears = Number(e.target.value);
+        saveState();
+        renderAll();
+      });
+
+      document.getElementById("statusFilter").addEventListener("change", applyFilters);
+      document.getElementById("categoryFilter").addEventListener("change", applyFilters);
+
+      document.getElementById("resetBtn").addEventListener("click", () => {
+        if (confirm("Reset all grades, pass statuses, and custom term assignments to clean state?")) {
+          state.grades = {};
+          state.manualPass = {};
+          state.courseTerms = {};
+          state.criticalPathMode = false;
+          saveState();
+          renderAll();
+          showToast("Curriculum reset to a clean state.");
+        }
+      });
+
+      document.getElementById("exportBtn").addEventListener("click", () => {
+        const payload = {
+          degree: "CUFE Mechatronics Engineering",
+          totalCredits: TOTAL_DEGREE_CREDITS,
+          exportedAt: new Date().toISOString(),
+          state: state
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "cufe_mechatronics_plan_155ch.json";
+        a.click();
+      });
+
+      document.getElementById("importBtn").addEventListener("click", () => document.getElementById("importFile").click());
+      document.getElementById("importFile").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            try {
+              const loaded = JSON.parse(evt.target.result);
+              const data = loaded.state || loaded;
+              state.grades = data.grades || {};
+              state.manualPass = data.manualPass || {};
+              state.courseTerms = data.courseTerms || {};
+              state.totalYears = data.totalYears || 4;
+              if (data.selectedElectives) state.selectedElectives = data.selectedElectives;
+              saveState();
+              renderAll();
+              showToast("Progress imported successfully.");
+            } catch (err) { showToast("Invalid JSON backup file."); }
+          };
+          reader.readAsText(file);
+        }
+      });
+
+      document.getElementById("zoomInBtn").addEventListener("click", () => { state.zoom = Math.min(1.5, state.zoom * 1.15); setTransform(); });
+      document.getElementById("zoomOutBtn").addEventListener("click", () => { state.zoom = Math.max(0.3, state.zoom * 0.85); setTransform(); });
+      document.getElementById("fitBtn").addEventListener("click", () => { state.zoom = 0.62; state.panX = 25; state.panY = 18; setTransform(); });
+      document.getElementById("resetViewBtn").addEventListener("click", () => { state.zoom = 0.62; state.panX = 25; state.panY = 18; state.criticalPathMode = false; setTransform(); clearPathHighlight(); });
+
+      graphViewport.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        const factor = e.deltaY < 0 ? 1.08 : 0.92;
+        state.zoom = Math.max(0.3, Math.min(1.5, state.zoom * factor));
+        setTransform();
+      }, { passive: false });
+
+      graphViewport.addEventListener("mousedown", (e) => {
+        if (e.button !== 0 || e.target.closest(".course-node")) return;
+        isPanning = true;
+        panStartX = e.clientX; panStartY = e.clientY;
+        startPanX = state.panX; startPanY = state.panY;
+      });
+
+      window.addEventListener("mousemove", (e) => {
+        if (!isPanning) return;
+        state.panX = startPanX + (e.clientX - panStartX);
+        state.panY = startPanY + (e.clientY - panStartY);
+        setTransform();
+      });
+
+      window.addEventListener("mouseup", () => { isPanning = false; });
+
+      setupPathwayUI();
+      setupWillingUI();
+
+      renderAll();
+      setTransform();
+    }
+
+    // ===== SUGGESTED PATHWAY =====
+
+    function clearPathwayHighlight() {
+      document.querySelectorAll(".course-node").forEach(n => {
+        n.classList.remove("plan-t1", "plan-t2", "plan-t3", "plan-t4", "plan-t5", "plan-t6");
+        const badge = n.querySelector(".plan-badge");
+        if (badge) badge.remove();
+      });
+    }
+
+    // Greedy scheduler: each term takes as many eligible, still-unassigned courses
+    // as fit under the CH cap, prioritizing courses that unlock the most downstream
+    // courses first. Simulates "passing" assigned courses before evaluating the next
+    // term so prereq chains resolve correctly across the whole window.
+    function computeSuggestedPathway(numTerms, capCH) {
+      const catalog = getFullActiveCatalog();
+      const simPassed = new Set(catalog.filter(c => isPassed(c.code)).map(c => c.code));
+      let simCompletedCH = getCompletedCredits();
+      const remaining = catalog.filter(c => !simPassed.has(c.code));
+      const dependentCount = {};
+      catalog.forEach(c => c.prereqs.forEach(p => { dependentCount[p] = (dependentCount[p] || 0) + 1; }));
+
+      const plan = [];
+      for (let term = 1; term <= numTerms; term++) {
+        const eligible = remaining.filter(c => {
+          if (simPassed.has(c.code)) return false;
+          if (c.minCredits && simCompletedCH < c.minCredits) return false;
+          return c.prereqs.every(p => simPassed.has(p));
+        });
+
+        eligible.sort((a, b) => (dependentCount[b.code] || 0) - (dependentCount[a.code] || 0));
+
+        const chosen = [];
+        let termCH = 0;
+        eligible.forEach(c => {
+          const ch = Number(c.ch) || 0;
+          if (termCH + ch <= capCH) {
+            chosen.push(c);
+            termCH += ch;
+          }
+        });
+
+        chosen.forEach(c => {
+          simPassed.add(c.code);
+          simCompletedCH += Number(c.ch) || 0;
+          const idx = remaining.indexOf(c);
+          if (idx >= 0) remaining.splice(idx, 1);
+        });
+
+        plan.push({ term, courses: chosen, ch: termCH });
+      }
+
+      return { plan, leftoverCount: remaining.length };
+    }
+
+    function renderPathwayResults(result) {
+      const el = document.getElementById("pathwayResults");
+      let html = "";
+      result.plan.forEach(t => {
+        html += `
+          <div class="pathway-term-block">
+            <div class="pathway-term-title"><span>Term ${t.term}</span><span>${t.ch} CH · ${t.courses.length} courses</span></div>
+            <div class="pathway-term-courses">
+              ${t.courses.length === 0
+                ? '<span class="drawer-note">No new eligible courses fit this term.</span>'
+                : t.courses.map(c => `<span class="course-badge">${c.code} · ${c.ch} CH</span>`).join('')}
+            </div>
+          </div>`;
+      });
+      if (result.leftoverCount > 0) {
+        html += `<div class="drawer-note">${result.leftoverCount} remaining courses didn't fit in this window — add more terms or raise the CH cap.</div>`;
+      }
+      el.innerHTML = html;
+
+      clearPathwayHighlight();
+      const classes = ["plan-t1", "plan-t2", "plan-t3", "plan-t4", "plan-t5", "plan-t6"];
+      result.plan.forEach((t, idx) => {
+        const cls = classes[idx % classes.length];
+        t.courses.forEach(c => {
+          const node = document.querySelector(`.course-node[data-code="${c.code}"]`);
+          if (node) {
+            node.classList.add(cls);
+            const badge = document.createElement("div");
+            badge.className = "plan-badge";
+            badge.style.background = getComputedStyle(node).borderColor;
+            badge.textContent = "T" + t.term;
+            node.style.position = "absolute";
+            node.appendChild(badge);
+          }
+        });
+      });
+    }
+
+    function setupPathwayUI() {
+      document.getElementById("pathwayBtn").addEventListener("click", () => {
+        document.getElementById("pathwayModal").classList.add("open");
+      });
+      document.getElementById("closePathwayModal").addEventListener("click", () => {
+        document.getElementById("pathwayModal").classList.remove("open");
+      });
+      document.getElementById("generatePathwayBtn").addEventListener("click", () => {
+        const numTerms = Math.max(1, Math.min(12, Number(document.getElementById("pathwayTermsInput").value) || 1));
+        const capCH = Math.max(1, Math.min(21, Number(document.getElementById("pathwayCapInput").value) || 18));
+        const result = computeSuggestedPathway(numTerms, capCH);
+        renderPathwayResults(result);
+      });
+      document.getElementById("clearPathwayBtn").addEventListener("click", () => {
+        clearPathwayHighlight();
+        document.getElementById("pathwayResults").innerHTML = "";
+      });
+    }
+
+    // ===== WILLING / TERM LIST =====
+
+    function getEligibleUnplannedCourses() {
+      const catalog = getFullActiveCatalog();
+      return catalog.filter(c => isEligible(c));
+    }
+
+    function renderWillingList() {
+      const cap = state.willingTermCap;
+      document.getElementById("willingCapInput").value = cap;
+
+      const courses = getEligibleUnplannedCourses();
+      const listEl = document.getElementById("willingList");
+      let totalCH = state.willingList.reduce((sum, code) => {
+        const c = courses.find(x => x.code === code) || getCourseMap()[code];
+        return sum + (c ? Number(c.ch) : 0);
+      }, 0);
+
+      listEl.innerHTML = courses.map(c => {
+        const sel = state.willingList.includes(c.code);
+        return `
+          <label class="willing-item ${sel ? 'selected' : ''}">
+            <input type="checkbox" class="willing-cb" value="${c.code}" data-ch="${c.ch}" ${sel ? 'checked' : ''}>
+            <div style="flex:1;">
+              <div class="elective-code">${c.code} · ${c.ch} CH</div>
+              <div class="elective-name">${c.title}</div>
+            </div>
+          </label>`;
+      }).join('') || '<span class="drawer-note">No eligible courses right now — mark more prerequisites as passed first.</span>';
+
+      document.getElementById("willingTotalLabel").textContent = `${totalCH} / ${cap} CH selected`;
+      const fill = document.getElementById("willingCapFill");
+      const pct = Math.min(100, (totalCH / cap) * 100);
+      fill.style.width = pct + "%";
+      fill.classList.toggle("over", totalCH > cap);
+
+      listEl.querySelectorAll(".willing-cb").forEach(cb => {
+        cb.addEventListener("change", (e) => {
+          const code = e.target.value;
+          const ch = Number(e.target.dataset.ch);
+          if (e.target.checked) {
+            const currentTotal = state.willingList.reduce((sum, c2) => {
+              const found = getCourseMap()[c2];
+              return sum + (found ? Number(found.ch) : 0);
+            }, 0);
+            if (currentTotal + ch > state.willingTermCap) {
+              showToast(`Adding ${code} would exceed your ${state.willingTermCap} CH cap for this term.`);
+              e.target.checked = false;
+              return;
+            }
+            state.willingList.push(code);
+          } else {
+            state.willingList = state.willingList.filter(x => x !== code);
+          }
+          renderWillingList();
+        });
+      });
+    }
+
+    function setupWillingUI() {
+      document.getElementById("willingBtn").addEventListener("click", () => {
+        renderWillingList();
+        document.getElementById("willingModal").classList.add("open");
+      });
+      document.getElementById("closeWillingModal").addEventListener("click", () => {
+        document.getElementById("willingModal").classList.remove("open");
+      });
+      document.getElementById("willingCapInput").addEventListener("change", (e) => {
+        let val = Number(e.target.value) || 18;
+        val = Math.max(1, Math.min(21, val));
+        state.willingTermCap = val;
+        renderWillingList();
+      });
+      document.getElementById("clearWillingBtn").addEventListener("click", () => {
+        state.willingList = [];
+        renderWillingList();
+      });
+      document.getElementById("saveWillingBtn").addEventListener("click", () => {
+        saveState();
+        document.getElementById("willingModal").classList.remove("open");
+        showToast(`Term list saved: ${state.willingList.length} courses.`);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
