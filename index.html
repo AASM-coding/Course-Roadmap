@@ -704,6 +704,21 @@
     .legend-purple { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
     .legend-green { background: var(--green); }
 
+    /* PRINTABLE TABLE STYLES */
+    @media print {
+      body * { visibility: hidden; }
+      #printContainer, #printContainer * { visibility: visible; }
+      #printContainer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        color: #000;
+        background: #fff;
+        padding: 20px;
+      }
+    }
+
     /* AUTH SCREEN */
     #authScreen {
       position: fixed; inset: 0; z-index: 500;
@@ -820,6 +835,11 @@
             Longest Critical Path
           </button>
 
+          <button class="action-button" id="printPlanBtn" type="button">
+            <span class="icon" data-lucide="printer"></span>
+            Print Study Plan
+          </button>
+
           <button class="action-button primary" id="pathwayBtn" type="button">
             <span class="icon" data-lucide="sparkles"></span>
             Suggest Pathway
@@ -924,6 +944,27 @@
         <div class="drawer-inner" id="drawerContent"></div>
       </aside>
     </main>
+  </div>
+
+  <!-- PRINTABLE STUDY PLAN MODAL -->
+  <div class="modal-backdrop" id="printModal">
+    <div class="modal" style="width: min(1000px, 96vw);">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Custom Study Plan Table (Official Format)</div>
+          <div class="modal-subtitle">Ready for academic advisor review, registration week, and PDF printing. Created by Mahmoud Mohamed El-Aidy &amp; Adham Adel Sayed</div>
+        </div>
+        <button class="drawer-close" id="closePrintModal" type="button"><span class="icon" data-lucide="x"></span></button>
+      </div>
+      <div class="modal-body" id="printModalContent"></div>
+      <div class="modal-footer">
+        <button class="action-button" id="cancelPrintModal" type="button">Close</button>
+        <button class="action-button primary" id="triggerBrowserPrintBtn" type="button">
+          <span class="icon" data-lucide="printer"></span>
+          Print / Save as PDF
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- QUICK GRADE PASTE MODAL -->
@@ -1072,6 +1113,7 @@
     </div>
   </div>
 
+  <div id="printContainer" style="display:none;"></div>
   <div class="toast" id="toast"></div>
 
   <script>
@@ -1094,7 +1136,7 @@
     }
 
     const TOTAL_DEGREE_CREDITS = 155;
-    const STORAGE_KEY = "cufe_mechatronics_navigator_v20";
+    const STORAGE_KEY = "cufe_mechatronics_navigator_v19";
 
     const LETTER_POINTS = {
       "A+": 4.0, "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7,
@@ -1391,6 +1433,7 @@
       return total;
     }
 
+    // Computes GPA for a specific term up to index
     function getTermStatsUpToTerm(termIndex) {
       const termDefs = getTermDefinitionList();
       const catalog = getFullActiveCatalog();
@@ -1438,6 +1481,8 @@
 
     function getRegistrationLimitForTerm(termIndex) {
       const stats = getTermStatsUpToTerm(termIndex);
+      // If evaluating past terms with graded credits, use historical cGPA up to that term
+      // For future/current terms with no history, use overall cGPA
       const gpa = stats.totalGradedCH > 0 ? stats.cgpa : getGpaData().gpa;
       const gradedCh = stats.totalGradedCH > 0 ? stats.totalGradedCH : getGpaData().gradedCredits;
 
@@ -2135,6 +2180,84 @@
       drawEdges();
     }
 
+    // PRINTABLE STUDY PLAN COMPILATION (Fixed)
+    function renderPrintPlan() {
+      const termDefs = getTermDefinitionList();
+      const catalog = getFullActiveCatalog();
+      const gpaData = getGpaData();
+      const completed = getCompletedCredits();
+
+      let tableHtml = `
+        <div style="font-family: Inter, sans-serif; color: #dce8f6;">
+          <div style="border-bottom: 2px solid #38bdf8; padding-bottom: 8px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+              <h2 style="font-size: 16px; font-weight: 800; margin: 0; color: #fff;">Cairo University - Faculty of Engineering</h2>
+              <p style="font-size: 12px; margin: 3px 0 0; color: #38bdf8; font-weight: 700;">Mechatronics Engineering Program · Official Degree Plan (155 CH)</p>
+              <p style="font-size: 9px; margin: 2px 0 0; color: #94a3b8;">Created by Mahmoud Mohamed El-Aidy &amp; Adham Adel Sayed</p>
+            </div>
+            <div style="text-align: right; font-size: 10px; color: #94a3b8;">
+              <div><strong>Progress:</strong> ${completed} / ${TOTAL_DEGREE_CREDITS} CH (${((completed/TOTAL_DEGREE_CREDITS)*100).toFixed(1)}%)</div>
+              <div><strong>CGPA:</strong> ${gpaData.gpa.toFixed(2)} (${gpaData.gradedCredits} Graded CH)</div>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+      `;
+
+      termDefs.forEach((t, idx) => {
+        const termCourses = catalog.filter(c => c.term === t.id);
+        const totalCH = termCourses.reduce((sum, c) => sum + Number(c.ch), 0);
+        const limit = getRegistrationLimitForTerm(idx);
+
+        tableHtml += `
+          <div style="border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 8px; background: rgba(13, 24, 40, 0.7); padding: 8px; break-inside: avoid;">
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(148, 163, 184, 0.2); padding-bottom: 4px; margin-bottom: 6px;">
+              <div>
+                <span style="font-weight: 800; font-size: 10.5px; color: ${t.isSummer ? '#fde68a' : '#93c5fd'};">${t.title}</span>
+                <div style="font-size: 7.5px; color: #64748b;">${t.isSummer ? 'Summer' : limit.desc}</div>
+              </div>
+              <span style="font-weight: 800; font-size: 10px; color: #a5f3fc;">${totalCH} CH</span>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 8.5px;">
+              <thead>
+                <tr style="color: #71859c; text-align: left;">
+                  <th style="padding: 2px;">Code</th>
+                  <th style="padding: 2px;">Course Title</th>
+                  <th style="padding: 2px; text-align: center;">CH</th>
+                  <th style="padding: 2px; text-align: center;">Grade</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+
+        if (termCourses.length === 0) {
+          tableHtml += `<tr><td colspan="4" style="text-align: center; color: #64748b; padding: 6px;">No courses registered</td></tr>`;
+        } else {
+          termCourses.forEach(c => {
+            const grade = getGrade(c.code) || (isPassed(c.code) ? "P" : "-");
+            const nonGpaTag = c.isNonGpa ? ' <span style="color:#fb923c; font-size:7px;">[P/F]</span>' : '';
+            tableHtml += `
+              <tr style="border-bottom: 1px solid rgba(148, 163, 184, 0.08);">
+                <td style="padding: 3px 2px; font-weight: 700; color: #f3f8ff;">${c.code}${nonGpaTag}</td>
+                <td style="padding: 3px 2px; color: #cbd5e1;">${c.title}</td>
+                <td style="padding: 3px 2px; text-align: center; color: #94a3b8;">${c.ch}</td>
+                <td style="padding: 3px 2px; text-align: center; font-weight: 800; color: ${isPassed(c.code) ? '#34d399' : '#e2e8f0'};">${grade}</td>
+              </tr>
+            `;
+          });
+        }
+
+        tableHtml += `
+              </tbody>
+            </table>
+          </div>
+        `;
+      });
+
+      tableHtml += `</div></div>`;
+      document.getElementById("printModalContent").innerHTML = tableHtml;
+      document.getElementById("printContainer").innerHTML = tableHtml;
+    }
+
     let saveDebounceTimer = null;
 
     function saveState() {
@@ -2214,6 +2337,7 @@
       const e2Grid = document.getElementById("e2Grid");
       const e3Grid = document.getElementById("e3Grid");
 
+      // Group 1 (14 Courses)
       e1Grid.innerHTML = ELECTIVES_E1_POOL.map(c => {
         const st = getStatus(c);
         const statusBadge = st === 'passed' ? '✓ Passed' : (st === 'ready' ? '⚡ Eligible/Unlocked' : '🔒 Locked');
@@ -2231,6 +2355,7 @@
         `;
       }).join('');
 
+      // Group 2 (22 Courses)
       e2Grid.innerHTML = ELECTIVES_E2_POOL.map(c => {
         const sel = state.selectedElectives.E2.includes(c.code);
         const st = getStatus(c);
@@ -2250,6 +2375,7 @@
         `;
       }).join('');
 
+      // Group 3 (10 Courses)
       e3Grid.innerHTML = ELECTIVES_E3_POOL.map(c => {
         const sel = state.selectedElectives.E3.includes(c.code);
         const st = getStatus(c);
@@ -2439,6 +2565,17 @@
 
       document.getElementById("criticalPathBtn").addEventListener("click", () => {
         highlightCriticalPath();
+      });
+
+      document.getElementById("printPlanBtn").addEventListener("click", () => {
+        renderPrintPlan();
+        document.getElementById("printModal").classList.add("open");
+      });
+
+      document.getElementById("closePrintModal").addEventListener("click", () => document.getElementById("printModal").classList.remove("open"));
+      document.getElementById("cancelPrintModal").addEventListener("click", () => document.getElementById("printModal").classList.remove("open"));
+      document.getElementById("triggerBrowserPrintBtn").addEventListener("click", () => {
+        window.print();
       });
 
       document.getElementById("searchInput").addEventListener("input", (e) => {
