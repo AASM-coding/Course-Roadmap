@@ -1078,7 +1078,7 @@
     }
 
     const TOTAL_DEGREE_CREDITS = 155;
-    const STORAGE_KEY = "cufe_mechatronics_navigator_v29";
+    const STORAGE_KEY = "cufe_mechatronics_navigator_v30";
 
     const LETTER_POINTS = {
       "A+": 4.0, "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7,
@@ -2177,7 +2177,7 @@
           manual_pass: state.manualPass,
           course_terms: state.courseTerms,
           total_years: state.totalYears,
-          selected_electives: state.selectedElectives,
+          selected_electives: state.selected_electives,
           willing_list: state.willingList,
           willing_term_cap: state.willingTermCap,
           updated_at: new Date().toISOString()
@@ -2199,7 +2199,13 @@
           state.manualPass = saved.manualPass || {};
           state.courseTerms = saved.courseTerms || {};
           state.totalYears = saved.totalYears || 4;
-          if (saved.selectedElectives) state.selectedElectives = saved.selectedElectives;
+          if (saved.selectedElectives) {
+            state.selectedElectives = {
+              E1: saved.selectedElectives.E1 || ELECTIVES_E1_POOL[0].code,
+              E2: saved.selectedElectives.E2 || [],
+              E3: saved.selectedElectives.E3 || []
+            };
+          }
           state.willingList = saved.willingList || [];
           state.willingTermCap = saved.willingTermCap || 18;
         }
@@ -2220,7 +2226,13 @@
         state.manualPass = data.manual_pass || {};
         state.courseTerms = data.course_terms || {};
         state.totalYears = data.total_years || 4;
-        if (data.selected_electives) state.selected_electives = data.selected_electives;
+        if (data.selected_electives) {
+          state.selected_electives = {
+            E1: data.selected_electives.E1 || ELECTIVES_E1_POOL[0].code,
+            E2: data.selected_electives.E2 || [],
+            E3: data.selected_electives.E3 || []
+          };
+        }
         state.willingList = data.willing_list || [];
         state.willingTermCap = data.willing_term_cap || 18;
       }
