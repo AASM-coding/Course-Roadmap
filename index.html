@@ -1078,7 +1078,7 @@
     }
 
     const TOTAL_DEGREE_CREDITS = 155;
-    const STORAGE_KEY = "cufe_mechatronics_navigator_v27";
+    const STORAGE_KEY = "cufe_mechatronics_navigator_v29";
 
     const LETTER_POINTS = {
       "A+": 4.0, "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7,
@@ -1114,7 +1114,7 @@
       { code: "MDPS133", title: "Materials for Mechatronics", ch: 3, defaultTerm: "Y1S", prereqs: [], cat: "Discipline" },
       { code: "MCNS101", title: "Thermodynamics", ch: 3, defaultTerm: "Y1S", prereqs: ["PHYS001"], cat: "Discipline" },
       { code: "EMCS002", title: "Engineering Mechanics - Statics", ch: 2, defaultTerm: "Y1S", prereqs: [], cat: "Faculty" },
-      { code: "PHYS002", title: "Electricity and Magnetism", ch: 3, defaultTerm: "Y1S", prereqs: [], cat: "Faculty" },
+      { code: "PHYS002", title: "Electricity and Magnetism", ch: 3, defaultTerm: "Y1S", prereqs: ["PHYS001"], cat: "Faculty" },
       { code: "MCNS202", title: "Fluid Mechanics", ch: 3, defaultTerm: "Y1S", prereqs: ["MTHS002"], cat: "Discipline" },
       { code: "MTHS003", title: "Calculus 2", ch: 3, defaultTerm: "Y1S", prereqs: ["MTHS002"], cat: "Faculty" },
 
@@ -1230,9 +1230,9 @@
       courseTerms: {},
       totalYears: 4,
       selectedElectives: {
-        E1: "GENS201",
-        E2: ["CMPS103", "MDPS363", "MDPS476", "EPES452", "MDPS478"],
-        E3: ["MDPS381", "MDPS332"]
+        E1: ELECTIVES_E1_POOL[0].code,
+        E2: [],
+        E3: []
       },
       willingList: [],
       willingTermCap: 18,
@@ -2137,7 +2137,11 @@
         manualPass: {},
         courseTerms: {},
         totalYears: 4,
-        selectedElectives: { E1: "GENS201", E2: ["CMPS103", "MDPS363", "MDPS476", "EPES452", "MDPS478"], E3: ["MDPS381", "MDPS332"] },
+        selectedElectives: {
+          E1: ELECTIVES_E1_POOL[0].code,
+          E2: [],
+          E3: []
+        },
         willingList: [],
         willingTermCap: 18
       };
