@@ -1078,7 +1078,7 @@
     }
 
     const TOTAL_DEGREE_CREDITS = 155;
-    const STORAGE_KEY = "cufe_mechatronics_navigator_v26";
+    const STORAGE_KEY = "cufe_mechatronics_navigator_v27";
 
     const LETTER_POINTS = {
       "A+": 4.0, "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7,
@@ -2484,25 +2484,24 @@
         const rawText = document.getElementById("gradePasteArea").value;
         if (!rawText.trim()) return;
 
-        const entries = rawText.split(/[\n,;]+/);
+        const matches = rawText.matchAll(/([A-Z]{4}\d{3})\s*[:=]?\s*([A-FP][+-]?)/gi);
         let count = 0;
         const map = getCourseMap();
 
-        entries.forEach(entry => {
-          const parts = entry.split(/[:=\s\t]+/);
-          const code = parts[0]?.trim().toUpperCase();
-          const rawGrade = parts[1]?.trim().toUpperCase() || "P";
+        for (const match of matches) {
+          const code = match[1].toUpperCase();
+          const rawGrade = match[2].toUpperCase();
+          const courseObj = map[code];
 
-          if (code) {
-            const courseObj = map[code];
-            if (courseObj && courseObj.isNonGpa) {
+          if (courseObj) {
+            if (courseObj.isNonGpa) {
               state.grades[code] = (rawGrade === "F") ? "F" : "P";
             } else {
               state.grades[code] = STANDARD_GRADE_OPTIONS.includes(rawGrade) ? rawGrade : "P";
             }
             count++;
           }
-        });
+        }
 
         saveState();
         renderAll();
