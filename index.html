@@ -920,7 +920,7 @@
       <div class="modal-header">
         <div>
           <div class="modal-title">Batch Import / Paste Transcript</div>
-          <div class="modal-subtitle">Paste your transcript records or load an official student preset.</div>
+          <div class="modal-subtitle">Paste your transcript records below.</div>
         </div>
         <button class="drawer-close" id="closePasteModal" type="button"><span class="icon" data-lucide="x"></span></button>
       </div>
@@ -933,11 +933,7 @@
         </p>
         <textarea id="gradePasteArea" rows="7" style="width: 100%; border: 1px solid var(--border); border-radius: 8px; background: #07111e; color: #dce8f6; padding: 8px; font-size: 10px; font-family: monospace; outline: none;" placeholder="MTHS002: A, PHYS001: B+, MEES280: P, MEES281: P ..."></textarea>
       </div>
-      <div class="modal-footer" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
-        <div style="display: flex; gap: 6px;">
-          <button class="action-button" id="loadFreshmanPresetBtn" type="button">Level 0 Preset (38 CH)</button>
-          <button class="action-button" id="loadSeniorPresetBtn" type="button">Junior Preset (79 CH)</button>
-        </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 6px;">
         <button class="action-button primary" id="applyPastedGradesBtn" type="button">
           <span class="icon" data-lucide="check"></span>
           Apply to Transcript
@@ -1082,7 +1078,7 @@
     }
 
     const TOTAL_DEGREE_CREDITS = 155;
-    const STORAGE_KEY = "cufe_mechatronics_navigator_v25";
+    const STORAGE_KEY = "cufe_mechatronics_navigator_v26";
 
     const LETTER_POINTS = {
       "A+": 4.0, "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7,
@@ -1227,21 +1223,6 @@
       { code: "MEPS415", title: "Power Generation", ch: 3, prereqs: [], minCredits: 85, reqDesc: "85 Credits + AA Approval", cat: "Elective", group: "E3" },
       { code: "MEPS425", title: "Renewable Energy", ch: 3, prereqs: [], minCredits: 85, reqDesc: "85 Credits + AA Approval", cat: "Elective", group: "E3" }
     ];
-
-    const FRESHMAN_PRESET = {
-      "GENS001": "A", "GENS004": "A", "CHES001": "B+", "INTS001": "A",
-      "PHYS001": "B+", "EMCS001": "A-", "INTS005": "B", "MTHS002": "B+",
-      "GENS005": "A", "GENS002": "A", "MDPS133": "B+", "MCNS101": "A",
-      "EMCS002": "B", "PHYS002": "B+", "MCNS202": "A", "MTHS003": "B+"
-    };
-
-    const JUNIOR_PRESET = {
-      "CHES001": "A-", "EMCS001": "A-", "GENS001": "B+", "GENS004": "A-", "INTS001": "A", "INTS005": "B-", "MTHS002": "B+", "PHYS001": "B+",
-      "EMCS002": "C", "GENS002": "B+", "GENS005": "B+", "MCNS101": "A", "MCNS202": "A+", "MDPS133": "A", "MTHS003": "B-", "PHYS002": "B+",
-      "MTHS102": "B-", "CMPS118": "B", "EPES201": "C+", "GENS120": "C+", "MDPS217": "C-", "MDPS241": "D", "MDPS261": "A", "MEES280": "P",
-      "EPES303": "C", "MCNS326": "B", "MDPS242": "D+", "MDPS251": "C+", "MDPS352": "B+", "MTHS104": "C-",
-      "MEES281": "IP"
-    };
 
     const state = {
       grades: {},
@@ -2497,24 +2478,6 @@
 
       document.getElementById("closePasteModal").addEventListener("click", () => {
         document.getElementById("pasteModal").classList.remove("open");
-      });
-
-      document.getElementById("loadFreshmanPresetBtn").addEventListener("click", () => {
-        state.grades = cloneObject(FRESHMAN_PRESET);
-        state.manualPass = {};
-        saveState();
-        renderAll();
-        document.getElementById("pasteModal").classList.remove("open");
-        showToast("Freshman Level 0 preset loaded (38 CH completed).");
-      });
-
-      document.getElementById("loadSeniorPresetBtn").addEventListener("click", () => {
-        state.grades = cloneObject(JUNIOR_PRESET);
-        state.manualPass = {};
-        saveState();
-        renderAll();
-        document.getElementById("pasteModal").classList.remove("open");
-        showToast("Junior sample preset loaded (79 CH completed).");
       });
 
       document.getElementById("applyPastedGradesBtn").addEventListener("click", () => {
