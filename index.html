@@ -1082,7 +1082,7 @@
     }
 
     const TOTAL_DEGREE_CREDITS = 155;
-    const STORAGE_KEY = "cufe_mechatronics_navigator_v24";
+    const STORAGE_KEY = "cufe_mechatronics_navigator_v25";
 
     const LETTER_POINTS = {
       "A+": 4.0, "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7,
@@ -1722,6 +1722,7 @@
         let isWarning = false;
 
         const deficitCourses = termCourses.filter(c => c.minCredits && priorScheduledCH < c.minCredits);
+        const allTermCoursesPassed = termCourses.length > 0 && termCourses.every(c => isPassed(c.code));
 
         if (deficitCourses.length > 0) {
           isWarning = true;
@@ -1738,7 +1739,7 @@
           } else if (academicCourseCount > limit.maxCourses) {
             isWarning = true;
             warningText = `⚠ COURSE LIMIT (> ${limit.maxCourses} Crs Limit)`;
-          } else if (totalCH > 0 && totalCH < 12) {
+          } else if (totalCH > 0 && totalCH < 12 && !allTermCoursesPassed) {
             isWarning = true;
             warningText = `⚠ UNDERLOAD (< 12 CH Minimum)`;
           }
