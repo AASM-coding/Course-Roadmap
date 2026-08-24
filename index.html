@@ -839,28 +839,13 @@
         <div class="filter-row">
           <span class="filter-label">Years of Study</span>
           <select id="yearsFilter" class="control">
-            <option value="4">4 Years (12 Terms)</option>
-            <option value="5">5 Years (15 Terms)</option>
-            <option value="6">6 Years (18 Terms)</option>
-            <option value="7">7 Years (21 Terms)</option>
-            <option value="8">8 Years (24 Terms)</option>
-            <option value="9">9 Years (27 Terms)</option>
-            <option value="10">10 Years (30 Terms)</option>
-          </select>
-
-          <!-- NEW: Starting Term & Year Selectors -->
-          <span class="filter-label">Start Term</span>
-          <select id="startSeasonFilter" class="control">
-            <option value="Fall">Fall</option>
-            <option value="Spring">Spring</option>
-            <option value="Summer">Summer</option>
-          </select>
-          <select id="startYearFilter" class="control">
-            <option value="2022">2022</option>
-            <option value="2023">2023</option>
-            <option value="2024" selected>2024</option>
-            <option value="2025">2025</option>
-            <option value="2026">2026</option>
+            <option value="4">4 Years (12 Terms Total)</option>
+            <option value="5">5 Years (15 Terms Total)</option>
+            <option value="6">6 Years (18 Terms Total)</option>
+            <option value="7">7 Years (21 Terms Total)</option>
+            <option value="8">8 Years (24 Terms Total)</option>
+            <option value="9">9 Years (27 Terms Total)</option>
+            <option value="10">10 Years (30 Terms Total)</option>
           </select>
 
           <span class="filter-label">Status</span>
@@ -1084,7 +1069,7 @@
       : null;
 
     const SESSION_KEY = "cufe_nav_session_user";
-    let currentUser = null;
+    let currentUser = null; // { id, username }
 
     async function hashPassword(pw) {
       const enc = new TextEncoder().encode(pw);
@@ -1093,7 +1078,7 @@
     }
 
     const TOTAL_DEGREE_CREDITS = 155;
-    const STORAGE_KEY = "cufe_mechatronics_navigator_v35";
+    const STORAGE_KEY = "cufe_mechatronics_navigator_v34";
 
     const LETTER_POINTS = {
       "A+": 4.0, "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7,
@@ -1244,8 +1229,6 @@
       manualPass: {},
       courseTerms: {},
       totalYears: 4,
-      startSeason: "Fall",
-      startYear: 2024,
       selectedElectives: {
         E1: ELECTIVES_E1_POOL[0].code,
         E2: [],
@@ -1277,48 +1260,13 @@
 
     function cloneObject(obj) { return JSON.parse(JSON.stringify(obj)); }
 
-    // Dynamic chronological term generator based on start season and start year
     function getTermDefinitionList() {
       const list = [];
       const years = Number(state.totalYears) || 4;
-      const seasonsOrder = ["Fall", "Spring", "Summer"];
-      const startS = state.startSeason || "Fall";
-      let startYearNum = Number(state.startYear) || 2024;
-      
-      let startIndex = seasonsOrder.indexOf(startS);
-      if (startIndex === -1) startIndex = 0;
-
-      let currentSeasonIdx = startIndex;
-      let currentCalYear = startYearNum;
-      let totalTermsCount = years * 3;
-
-      for (let i = 0; i < totalTermsCount; i++) {
-        const seasonName = seasonsOrder[currentSeasonIdx];
-        const isSummer = (seasonName === "Summer");
-        const yNum = Math.floor(i / 3) + 1;
-        
-        let termId = `Y${yNum}${seasonName[0]}`;
-        // Fallback internal IDs for standard slots
-        if (seasonName === "Fall") termId = `Y${yNum}F`;
-        else if (seasonName === "Spring") termId = `Y${yNum}S`;
-        else if (seasonName === "Summer") termId = `Y${yNum}U`;
-
-        let displayTitle = `${seasonName} ${currentCalYear}`;
-
-        list.push({
-          id: termId,
-          year: yNum,
-          season: seasonName,
-          title: displayTitle,
-          isSummer,
-          index: i
-        });
-
-        currentSeasonIdx++;
-        if (currentSeasonIdx >= 3) {
-          currentSeasonIdx = 0;
-          currentCalYear++;
-        }
+      for (let y = 1; y <= years; y++) {
+        list.push({ id: `Y${y}F`, year: y, season: "Fall", title: `Year ${y} · Fall`, isSummer: false, index: (y - 1) * 3 });
+        list.push({ id: `Y${y}S`, year: y, season: "Spring", title: `Year ${y} · Spring`, isSummer: false, index: (y - 1) * 3 + 1 });
+        list.push({ id: `Y${y}U`, year: y, season: "Summer", title: `Year ${y} · Summer`, isSummer: true, index: (y - 1) * 3 + 2 });
       }
       return list;
     }
@@ -1397,6 +1345,7 @@
       return total;
     }
 
+    // Cumulative scheduled credits prior to term (used specifically for planning warnings in headers)
     function getCumulativeScheduledCreditsPriorToTerm(termIndex) {
       const termDefs = getTermDefinitionList();
       const catalog = getFullActiveCatalog();
@@ -1495,7 +1444,7 @@
       return { maxCh: baseLimit, maxCourses: 99, desc };
     }
 
-    // STRICT ELIGIBILITY CHECK based on current completed credits
+    // STRICT ELIGIBILITY CHECK based on current completed credits for actual card status
     function isEligible(course) {
       if (!course || isPassed(course.code)) return false;
       
@@ -1740,7 +1689,7 @@
         const x = 30 + colIdx * 280;
 
         courses.forEach((c, rowIdx) => {
-          // Started at Y = 120px to prevent multi-line warnings from overlapping top course cards
+          // INCREASED STARTING Y OFFSET TO 120px to prevent overlapping long multi-line warnings
           const y = 120 + rowIdx * 132;
           nodePositions[c.code] = { x, y, width: 242, height: 114 };
         });
@@ -1762,6 +1711,8 @@
         const academicCourseCount = termCourses.filter(c => !c.isTraining).length;
 
         const limit = getRegistrationLimitForTerm(idx);
+        
+        // Use scheduled credits prior to term for semester planning deficit warnings
         const priorScheduledCH = getCumulativeScheduledCreditsPriorToTerm(idx);
         const termStats = getTermStatsUpToTerm(idx);
 
@@ -1869,7 +1820,7 @@
         termDefs.forEach(t => {
           const opt = document.createElement("option");
           opt.value = t.id;
-          opt.textContent = t.title;
+          opt.textContent = t.id;
           if (course.term === t.id) opt.selected = true;
           termSelect.appendChild(opt);
         });
@@ -2202,8 +2153,6 @@
         manualPass: {},
         courseTerms: {},
         totalYears: 4,
-        startSeason: "Fall",
-        startYear: 2024,
         selectedElectives: {
           E1: ELECTIVES_E1_POOL[0].code,
           E2: [],
@@ -2230,8 +2179,6 @@
         manualPass: state.manualPass,
         courseTerms: state.courseTerms,
         totalYears: state.totalYears,
-        startSeason: state.startSeason,
-        startYear: state.startYear,
         selectedElectives: state.selectedElectives,
         willingList: state.willingList,
         willingTermCap: state.willingTermCap
@@ -2246,8 +2193,6 @@
           manual_pass: state.manualPass,
           course_terms: state.courseTerms,
           total_years: state.totalYears,
-          start_season: state.startSeason,
-          start_year: state.startYear,
           selected_electives: state.selectedElectives,
           willing_list: state.willingList,
           willing_term_cap: state.willingTermCap,
@@ -2270,8 +2215,6 @@
           state.manualPass = saved.manualPass || {};
           state.courseTerms = saved.courseTerms || {};
           state.totalYears = saved.totalYears || 4;
-          state.startSeason = saved.startSeason || "Fall";
-          state.startYear = saved.startYear || 2024;
           if (saved.selectedElectives) {
             state.selectedElectives = {
               E1: saved.selectedElectives.E1 || ELECTIVES_E1_POOL[0].code,
@@ -2299,8 +2242,6 @@
         state.manualPass = data.manual_pass || {};
         state.courseTerms = data.course_terms || {};
         state.totalYears = data.total_years || 4;
-        state.startSeason = data.start_season || "Fall";
-        state.startYear = data.start_year || 2024;
         if (data.selected_electives) {
           state.selectedElectives = {
             E1: data.selected_electives.E1 || ELECTIVES_E1_POOL[0].code,
@@ -2320,10 +2261,235 @@
       toastTimer = setTimeout(() => toast.classList.remove("show"), 4500);
     }
 
+    function renderElectiveModal() {
+      const e1Grid = document.getElementById("e1Grid");
+      const e2Grid = document.getElementById("e2Grid");
+      const e3Grid = document.getElementById("e3Grid");
+
+      e1Grid.innerHTML = ELECTIVES_E1_POOL.map(c => {
+        const st = getStatus(c);
+        const statusBadge = st === 'passed' ? '✓ Passed' : (st === 'ready' ? '⚡ Eligible/Unlocked' : '🔒 Locked');
+        return `
+          <label class="elective-item ${state.selectedElectives.E1 === c.code ? 'selected' : ''}">
+            <div class="elective-top">
+              <input type="radio" name="e1Choice" class="elective-checkbox" value="${c.code}" ${state.selectedElectives.E1 === c.code ? 'checked' : ''}>
+              <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between;"><span class="elective-code">${c.code} · ${c.ch} CH</span><span style="font-size:7px; font-weight:800; color:${st==='ready'?'#38bdf8':'#8fa2b8'}">${statusBadge}</span></div>
+                <div class="elective-name">${c.title}</div>
+                <div class="elective-prereqs">Requirements: None</div>
+              </div>
+            </div>
+          </label>
+        `;
+      }).join('');
+
+      e2Grid.innerHTML = ELECTIVES_E2_POOL.map(c => {
+        const sel = state.selectedElectives.E2.includes(c.code);
+        const st = getStatus(c);
+        const statusBadge = st === 'passed' ? '✓ Passed' : (st === 'ready' ? '⚡ Eligible/Unlocked' : '🔒 Locked');
+        const reqStr = c.reqDesc || (c.minCredits ? `${c.minCredits} Credits + AA Approval` : (c.prereqs.length ? c.prereqs.join(', ') : 'None'));
+        return `
+          <label class="elective-item ${sel ? 'selected' : ''}">
+            <div class="elective-top">
+              <input type="checkbox" class="elective-checkbox e2-cb" value="${c.code}" ${sel ? 'checked' : ''}>
+              <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between;"><span class="elective-code">${c.code} · ${c.ch} CH</span><span style="font-size:7px; font-weight:800; color:${st==='ready'?'#38bdf8':'#8fa2b8'}">${statusBadge}</span></div>
+                <div class="elective-name">${c.title}</div>
+                <div class="elective-prereqs">Requirements: ${reqStr}</div>
+              </div>
+            </div>
+          </label>
+        `;
+      }).join('');
+
+      e3Grid.innerHTML = ELECTIVES_E3_POOL.map(c => {
+        const sel = state.selectedElectives.E3.includes(c.code);
+        const st = getStatus(c);
+        const statusBadge = st === 'passed' ? '✓ Passed' : (st === 'ready' ? '⚡ Eligible/Unlocked' : '🔒 Locked');
+        const reqStr = c.reqDesc || (c.minCredits ? `${c.minCredits} Credits + AA Approval` : (c.prereqs.length ? c.prereqs.join(', ') : 'None'));
+        return `
+          <label class="elective-item ${sel ? 'selected' : ''}">
+            <div class="elective-top">
+              <input type="checkbox" class="elective-checkbox e3-cb" value="${c.code}" ${sel ? 'checked' : ''}>
+              <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between;"><span class="elective-code">${c.code} · ${c.ch} CH</span><span style="font-size:7px; font-weight:800; color:${st==='ready'?'#38bdf8':'#8fa2b8'}">${statusBadge}</span></div>
+                <div class="elective-name">${c.title}</div>
+                <div class="elective-prereqs">Requirements: ${reqStr}</div>
+              </div>
+            </div>
+          </label>
+        `;
+      }).join('');
+
+      e1Grid.querySelectorAll("input[type=radio]").forEach(r => {
+        r.addEventListener("change", (e) => {
+          state.selectedElectives.E1 = e.target.value;
+          renderElectiveModal();
+        });
+      });
+
+      e2Grid.querySelectorAll(".e2-cb").forEach(cb => {
+        cb.addEventListener("change", (e) => {
+          const val = e.target.value;
+          if (e.target.checked) {
+            if (state.selectedElectives.E2.length >= 5) {
+              showToast("E2 allows maximum 5 courses (15 Credits).");
+              e.target.checked = false;
+              return;
+            }
+            state.selectedElectives.E2.push(val);
+          } else {
+            state.selectedElectives.E2 = state.selectedElectives.E2.filter(x => x !== val);
+          }
+          renderElectiveModal();
+        });
+      });
+
+      e3Grid.querySelectorAll(".e3-cb").forEach(cb => {
+        cb.addEventListener("change", (e) => {
+          const val = e.target.value;
+          if (e.target.checked) {
+            if (state.selectedElectives.E3.length >= 2) {
+              showToast("E3 allows maximum 2 courses (6 Credits).");
+              e.target.checked = false;
+              return;
+            }
+            state.selectedElectives.E3.push(val);
+          } else {
+            state.selectedElectives.E3 = state.selectedElectives.E3.filter(x => x !== val);
+          }
+          renderElectiveModal();
+        });
+      });
+
+      document.getElementById("e1Count").textContent = state.selectedElectives.E1 ? "1 selected (2 CH)" : "0 selected";
+      document.getElementById("e2Count").textContent = `${state.selectedElectives.E2.length} / 5 selected (${state.selectedElectives.E2.length * 3}/15 CH)`;
+      document.getElementById("e3Count").textContent = `${state.selectedElectives.E3.length} / 2 selected (${state.selectedElectives.E3.length * 3}/6 CH)`;
+    }
+
+    function setTransform() {
+      graphWorld.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
+    }
+
+    // ===== AUTH =====
+    let authMode = "login";
+
+    function showApp() {
+      document.getElementById("authScreen").classList.add("hidden");
+      document.getElementById("userChip").style.display = "flex";
+      document.getElementById("userChipName").textContent = currentUser.username;
+    }
+
+    async function signUp(username, password) {
+      const password_hash = await hashPassword(password);
+      const { data, error } = await supabaseClient
+        .from("users")
+        .insert({ username, password_hash })
+        .select()
+        .single();
+      if (error) {
+        if (error.message.includes("duplicate") || error.code === "23505") {
+          throw new Error("That username is already taken.");
+        }
+        throw new Error(error.message);
+      }
+      return { id: data.id, username: data.username };
+    }
+
+    async function logIn(username, password) {
+      const password_hash = await hashPassword(password);
+      const { data, error } = await supabaseClient
+        .from("users")
+        .select("id, username, password_hash")
+        .eq("username", username)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!data || data.password_hash !== password_hash) {
+        throw new Error("Incorrect username or password.");
+      }
+      return { id: data.id, username: data.username };
+    }
+
+    function logOut() {
+      currentUser = null;
+      localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
+
+    function setupAuthScreen() {
+      const errorEl = document.getElementById("authError");
+      const statusEl = document.getElementById("authStatus");
+
+      statusEl.textContent = supabaseClient ? "" : "Supabase isn't configured — check SUPABASE_URL / SUPABASE_ANON_KEY.";
+
+      document.getElementById("authToggleBtn").addEventListener("click", () => {
+        authMode = authMode === "login" ? "signup" : "login";
+        document.getElementById("authTitle").textContent = authMode === "login" ? "Log In" : "Sign Up";
+        document.getElementById("authSubmitBtn").textContent = authMode === "login" ? "Log In" : "Create Account";
+        document.getElementById("authToggleText").textContent = authMode === "login" ? "Don't have an account?" : "Already have an account?";
+        document.getElementById("authToggleBtn").textContent = authMode === "login" ? "Sign Up" : "Log In";
+        errorEl.style.display = "none";
+      });
+
+      document.getElementById("authSubmitBtn").addEventListener("click", handleAuthSubmit);
+      document.getElementById("authPassword").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") handleAuthSubmit();
+      });
+      document.getElementById("logoutBtn").addEventListener("click", logOut);
+
+      const savedUser = localStorage.getItem(SESSION_KEY);
+      if (savedUser && supabaseClient) {
+        try {
+          currentUser = JSON.parse(savedUser);
+          loadState();
+          loadStateFromSupabase().then(() => {
+            showApp();
+            initApp();
+          });
+        } catch (e) { localStorage.removeItem(SESSION_KEY); }
+      }
+    }
+
+    async function handleAuthSubmit() {
+      const errorEl = document.getElementById("authError");
+      errorEl.style.display = "none";
+
+      if (!supabaseClient) {
+        errorEl.textContent = "Supabase isn't configured yet.";
+        errorEl.style.display = "block";
+        return;
+      }
+
+      const username = document.getElementById("authUsername").value.trim();
+      const password = document.getElementById("authPassword").value;
+      if (!username || !password) {
+        errorEl.textContent = "Enter both a username and a password.";
+        errorEl.style.display = "block";
+        return;
+      }
+
+      try {
+        currentUser = authMode === "signup"
+          ? await signUp(username, password)
+          : await logIn(username, password);
+        localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+        loadState();
+        await loadStateFromSupabase();
+        showApp();
+        initApp();
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.style.display = "block";
+      }
+    }
+
+    function init() {
+      setupAuthScreen();
+    }
+
     function initApp() {
       document.getElementById("yearsFilter").value = state.totalYears;
-      document.getElementById("startSeasonFilter").value = state.startSeason;
-      document.getElementById("startYearFilter").value = state.startYear;
 
       document.getElementById("criticalPathBtn").addEventListener("click", () => {
         highlightCriticalPath();
@@ -2393,18 +2559,6 @@
 
       document.getElementById("yearsFilter").addEventListener("change", (e) => {
         state.totalYears = Number(e.target.value);
-        saveState();
-        renderAll();
-      });
-
-      document.getElementById("startSeasonFilter").addEventListener("change", (e) => {
-        state.startSeason = e.target.value;
-        saveState();
-        renderAll();
-      });
-
-      document.getElementById("startYearFilter").addEventListener("change", (e) => {
-        state.startYear = Number(e.target.value);
         saveState();
         renderAll();
       });
