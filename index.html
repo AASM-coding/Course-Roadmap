@@ -737,7 +737,7 @@
     .course-node.plan-t3 { border-color: #818cf8 !important; box-shadow: 0 0 0 1px rgba(129,140,248,0.3), 0 0 16px rgba(129,140,248,0.4) !important; }
     .course-node.plan-t4 { border-color: #f59e0b !important; box-shadow: 0 0 0 1px rgba(245,158,11,0.3), 0 0 16px rgba(245,158,11,0.4) !important; }
     .course-node.plan-t5 { border-color: #fb7185 !important; box-shadow: 0 0 0 1px rgba(251,113,133,0.3), 0 0 16px rgba(251,113,133,0.4) !important; }
-    .course-node.plan-t6 { border-color: #a78bfa !important; box-shadow: 0 0 0 1px rgba(167,139,250,0.3), 0 0 16px rgba(167,139,250,0.4) !important; }
+    .course-node.plan-t6 { border-color: #a78bfa !important; border-radius: 8px !important; box-shadow: 0 0 0 1px rgba(167,139,250,0.3), 0 0 16px rgba(167,139,250,0.4) !important; }
     .plan-badge { position: absolute; top: -8px; right: -8px; z-index: 6; border-radius: 999px; font-size: 8px; font-weight: 900; padding: 2px 6px; color: #06111e; }
 
     .pathway-panel, .willing-panel { padding: 4px 0 2px; }
@@ -1078,7 +1078,7 @@
     }
 
     const TOTAL_DEGREE_CREDITS = 155;
-    const STORAGE_KEY = "cufe_mechatronics_navigator_v34";
+    const STORAGE_KEY = "cufe_mechatronics_navigator_v36";
 
     const LETTER_POINTS = {
       "A+": 4.0, "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7,
@@ -1114,7 +1114,7 @@
       { code: "MDPS133", title: "Materials for Mechatronics", ch: 3, defaultTerm: "Y1S", prereqs: [], cat: "Discipline" },
       { code: "MCNS101", title: "Thermodynamics", ch: 3, defaultTerm: "Y1S", prereqs: ["PHYS001"], cat: "Discipline" },
       { code: "EMCS002", title: "Engineering Mechanics - Statics", ch: 2, defaultTerm: "Y1S", prereqs: [], cat: "Faculty" },
-      { code: "PHYS002", title: "Electricity and Magnetism", ch: 3, defaultTerm: "Y1S", prereqs: ["PHYS001"], cat: "Faculty" },
+      { code: "PHYS002", title: "Electricity and Magnetism", ch: 3, defaultTerm: "Y1S", prereqs: [], cat: "Faculty" }, // Prerequisites removed as requested
       { code: "MCNS202", title: "Fluid Mechanics", ch: 3, defaultTerm: "Y1S", prereqs: ["MTHS002"], cat: "Discipline" },
       { code: "MTHS003", title: "Calculus 2", ch: 3, defaultTerm: "Y1S", prereqs: ["MTHS002"], cat: "Faculty" },
 
@@ -1345,7 +1345,6 @@
       return total;
     }
 
-    // Cumulative scheduled credits prior to term (used specifically for planning warnings in headers)
     function getCumulativeScheduledCreditsPriorToTerm(termIndex) {
       const termDefs = getTermDefinitionList();
       const catalog = getFullActiveCatalog();
@@ -1444,7 +1443,6 @@
       return { maxCh: baseLimit, maxCourses: 99, desc };
     }
 
-    // STRICT ELIGIBILITY CHECK based on current completed credits for actual card status
     function isEligible(course) {
       if (!course || isPassed(course.code)) return false;
       
@@ -1689,7 +1687,6 @@
         const x = 30 + colIdx * 280;
 
         courses.forEach((c, rowIdx) => {
-          // INCREASED STARTING Y OFFSET TO 120px to prevent overlapping long multi-line warnings
           const y = 120 + rowIdx * 132;
           nodePositions[c.code] = { x, y, width: 242, height: 114 };
         });
@@ -1711,8 +1708,6 @@
         const academicCourseCount = termCourses.filter(c => !c.isTraining).length;
 
         const limit = getRegistrationLimitForTerm(idx);
-        
-        // Use scheduled credits prior to term for semester planning deficit warnings
         const priorScheduledCH = getCumulativeScheduledCreditsPriorToTerm(idx);
         const termStats = getTermStatsUpToTerm(idx);
 
