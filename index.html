@@ -703,8 +703,6 @@
     .legend-amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
     .legend-purple { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
     .legend-green { background: var(--green); }
-    .legend-pathway { background: #ff4fd8; box-shadow: 0 0 6px #ff4fd8; }
-    .legend-willing { background: #00e5ff; box-shadow: 0 0 7px #00e5ff; }
 
     /* AUTH SCREEN */
     #authScreen {
@@ -734,12 +732,12 @@
     .user-chip button { background: none; border: none; color: var(--red); font-size: 9px; font-weight: 800; padding: 0; }
 
     /* TERM HIGHLIGHT COLORS FOR PATHWAY SUGGESTION */
-    .course-node.plan-t1 { border-color: #ff2d95 !important; box-shadow: 0 0 0 1.5px rgba(255,45,149,0.5), 0 0 22px rgba(255,45,149,0.75) !important; }
+    .course-node.plan-t1 { border-color: #34d399 !important; box-shadow: 0 0 0 1px rgba(52,211,153,0.3), 0 0 16px rgba(52,211,153,0.4) !important; }
     .course-node.plan-t2 { border-color: #38bdf8 !important; box-shadow: 0 0 0 1px rgba(56,189,248,0.3), 0 0 16px rgba(56,189,248,0.4) !important; }
     .course-node.plan-t3 { border-color: #818cf8 !important; box-shadow: 0 0 0 1px rgba(129,140,248,0.3), 0 0 16px rgba(129,140,248,0.4) !important; }
     .course-node.plan-t4 { border-color: #f59e0b !important; box-shadow: 0 0 0 1px rgba(245,158,11,0.3), 0 0 16px rgba(245,158,11,0.4) !important; }
     .course-node.plan-t5 { border-color: #fb7185 !important; box-shadow: 0 0 0 1px rgba(251,113,133,0.3), 0 0 16px rgba(251,113,133,0.4) !important; }
-    .course-node.plan-t6 { border-color: #a78bfa !important; border-radius: 8px !important; box-shadow: 0 0 0 1px rgba(167,139,250,0.3), 0 0 16px rgba(167,139,250,0.4) !important; }
+    .course-node.plan-t6 { border-color: #a78bfa !important; box-shadow: 0 0 0 1px rgba(167,139,250,0.3), 0 0 16px rgba(167,139,250,0.4) !important; }
     .plan-badge { position: absolute; top: -8px; right: -8px; z-index: 6; border-radius: 999px; font-size: 8px; font-weight: 900; padding: 2px 6px; color: #06111e; }
 
     .pathway-panel, .willing-panel { padding: 4px 0 2px; }
@@ -751,97 +749,6 @@
     .willing-cap-bar { height: 6px; border-radius: 999px; background: rgba(148,163,184,0.15); margin-top: 6px; overflow: hidden; }
     .willing-cap-fill { height: 100%; background: linear-gradient(90deg,#22d3ee,#818cf8); transition: width 0.2s ease; }
     .willing-cap-fill.over { background: #fb7185; }
-
-    /* ===== FEATURE 1: MY TERM LIST GLOW ===== */
-    @keyframes willingPulse {
-      0%, 100% { box-shadow: 0 0 0 1.5px rgba(212,255,0,0.55), 0 0 16px rgba(212,255,0,0.55), 0 0 3px rgba(212,255,0,0.6) inset; }
-      50% { box-shadow: 0 0 0 2px rgba(212,255,0,0.95), 0 0 30px rgba(212,255,0,0.85), 0 0 6px rgba(212,255,0,0.8) inset; }
-    }
-    .course-node.willing-glow {
-      border-color: rgba(212,255,0,0.95) !important;
-      animation: willingPulse 2.2s ease-in-out infinite;
-    }
-
-    /* ===== FEATURE 3: DRAG & DROP TERM PLANNER ===== */
-    .planner-toolbar { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 12px; }
-    .planner-grid {
-      display: grid;
-      grid-auto-flow: column;
-      grid-template-rows: auto auto;
-      gap: 10px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-    }
-    .term-box {
-      width: 220px;
-      border: 1px solid rgba(148,163,184,0.22);
-      border-radius: 9px;
-      background: rgba(13,24,40,0.55);
-      padding: 8px 9px;
-      min-height: 120px;
-      transition: border-color 0.15s ease, background 0.15s ease;
-    }
-    .term-box.term-box-hold {
-      background: rgba(10,18,29,0.4);
-      border-style: dashed;
-    }
-    .term-box.full { border-color: rgba(251,113,133,0.5); }
-    .term-box-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
-    .term-box-title { font-size: 10px; font-weight: 900; color: #e5edf7; }
-    .term-box-title.hold-title { font-size: 8.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-    .term-box-cap { display: flex; align-items: center; gap: 4px; }
-    .term-box-cap input { width: 42px; text-align: center; padding: 3px 4px; font-size: 8.5px; }
-    .term-box-ch { font-size: 8px; color: var(--muted); margin-top: 2px; }
-    .term-box-bar { height: 5px; border-radius: 999px; background: rgba(148,163,184,0.15); margin-top: 5px; overflow: hidden; }
-    .term-box-bar-fill { height: 100%; background: linear-gradient(90deg,#22d3ee,#818cf8); transition: width 0.2s ease; }
-    .term-box-bar-fill.over { background: #fb7185; }
-    .term-box-list { margin-top: 7px; display: flex; flex-direction: column; gap: 5px; min-height: 24px; }
-    .term-box-empty { font-size: 8px; color: var(--muted); border: 1px dashed rgba(148,163,184,0.18); border-radius: 6px; padding: 8px; text-align: center; }
-    .term-course-chip {
-      border: 1px solid rgba(148,163,184,0.18);
-      border-radius: 6px;
-      background: #0a1524;
-      padding: 5px 7px;
-      font-size: 8.5px;
-      cursor: grab;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 6px;
-    }
-    .term-course-chip:hover { border-color: rgba(212,255,0,0.5); }
-    .term-course-chip .chip-remove { background: none; border: none; color: var(--red); font-size: 9px; font-weight: 900; padding: 0 2px; cursor: pointer; }
-    .planner-unassigned {
-      border: 1px dashed rgba(148,163,184,0.22);
-      border-radius: 9px;
-      padding: 8px 9px;
-      margin-bottom: 12px;
-      background: rgba(9,19,32,0.5);
-    }
-    .planner-note { font-size: 8.5px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
-    .add-term-box {
-      width: 220px;
-      border: 1px dashed rgba(148,163,184,0.28);
-      border-radius: 9px;
-      min-height: 120px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--muted);
-      font-size: 10px;
-      font-weight: 800;
-      grid-row: 1;
-    }
-    .add-term-box:hover { border-color: rgba(56,189,248,0.6); color: #dce8f6; }
-
-    /* Robust planner interaction / visibility */
-    .planner-grid { grid-template-rows: minmax(150px,auto) minmax(110px,auto); align-items:stretch; min-width:max-content; }
-    .term-box { min-height:150px; border-color:rgba(148,163,184,.30); background:rgba(13,24,40,.72); }
-    .term-box.term-box-hold { min-height:110px; border-color:rgba(148,163,184,.22); background:rgba(10,18,29,.62); }
-    .term-course-chip { position:relative; user-select:none; }
-    .planner-mini-btn { border:1px solid rgba(148,163,184,.2); border-radius:5px; background:#07111e; color:#9fb1c6; font-size:7.5px; padding:3px 5px; cursor:pointer; }
-    .planner-mini-btn:hover { border-color:rgba(34,211,238,.55); color:#e5edf7; }
-    .course-node.willing-glow { border-color:#00e5ff !important; box-shadow:0 0 0 2px rgba(0,229,255,.45),0 0 22px rgba(0,229,255,.85),0 0 5px rgba(0,229,255,.75) inset !important; animation:none; }
   </style>
 </head>
 
@@ -923,11 +830,6 @@
             My Term List
           </button>
 
-          <button class="action-button" id="termPlannerBtn" type="button">
-            <span class="icon" data-lucide="layout-grid"></span>
-            Term Planner
-          </button>
-
           <button class="action-button danger" id="resetBtn" type="button">
             <span class="icon" data-lucide="rotate-ccw"></span>
             Reset All
@@ -1002,8 +904,6 @@
           <span><span class="legend-dot legend-amber"></span>Downstream Unlocks</span>
           <span><span class="legend-dot legend-purple"></span>Critical Chain</span>
           <span><span class="legend-dot legend-green"></span>Passed</span>
-          <span><span class="legend-dot legend-pathway"></span>Suggested Pathway</span>
-          <span><span class="legend-dot legend-willing"></span>My Term List</span>
         </div>
       </section>
 
@@ -1156,33 +1056,6 @@
     </div>
   </div>
 
-  <!-- DRAG & DROP TERM PLANNER MODAL -->
-  <div class="modal-backdrop" id="termPlannerModal">
-    <div class="modal" style="max-width: 920px;">
-      <div class="modal-header">
-        <div>
-          <div class="modal-title">Drag &amp; Drop Term Planner</div>
-          <div class="modal-subtitle">Plan courses with reliable drag-and-drop, or use the <b>Plan</b> button on any graph course. Each real term has a configurable 0–21 CH cap; standby boxes are temporary parking areas and never count toward CH.</div>
-        </div>
-        <button class="drawer-close" id="closeTermPlannerModal" type="button"><span class="icon" data-lucide="x"></span></button>
-      </div>
-      <div class="modal-body">
-        <div class="planner-note">Row 1 contains real planning terms. Row 2 is the paired standby area for that term and has <b>0 CH impact</b>. Drag directly between terms, park in standby, or use the Plan button on the graph as a reliable fallback. Planner placement does not modify grades, prerequisites, or academic course metadata.</div>
-        <div class="planner-unassigned" id="plannerUnassignedZone">
-          <div class="filter-label" style="margin-bottom:6px;">Unassigned (from My Term List) — drag into a box below</div>
-          <div class="term-box-list" id="plannerUnassignedList" style="flex-direction:row; flex-wrap:wrap;"></div>
-        </div>
-        <div class="planner-grid" id="plannerGrid"></div>
-        <div style="margin-top:10px;">
-          <button class="action-button" id="addTermBoxBtn" type="button">
-            <span class="icon" data-lucide="plus"></span>
-            Add Term (<span id="termBoxCountLabel">8</span> / 16)
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="toast" id="toast"></div>
 
   <script>
@@ -1205,7 +1078,7 @@
     }
 
     const TOTAL_DEGREE_CREDITS = 155;
-    const STORAGE_KEY = "cufe_mechatronics_navigator_v36";
+    const STORAGE_KEY = "cufe_mechatronics_navigator_v37";
 
     const LETTER_POINTS = {
       "A+": 4.0, "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7,
@@ -1363,9 +1236,6 @@
       },
       willingList: [],
       willingTermCap: 18,
-      plannerTermDefs: defaultPlannerTermDefs(),
-      plannerCourseTerms: {},
-      plannerCourseOrders: {},
       pinnedCode: null,
       hoveredCode: null,
       criticalPathMode: false,
@@ -1897,13 +1767,6 @@
         node.dataset.code = course.code;
         node.style.left = pos.x + "px";
         node.style.top = pos.y + "px";
-        node.draggable = true;
-        node.addEventListener("dragstart", (e) => {
-          e.dataTransfer.setData("text/plain", JSON.stringify({ code: course.code, from: "graph" }));
-          e.dataTransfer.effectAllowed = "move";
-          node.classList.add("dragging-source");
-        });
-        node.addEventListener("dragend", () => node.classList.remove("dragging-source"));
 
         const top = document.createElement("div");
         top.className = "node-top";
@@ -1999,17 +1862,6 @@
         controls.appendChild(termSelect);
         controls.appendChild(sel);
 
-        const planBtn = document.createElement("button");
-        planBtn.type = "button";
-        planBtn.className = "planner-mini-btn";
-        planBtn.textContent = "Plan";
-        planBtn.title = "Open Term Planner with this course";
-        planBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          openPlannerForCourse(course.code);
-        });
-        controls.appendChild(planBtn);
-
         bottom.appendChild(pill);
         bottom.appendChild(controls);
 
@@ -2049,13 +1901,6 @@
 
       if (window.lucide) window.lucide.createIcons();
       applyFilters();
-      updateWillingGlow();
-    }
-
-    function updateWillingGlow() {
-      document.querySelectorAll(".course-node").forEach(node => {
-        node.classList.toggle("willing-glow", state.willingList.includes(node.dataset.code));
-      });
     }
 
     function drawEdges() {
@@ -2297,12 +2142,6 @@
 
     let saveDebounceTimer = null;
 
-    function defaultPlannerTermDefs() {
-      const defs = [];
-      for (let i = 1; i <= 8; i++) defs.push({ id: `PT${i}`, label: `Term ${i}`, cap: 21 });
-      return defs;
-    }
-
     function defaultAccountState() {
       return {
         grades: {},
@@ -2315,10 +2154,7 @@
           E3: []
         },
         willingList: [],
-        willingTermCap: 18,
-        plannerTermDefs: defaultPlannerTermDefs(),
-        plannerCourseTerms: {},
-        plannerCourseOrders: {}
+        willingTermCap: 18
       };
     }
 
@@ -2333,25 +2169,16 @@
     function saveState() {
       const key = userStorageKey();
       if (!key) return;
-      if (typeof normalizePlannerState === "function") normalizePlannerState();
-      const plannerDefsForSave = state.plannerTermDefs.map(t => ({
-        ...t,
-        order: (state.plannerCourseOrders[t.id] || []).slice(),
-        holdOrder: (state.plannerCourseOrders[holdIdFor(t.id)] || []).slice()
-      }));
-      const plannerStateForSave = {
+      localStorage.setItem(key, JSON.stringify({
         grades: state.grades,
         manualPass: state.manualPass,
         courseTerms: state.courseTerms,
         totalYears: state.totalYears,
         selectedElectives: state.selectedElectives,
         willingList: state.willingList,
-        willingTermCap: state.willingTermCap,
-        plannerTermDefs: plannerDefsForSave,
-        plannerCourseTerms: state.plannerCourseTerms,
-        plannerCourseOrders: state.plannerCourseOrders
-      };
-      localStorage.setItem(key, JSON.stringify(plannerStateForSave));
+        willingTermCap: state.willingTermCap
+      }));
+
       if (!supabaseClient || !currentUser) return;
       clearTimeout(saveDebounceTimer);
       saveDebounceTimer = setTimeout(async () => {
@@ -2364,11 +2191,9 @@
           selected_electives: state.selectedElectives,
           willing_list: state.willingList,
           willing_term_cap: state.willingTermCap,
-          planner_term_defs: plannerDefsForSave,
-          planner_course_terms: state.plannerCourseTerms,
           updated_at: new Date().toISOString()
         }, { onConflict: "user_id" });
-        if (error) console.error("Supabase save failed (planner columns may need to be added to the student_state table):", error.message);
+        if (error) console.error("Supabase save failed:", error.message);
       }, 600);
     }
 
@@ -2394,17 +2219,6 @@
           }
           state.willingList = saved.willingList || [];
           state.willingTermCap = saved.willingTermCap || 18;
-          state.plannerTermDefs = Array.isArray(saved.plannerTermDefs) && saved.plannerTermDefs.length ? saved.plannerTermDefs : defaultPlannerTermDefs();
-          state.plannerCourseTerms = saved.plannerCourseTerms || {};
-          state.plannerCourseOrders = saved.plannerCourseOrders || {};
-          if (!Object.keys(state.plannerCourseOrders).length) {
-            state.plannerTermDefs.forEach(t => {
-              state.plannerCourseOrders[t.id] = Array.isArray(t.order) ? t.order.slice() : [];
-              state.plannerCourseOrders[holdIdFor(t.id)] = Array.isArray(t.holdOrder) ? t.holdOrder.slice() : [];
-              delete t.order; delete t.holdOrder;
-            });
-          }
-          normalizePlannerState();
         }
       } catch (e) {}
     }
@@ -2432,16 +2246,6 @@
         }
         state.willingList = data.willing_list || [];
         state.willingTermCap = data.willing_term_cap || 18;
-        state.plannerTermDefs = Array.isArray(data.planner_term_defs) && data.planner_term_defs.length ? data.planner_term_defs : defaultPlannerTermDefs();
-        state.plannerCourseOrders = {};
-        state.plannerTermDefs.forEach(t => {
-          state.plannerCourseOrders[t.id] = Array.isArray(t.order) ? t.order.slice() : [];
-          state.plannerCourseOrders[holdIdFor(t.id)] = Array.isArray(t.holdOrder) ? t.holdOrder.slice() : [];
-          delete t.order;
-          delete t.holdOrder;
-        });
-        state.plannerCourseTerms = data.planner_course_terms || {};
-        normalizePlannerState();
       }
     }
 
@@ -2763,13 +2567,9 @@
           state.manualPass = {};
           state.courseTerms = {};
           state.willingList = [];
-          state.plannerCourseTerms = {};
-          state.plannerCourseOrders = {};
-          state.plannerTermDefs = defaultPlannerTermDefs();
           state.criticalPathMode = false;
           saveState();
           renderAll();
-          renderTermPlanner();
           showToast("Curriculum reset to a clean state.");
         }
       });
@@ -2804,7 +2604,6 @@
 
       setupPathwayUI();
       setupWillingUI();
-      setupTermPlannerUI();
 
       renderAll();
       setTransform();
@@ -2975,7 +2774,6 @@
             state.willingList = state.willingList.filter(x => x !== code);
           }
           renderWillingList();
-          updateWillingGlow();
         });
       });
     }
@@ -2997,150 +2795,12 @@
       document.getElementById("clearWillingBtn").addEventListener("click", () => {
         state.willingList = [];
         renderWillingList();
-        updateWillingGlow();
       });
       document.getElementById("saveWillingBtn").addEventListener("click", () => {
         saveState();
         document.getElementById("willingModal").classList.remove("open");
         showToast(`Term list saved: ${state.willingList.length} courses.`);
       });
-    }
-
-    // ===== FEATURE 3: ROBUST TERM PLANNER =====
-    const PLANNER_UNASSIGNED = "__UNASSIGNED__";
-
-    function holdIdFor(termId) { return `${termId}_HOLD`; }
-
-    function normalizePlannerState() {
-      if (!state.plannerCourseTerms || typeof state.plannerCourseTerms !== "object") state.plannerCourseTerms = {};
-      if (!state.plannerCourseOrders || typeof state.plannerCourseOrders !== "object") state.plannerCourseOrders = {};
-      const map = getCourseMap();
-      const valid = new Set();
-      state.plannerTermDefs.forEach(t => { valid.add(t.id); valid.add(holdIdFor(t.id)); });
-      Object.keys(state.plannerCourseTerms).forEach(code => {
-        if (!map[code] || !valid.has(state.plannerCourseTerms[code])) delete state.plannerCourseTerms[code];
-      });
-      const orders = {};
-      state.plannerTermDefs.forEach(t => { orders[t.id] = []; orders[holdIdFor(t.id)] = []; });
-      Object.keys(state.plannerCourseOrders).forEach(box => {
-        if (!orders[box]) return;
-        (Array.isArray(state.plannerCourseOrders[box]) ? state.plannerCourseOrders[box] : []).forEach(code => {
-          if (state.plannerCourseTerms[code] === box && !orders[box].includes(code)) orders[box].push(code);
-        });
-      });
-      Object.keys(state.plannerCourseTerms).forEach(code => {
-        const box = state.plannerCourseTerms[code];
-        if (!orders[box]) orders[box] = [];
-        if (!orders[box].includes(code)) orders[box].push(code);
-      });
-      state.plannerCourseOrders = orders;
-    }
-
-    function plannerCodesForBox(boxId) {
-      normalizePlannerState();
-      return (state.plannerCourseOrders[boxId] || []).filter(c => state.plannerCourseTerms[c] === boxId);
-    }
-
-    function plannerCoursesForBox(boxId) {
-      const map = getCourseMap();
-      return plannerCodesForBox(boxId).map(code => map[code]).filter(Boolean);
-    }
-
-    function plannerTermTotalCH(termId, excludeCode) {
-      return plannerCoursesForBox(termId).reduce((sum,c) => sum + (excludeCode && c.code === excludeCode ? 0 : Number(c.ch)||0),0);
-    }
-
-    function plannerUnassignedCourses() {
-      const map = getCourseMap();
-      return state.willingList.filter(code => !state.plannerCourseTerms[code]).map(code => map[code]).filter(Boolean);
-    }
-
-    function removeFromPlannerOrders(code) {
-      Object.keys(state.plannerCourseOrders).forEach(box => {
-        state.plannerCourseOrders[box] = (state.plannerCourseOrders[box] || []).filter(c => c !== code);
-      });
-    }
-
-    function setPlannerAssignment(code,targetBox,beforeCode=null) {
-      if (!getCourseMap()[code]) return;
-      removeFromPlannerOrders(code);
-      delete state.plannerCourseTerms[code];
-      if (targetBox === PLANNER_UNASSIGNED) {
-        if (!state.willingList.includes(code)) state.willingList.push(code);
-        return;
-      }
-      state.willingList = state.willingList.filter(c => c !== code);
-      state.plannerCourseTerms[code] = targetBox;
-      if (!state.plannerCourseOrders[targetBox]) state.plannerCourseOrders[targetBox] = [];
-      const arr = state.plannerCourseOrders[targetBox];
-      if (beforeCode && arr.includes(beforeCode)) arr.splice(arr.indexOf(beforeCode),0,code);
-      else arr.push(code);
-    }
-
-    function assignCourseToTerm(code,targetTerm,beforeCode=null) {
-      const course=getCourseMap()[code], def=state.plannerTermDefs.find(t=>t.id===targetTerm);
-      if(!course||!def)return;
-      if(plannerTermTotalCH(targetTerm,code)+(Number(course.ch)||0)>def.cap){ showToast("Term at capacity"); return; }
-      setPlannerAssignment(code,targetTerm,beforeCode); saveState(); renderTermPlanner(); updateWillingGlow();
-    }
-
-    function assignCourseToStandby(code,holdId,beforeCode=null) {
-      if(!getCourseMap()[code])return;
-      setPlannerAssignment(code,holdId,beforeCode); saveState(); renderTermPlanner(); updateWillingGlow();
-    }
-
-    function returnCourseToUnassigned(code) {
-      setPlannerAssignment(code,PLANNER_UNASSIGNED); saveState(); renderTermPlanner(); updateWillingGlow();
-    }
-
-    function openPlannerForCourse(code) {
-      if(!getCourseMap()[code])return;
-      if(!state.plannerCourseTerms[code]) {
-        state.willingList = state.willingList.filter(c=>c!==code);
-        if(!state.plannerCourseOrders[PLANNER_UNASSIGNED]) state.plannerCourseOrders[PLANNER_UNASSIGNED]=[];
-        if(!state.plannerCourseOrders[PLANNER_UNASSIGNED].includes(code)) state.plannerCourseOrders[PLANNER_UNASSIGNED].push(code);
-      }
-      document.getElementById("termPlannerModal").classList.add("open"); renderTermPlanner();
-    }
-
-    function courseChipHTML(course,boxId) {
-      const reqStr=course.prereqs&&course.prereqs.length?course.prereqs.join(', '):'None';
-      return `<div class="term-course-chip" data-code="${course.code}" data-term="${boxId||PLANNER_UNASSIGNED}" title="Prerequisites: ${reqStr}"><span>${course.code} · ${course.ch} CH</span><button class="chip-remove" type="button" data-remove="${course.code}" title="Send back to My Term List">&times;</button></div>`;
-    }
-
-    function renderTermPlanner() {
-      normalizePlannerState();
-      const unassigned=plannerUnassignedCourses();
-      document.getElementById("plannerUnassignedList").innerHTML=unassigned.length?unassigned.map(c=>courseChipHTML(c,PLANNER_UNASSIGNED)).join(''):'<span class="drawer-note">Nothing waiting. Use the Plan button on a course or add courses through My Term List.</span>';
-      const grid=document.getElementById("plannerGrid"); let html='';
-      state.plannerTermDefs.forEach((t,idx)=>{
-        const col=idx+1, courses=plannerCoursesForBox(t.id), totalCH=courses.reduce((s,c)=>s+(Number(c.ch)||0),0), pct=t.cap?Math.min(100,totalCH/t.cap*100):0, full=totalCH>=t.cap&&t.cap>0;
-        html+=`<div class="term-box ${full?'full':''}" data-term="${t.id}" style="grid-column:${col};grid-row:1;"><div class="term-box-head"><div><div class="term-box-title">${t.label}</div><div class="term-box-ch">${totalCH} / ${t.cap} CH${full?' · FULL':''}</div></div><div class="term-box-cap"><input type="number" class="control" min="0" max="21" value="${t.cap}" data-cap-for="${t.id}" title="Maximum CH"></div></div><div class="term-box-bar"><div class="term-box-bar-fill ${totalCH>t.cap?'over':''}" style="width:${pct}%;"></div></div><div class="term-box-list" data-dropzone="${t.id}">${courses.length?courses.map(c=>courseChipHTML(c,t.id)).join(''):'<div class="term-box-empty">No courses assigned</div>'}</div></div>`;
-        const hold=holdIdFor(t.id), holdCourses=plannerCoursesForBox(hold);
-        html+=`<div class="term-box term-box-hold" data-term="${hold}" data-hold="true" style="grid-column:${col};grid-row:2;"><div class="term-box-head"><div class="term-box-title hold-title">Standby — ${t.label}</div><span style="font-size:7.5px;color:var(--muted);">No CH impact</span></div><div class="term-box-list" data-dropzone="${hold}">${holdCourses.length?holdCourses.map(c=>courseChipHTML(c,hold)).join(''):'<div class="term-box-empty">No courses parked</div>'}</div></div>`;
-      });
-      if(state.plannerTermDefs.length<16) html+=`<div class="add-term-box" id="addTermBoxInline" style="grid-column:${state.plannerTermDefs.length+1};grid-row:1;"><span class="icon" data-lucide="plus"></span>&nbsp;Add Term</div>`;
-      grid.innerHTML=html; document.getElementById("termBoxCountLabel").textContent=state.plannerTermDefs.length;
-      if(window.lucide)window.lucide.createIcons();
-    }
-
-    function plannerDrop(code,targetBox,beforeCode=null) {
-      if(targetBox===PLANNER_UNASSIGNED){returnCourseToUnassigned(code);return;}
-      if(targetBox.endsWith('_HOLD')){assignCourseToStandby(code,targetBox,beforeCode);return;}
-      assignCourseToTerm(code,targetBox,beforeCode);
-    }
-    function addTermBox(){
-      if(state.plannerTermDefs.length>=16){showToast('Maximum of 16 terms reached.');return;}
-      const n=state.plannerTermDefs.length+1,id=`PT${n}`;
-      state.plannerTermDefs.push({id,label:`Term ${n}`,cap:21});
-      state.plannerCourseOrders[id]=[];state.plannerCourseOrders[holdIdFor(id)]=[];
-      saveState();renderTermPlanner();
-    }
-
-    function setupTermPlannerUI(){
-      document.getElementById('termPlannerBtn').addEventListener('click',()=>{normalizePlannerState();renderTermPlanner();document.getElementById('termPlannerModal').classList.add('open');});
-      document.getElementById('closeTermPlannerModal').addEventListener('click',()=>document.getElementById('termPlannerModal').classList.remove('open'));
-      document.getElementById('addTermBoxBtn').addEventListener('click',addTermBox);
     }
 
     init();
