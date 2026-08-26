@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +11,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
   <style>
-    :root {
+    /* THEME VARIABLES (Dark / Light Mode for App Shell Only) */
+    html[data-theme="dark"] {
       --bg: #050b14;
       --panel: #0a1321;
       --panel-2: #0d1828;
@@ -19,6 +20,35 @@
       --border: rgba(148, 163, 184, 0.16);
       --text: #e5edf7;
       --muted: #8fa2b8;
+      --grid-line: rgba(148, 163, 184, 0.045);
+      --topbar-bg: rgba(5, 11, 20, 0.96);
+      --metric-bg: rgba(13, 24, 40, 0.72);
+      --control-bg: #091322;
+      --control-color: #dce8f6;
+      --drawer-bg: rgba(8, 17, 29, 0.98);
+      --modal-bg: #091322;
+      --legend-bg: rgba(5, 11, 20, 0.92);
+    }
+
+    html[data-theme="light"] {
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --panel-2: #f1f5f9;
+      --panel-3: #e2e8f0;
+      --border: rgba(148, 163, 184, 0.3);
+      --text: #0f172a;
+      --muted: #64748b;
+      --grid-line: rgba(100, 116, 139, 0.08);
+      --topbar-bg: rgba(255, 255, 255, 0.96);
+      --metric-bg: rgba(241, 245, 249, 0.9);
+      --control-bg: #ffffff;
+      --control-color: #0f172a;
+      --drawer-bg: rgba(255, 255, 255, 0.98);
+      --modal-bg: #ffffff;
+      --legend-bg: rgba(255, 255, 255, 0.94);
+    }
+
+    :root {
       --cyan: #22d3ee;
       --blue: #38bdf8;
       --amber: #f59e0b;
@@ -35,13 +65,11 @@
       width: 100%;
       height: 100%;
       margin: 0;
-      background:
-        radial-gradient(circle at 20% 10%, rgba(14, 116, 144, 0.10), transparent 30%),
-        radial-gradient(circle at 80% 20%, rgba(79, 70, 229, 0.08), transparent 28%),
-        var(--bg);
+      background: var(--bg);
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       overflow: hidden;
+      transition: background 0.2s ease, color 0.2s ease;
     }
 
     button, input, select, textarea { font: inherit; }
@@ -57,9 +85,10 @@
     .topbar {
       flex: 0 0 auto;
       border-bottom: 1px solid var(--border);
-      background: rgba(5, 11, 20, 0.96);
+      background: var(--topbar-bg);
       backdrop-filter: blur(14px);
       z-index: 50;
+      transition: background 0.2s ease, border-color 0.2s ease;
     }
 
     .topbar-inner {
@@ -98,7 +127,8 @@
       padding: 6px 10px;
       border: 1px solid var(--border);
       border-radius: 9px;
-      background: rgba(13, 24, 40, 0.72);
+      background: var(--metric-bg);
+      transition: background 0.2s ease, border-color 0.2s ease;
     }
 
     .metric-label {
@@ -129,8 +159,8 @@
 
     .action-button {
       border: 1px solid var(--border);
-      background: rgba(17, 30, 48, 0.9);
-      color: #dce8f6;
+      background: var(--panel-2);
+      color: var(--text);
       border-radius: 7px;
       padding: 6px 9px;
       display: inline-flex;
@@ -143,18 +173,18 @@
 
     .action-button:hover {
       border-color: rgba(56, 189, 248, 0.45);
-      background: rgba(20, 39, 61, 0.95);
+      background: var(--panel-3);
       transform: translateY(-1px);
     }
 
     .action-button.primary {
-      background: linear-gradient(135deg, #075985, #0e7490);
+      background: linear-gradient(135deg, #0284c7, #0369a1);
       border-color: rgba(34, 211, 238, 0.5);
       color: white;
     }
 
     .action-button.purple {
-      background: linear-gradient(135deg, #6b21a8, #7e22ce);
+      background: linear-gradient(135deg, #7e22ce, #6b21a8);
       border-color: rgba(192, 132, 252, 0.5);
       color: white;
     }
@@ -193,11 +223,12 @@
       min-height: 28px;
       border: 1px solid var(--border);
       border-radius: 6px;
-      background: #091322;
-      color: #dce8f6;
+      background: var(--control-bg);
+      color: var(--control-color);
       padding: 4px 7px;
       font-size: 9.5px;
       outline: none;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     }
 
     .control:focus {
@@ -223,20 +254,28 @@
       padding: 4px 7px;
       font-size: 8.5px;
       color: var(--muted);
-      background: rgba(8, 17, 29, 0.8);
+      background: var(--panel-2);
       white-space: nowrap;
     }
 
     .milestone.ready {
+      color: #059669;
+      border-color: rgba(52, 211, 153, 0.4);
+      background: rgba(16, 185, 129, 0.12);
+    }
+
+    html[data-theme="dark"] .milestone.ready {
       color: #a7f3d0;
-      border-color: rgba(52, 211, 153, 0.35);
-      background: rgba(6, 78, 59, 0.18);
     }
 
     .milestone.current {
+      color: #d97706;
+      border-color: rgba(245, 158, 11, 0.4);
+      background: rgba(245, 158, 11, 0.12);
+    }
+
+    html[data-theme="dark"] .milestone.current {
       color: #fde68a;
-      border-color: rgba(245, 158, 11, 0.35);
-      background: rgba(120, 53, 15, 0.18);
     }
 
     .workspace {
@@ -252,9 +291,9 @@
       position: relative;
       overflow: hidden;
       background:
-        linear-gradient(rgba(148, 163, 184, 0.045) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(148, 163, 184, 0.045) 1px, transparent 1px),
-        #06101c;
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+        var(--bg);
       background-size: 24px 24px;
     }
 
@@ -268,7 +307,7 @@
       padding: 4px;
       border: 1px solid var(--border);
       border-radius: 8px;
-      background: rgba(5, 11, 20, 0.86);
+      background: var(--topbar-bg);
       backdrop-filter: blur(10px);
     }
 
@@ -277,15 +316,15 @@
       height: 27px;
       border: 1px solid transparent;
       border-radius: 5px;
-      background: #0b1727;
-      color: #a9bbcf;
+      background: var(--panel-2);
+      color: var(--text);
       display: inline-flex;
       justify-content: center;
       align-items: center;
     }
 
     .graph-tool:hover {
-      color: white;
+      color: var(--cyan);
       border-color: rgba(56, 189, 248, 0.35);
     }
 
@@ -294,11 +333,11 @@
       right: 12px;
       top: 12px;
       z-index: 20;
-      color: #70859d;
+      color: var(--muted);
       font-size: 8.5px;
       padding: 4px 8px;
       border: 1px solid var(--border);
-      background: rgba(5, 11, 20, 0.75);
+      background: var(--topbar-bg);
       border-radius: 6px;
       pointer-events: none;
     }
@@ -333,9 +372,9 @@
 
     .edge {
       fill: none;
-      stroke: #52677e;
+      stroke: #64748b;
       stroke-width: 1.45;
-      opacity: 0.45;
+      opacity: 0.55;
       transition: opacity 0.16s ease, stroke 0.16s ease, stroke-width 0.16s ease, filter 0.16s ease;
     }
 
@@ -374,8 +413,8 @@
 
     .semester-title {
       height: 32px;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-      color: #9fb1c6;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
       font-size: 9.5px;
       text-transform: uppercase;
       letter-spacing: 0.12em;
@@ -384,12 +423,12 @@
     }
 
     .semester-title.summer-header {
-      border-bottom-color: rgba(245, 158, 11, 0.3);
-      color: #fde68a;
+      border-bottom-color: rgba(245, 158, 11, 0.4);
+      color: var(--amber);
     }
 
     .semester-subtitle {
-      color: #586c82;
+      color: var(--muted);
       font-size: 8px;
       margin-left: 6px;
       margin-top: 2px;
@@ -402,62 +441,77 @@
       font-size: 7.5px;
       margin-left: 6px;
       margin-top: 2px;
-      color: #94a3b8;
+      color: var(--muted);
     }
 
     .semester-stats.warning {
-      color: #fb7185;
+      color: #e11d48;
       font-weight: 800;
+    }
+
+    html[data-theme="dark"] .semester-stats.warning {
+      color: #fb7185;
     }
 
     .semester-gpa-info {
       font-size: 7.5px;
       margin-left: 6px;
       margin-top: 1px;
-      color: #38bdf8;
+      color: var(--blue);
       font-weight: 600;
     }
 
+    /* PERMANENT LIGHT-PASTEL COURSE NODES (Always fixed pastel map colors regardless of theme) */
     .course-node {
       position: absolute;
       width: 242px;
       min-height: 114px;
-      border: 1px solid rgba(148, 163, 184, 0.16);
       border-radius: 9px;
-      background: linear-gradient(145deg, rgba(16, 30, 47, 0.98), rgba(9, 19, 32, 0.98));
-      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.23);
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
       padding: 8px;
       z-index: 5;
       transition: opacity 0.16s ease, transform 0.15s ease, border-color 0.15s ease, box-shadow 0.16s ease;
       user-select: none;
     }
 
+    .course-node.cat-university-node { background: linear-gradient(145deg, #ff99cc, #ff80b3); border: 1.5px solid #d96b9f; color: #3b071a; }
+    .course-node.cat-faculty-node { background: linear-gradient(145deg, #99ccff, #80bfff); border: 1.5px solid #6699cc; color: #082f49; }
+    .course-node.cat-discipline-node { background: linear-gradient(145deg, #ffcc99, #ffb366); border: 1.5px solid #e59455; color: #431407; }
+    .course-node.cat-program-node { background: linear-gradient(145deg, #99ff99, #66ff66); border: 1.5px solid #5fe15f; color: #052e16; }
+    .course-node.cat-elective-node { background: linear-gradient(145deg, #ffff99, #ffff66); border: 1.5px solid #d9d959; color: #422006; }
+
     .course-node:hover {
       transform: translateY(-2px);
     }
 
     .course-node.selected {
-      border-color: rgba(129, 140, 248, 0.95);
-      box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.25), 0 0 18px rgba(99, 102, 241, 0.3);
+      border-color: #0f172a !important;
+      box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.9), 0 0 20px rgba(0, 0, 0, 0.4) !important;
     }
 
-    .course-node.upstream {
-      border-color: rgba(34, 211, 238, 0.9);
-      box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.2), 0 0 18px rgba(34, 211, 238, 0.45);
+    .course-node.status-passed-card {
+      outline: 3px solid #059669 !important;
+      box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.3), 0 8px 22px rgba(0,0,0,0.2) !important;
     }
-
-    .course-node.downstream {
-      border-color: rgba(245, 158, 11, 0.9);
-      box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2), 0 0 18px rgba(245, 158, 11, 0.45);
+    .course-node.status-failed-card {
+      outline: 3px solid #dc2626 !important;
+      box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.3), 0 8px 22px rgba(0,0,0,0.2) !important;
     }
-
-    .course-node.critical {
-      border-color: rgba(192, 132, 252, 0.95);
-      box-shadow: 0 0 0 1px rgba(192, 132, 252, 0.3), 0 0 20px rgba(192, 132, 252, 0.5);
+    .course-node.pathway-card-highlight {
+      outline: 3px solid #9333ea !important;
+      box-shadow: 0 0 0 4px rgba(147, 51, 234, 0.3), 0 8px 22px rgba(0,0,0,0.2) !important;
+    }
+    .course-node.critical-card-highlight {
+      outline: 3px solid #4f46e5 !important;
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.3), 0 8px 22px rgba(0,0,0,0.2) !important;
+    }
+    .course-node.willing-card-highlight {
+      outline: 3px solid #0891b2 !important;
+      box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.3), 0 8px 22px rgba(0,0,0,0.2) !important;
     }
 
     .course-node.dimmed {
-      opacity: 0.14;
+      opacity: 0.16;
     }
 
     .course-node.hidden-filter {
@@ -472,46 +526,39 @@
     }
 
     .node-code {
-      color: #f3f8ff;
       font-weight: 900;
-      font-size: 10px;
+      font-size: 10.5px;
       letter-spacing: 0.02em;
     }
 
     .node-ch {
       font-size: 8px;
-      color: #cbd5e1;
-      padding: 1px 4px;
+      padding: 1px 5px;
       border-radius: 4px;
-      background: rgba(148, 163, 184, 0.10);
-      border: 1px solid rgba(148, 163, 184, 0.13);
+      background: rgba(0, 0, 0, 0.12);
+      border: 1px solid rgba(0, 0, 0, 0.15);
       white-space: nowrap;
     }
 
     .node-category {
       display: inline-flex;
       margin-top: 4px;
-      padding: 1.5px 5px;
-      border-radius: 4px;
+      padding: 1px 5px;
+      border-radius: 3px;
       font-size: 7px;
-      font-weight: 800;
+      font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 0.06em;
+      background: rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(0, 0, 0, 0.2);
     }
-
-    .cat-university { color: #c4b5fd; background: rgba(124, 58, 237, 0.14); border: 1px solid rgba(167, 139, 250, 0.2); }
-    .cat-faculty { color: #93c5fd; background: rgba(37, 99, 235, 0.14); border: 1px solid rgba(96, 165, 250, 0.2); }
-    .cat-discipline { color: #5eead4; background: rgba(13, 148, 136, 0.14); border: 1px solid rgba(45, 212, 191, 0.2); }
-    .cat-program { color: #67e8f9; background: rgba(8, 145, 178, 0.14); border: 1px solid rgba(34, 211, 238, 0.2); }
-    .cat-elective { color: #fcd34d; background: rgba(180, 83, 9, 0.14); border: 1px solid rgba(251, 191, 36, 0.2); }
 
     .node-title {
       margin-top: 5px;
       min-height: 26px;
-      color: #c7d5e5;
-      font-size: 9px;
+      font-size: 9.5px;
       line-height: 1.35;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .node-bottom {
@@ -529,16 +576,16 @@
       gap: 3px;
       min-height: 19px;
       border-radius: 999px;
-      padding: 2px 6px;
-      font-size: 7px;
-      font-weight: 800;
+      padding: 2px 7px;
+      font-size: 7.5px;
+      font-weight: 900;
       white-space: nowrap;
     }
 
-    .status-passed { color: #a7f3d0; background: rgba(6, 78, 59, 0.38); border: 1px solid rgba(52, 211, 153, 0.28); }
-    .status-ready { color: #c7d2fe; background: rgba(49, 46, 129, 0.28); border: 1px solid rgba(129, 140, 248, 0.8); box-shadow: 0 0 10px rgba(99, 102, 241, 0.18); }
-    .status-locked { color: #94a3b8; background: rgba(71, 85, 105, 0.22); border: 1px solid rgba(100, 116, 139, 0.2); }
-    .status-ip { color: #fde68a; background: rgba(120, 53, 15, 0.28); border: 1px solid rgba(245, 158, 11, 0.32); }
+    .status-passed { color: #064e3b; background: rgba(52, 211, 153, 0.45); border: 1px solid rgba(16, 185, 129, 0.6); }
+    .status-ready { color: #1e1b4b; background: rgba(129, 140, 248, 0.35); border: 1px solid rgba(99, 102, 241, 0.6); }
+    .status-locked { color: #1e293b; background: rgba(255, 255, 255, 0.25); border: 1px solid rgba(0, 0, 0, 0.2); }
+    .status-ip { color: #78350f; background: rgba(251, 191, 36, 0.45); border: 1px solid rgba(245, 158, 11, 0.6); }
 
     .node-controls {
       display: flex;
@@ -549,11 +596,12 @@
     .grade-select, .slot-select {
       min-height: 20px;
       padding: 1px 3px;
-      border: 1px solid rgba(148, 163, 184, 0.18);
+      border: 1px solid rgba(0, 0, 0, 0.25);
       border-radius: 4px;
-      background: #07111e;
-      color: #dbeafe;
+      background: rgba(255, 255, 255, 0.9);
+      color: #0f172a;
       font-size: 8px;
+      font-weight: 700;
       outline: none;
     }
 
@@ -565,8 +613,8 @@
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: #60758c;
-      opacity: 0.7;
+      background: #0f172a;
+      opacity: 0.9;
     }
     .anchor-in { left: -3px; top: 50%; transform: translateY(-50%); }
     .anchor-out { right: -3px; top: 50%; transform: translateY(-50%); }
@@ -578,13 +626,13 @@
       bottom: 0;
       width: 380px;
       max-width: 90vw;
-      background: rgba(8, 17, 29, 0.98);
+      background: var(--drawer-bg);
       border-left: 1px solid var(--border);
-      box-shadow: -15px 0 35px rgba(0, 0, 0, 0.45);
+      box-shadow: -15px 0 35px rgba(0, 0, 0, 0.35);
       z-index: 60;
       overflow-y: auto;
       transform: translateX(100%);
-      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease;
       display: none;
     }
 
@@ -603,27 +651,26 @@
     }
 
     .drawer-code { font-size: 19px; font-weight: 900; letter-spacing: -0.03em; }
-    .drawer-title { margin-top: 4px; color: #b8c7d8; font-size: 11.5px; line-height: 1.4; }
-    .drawer-close { width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 6px; background: #0d1828; color: #9fb1c6; }
+    .drawer-title { margin-top: 4px; color: var(--muted); font-size: 11.5px; line-height: 1.4; }
+    .drawer-close { width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel-2); color: var(--text); }
     .drawer-meta { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
-    .meta-chip { border: 1px solid var(--border); border-radius: 5px; background: rgba(17, 30, 48, 0.75); color: #aebfd2; font-size: 8.5px; padding: 4px 6px; }
+    .meta-chip { border: 1px solid var(--border); border-radius: 5px; background: var(--panel-2); color: var(--text); font-size: 8.5px; padding: 4px 6px; }
 
     .drawer-section { margin-top: 15px; }
-    .drawer-section-title { font-size: 8.5px; color: #7489a0; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 800; margin-bottom: 6px; }
+    .drawer-section-title { font-size: 8.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; font-weight: 800; margin-bottom: 6px; }
     .prereq-list { display: flex; flex-wrap: wrap; gap: 5px; }
-    .course-badge { border: 1px solid rgba(34, 211, 238, 0.22); background: rgba(8, 51, 68, 0.28); color: #a5f3fc; border-radius: 5px; padding: 4px 6px; font-size: 8.5px; font-weight: 800; }
-    .course-badge:hover { border-color: rgba(34, 211, 238, 0.6); background: rgba(8, 51, 68, 0.55); }
-    .drawer-grade, .drawer-term { width: 100%; margin-top: 6px; min-height: 34px; border: 1px solid var(--border); border-radius: 6px; background: #07111e; color: #dce8f6; padding: 6px 8px; font-size: 10px; }
-    .pass-toggle { width: 100%; min-height: 34px; margin-top: 6px; border-radius: 6px; border: 1px solid rgba(52, 211, 153, 0.25); background: rgba(6, 78, 59, 0.16); color: #a7f3d0; font-size: 9.5px; font-weight: 800; }
-    .pass-toggle.off { border-color: var(--border); background: rgba(71, 85, 105, 0.14); color: #94a3b8; }
-    .drawer-note { margin-top: 8px; color: #71859c; font-size: 8.5px; line-height: 1.45; }
+    .course-badge { border: 1px solid rgba(34, 211, 238, 0.3); background: rgba(8, 51, 68, 0.2); color: var(--cyan); border-radius: 5px; padding: 4px 6px; font-size: 8.5px; font-weight: 800; }
+    .drawer-grade, .drawer-term { width: 100%; margin-top: 6px; min-height: 34px; border: 1px solid var(--border); border-radius: 6px; background: var(--control-bg); color: var(--control-color); padding: 6px 8px; font-size: 10px; }
+    .pass-toggle { width: 100%; min-height: 34px; margin-top: 6px; border-radius: 6px; border: 1px solid rgba(52, 211, 153, 0.4); background: rgba(16, 185, 129, 0.15); color: #059669; font-size: 9.5px; font-weight: 800; }
+    .pass-toggle.off { border-color: var(--border); background: var(--panel-2); color: var(--muted); }
+    .drawer-note { margin-top: 8px; color: var(--muted); font-size: 8.5px; line-height: 1.45; }
 
     .modal-backdrop {
       position: fixed;
       inset: 0;
       z-index: 100;
-      background: rgba(0, 0, 0, 0.68);
-      backdrop-filter: blur(7px);
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(6px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -637,10 +684,11 @@
       overflow: hidden;
       border: 1px solid var(--border);
       border-radius: 12px;
-      background: #091322;
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+      background: var(--modal-bg);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
       display: flex;
       flex-direction: column;
+      transition: background 0.2s ease;
     }
 
     .modal-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
@@ -648,18 +696,18 @@
     .modal-subtitle { margin-top: 3px; color: var(--muted); font-size: 9.5px; line-height: 1.4; }
     .modal-body { padding: 12px 16px; overflow: auto; }
 
-    .elective-group { border: 1px solid var(--border); border-radius: 9px; background: rgba(13, 24, 40, 0.68); margin-bottom: 10px; overflow: hidden; }
+    .elective-group { border: 1px solid var(--border); border-radius: 9px; background: var(--panel-2); margin-bottom: 10px; overflow: hidden; }
     .elective-group-header { padding: 9px 11px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
     .elective-group-title { font-size: 10.5px; font-weight: 900; }
-    .elective-count { font-size: 8.5px; color: #a5f3fc; border: 1px solid rgba(34, 211, 238, 0.22); background: rgba(8, 51, 68, 0.3); padding: 3px 6px; border-radius: 999px; }
+    .elective-count { font-size: 8.5px; color: var(--cyan); border: 1px solid rgba(34, 211, 238, 0.3); background: rgba(34, 211, 238, 0.1); padding: 3px 6px; border-radius: 999px; }
     .elective-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 8px; }
-    .elective-item { border: 1px solid rgba(148, 163, 184, 0.13); border-radius: 7px; background: #0a1524; padding: 8px; transition: 0.15s ease; cursor: pointer; }
-    .elective-item.selected { border-color: rgba(34, 211, 238, 0.65); background: rgba(8, 51, 68, 0.3); box-shadow: 0 0 14px rgba(34, 211, 238, 0.09); }
+    .elective-item { border: 1px solid var(--border); border-radius: 7px; background: var(--control-bg); padding: 8px; transition: 0.15s ease; cursor: pointer; }
+    .elective-item.selected { border-color: rgba(34,211,238,0.6); background: rgba(34,211,238,0.08); }
     .elective-top { display: flex; gap: 7px; align-items: flex-start; }
     .elective-checkbox { margin-top: 2px; accent-color: #22d3ee; }
-    .elective-code { color: #e9f2fb; font-size: 9.5px; font-weight: 900; }
-    .elective-name { margin-top: 1px; color: #aebfd2; font-size: 8.5px; line-height: 1.35; }
-    .elective-prereqs { margin-top: 4px; color: #71859c; font-size: 7.5px; line-height: 1.35; }
+    .elective-code { font-size: 9.5px; font-weight: 900; }
+    .elective-name { margin-top: 1px; color: var(--muted); font-size: 8.5px; line-height: 1.35; }
+    .elective-prereqs { margin-top: 4px; color: var(--muted); font-size: 7.5px; line-height: 1.35; }
     .modal-footer { border-top: 1px solid var(--border); padding: 10px 16px; display: flex; justify-content: flex-end; gap: 6px; }
 
     .toast {
@@ -670,10 +718,10 @@
       max-width: 420px;
       border: 1px solid rgba(34, 211, 238, 0.35);
       border-radius: 8px;
-      background: rgba(8, 17, 29, 0.98);
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+      background: var(--modal-bg);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
       padding: 10px 14px;
-      color: #cfe7f7;
+      color: var(--text);
       font-size: 10px;
       line-height: 1.45;
       transform: translateY(18px);
@@ -683,26 +731,79 @@
     }
     .toast.show { transform: translateY(0); opacity: 1; }
 
+    /* MINIMIZABLE LEGEND */
     .legend {
       position: absolute;
       left: 12px;
       bottom: 12px;
       z-index: 20;
       display: flex;
-      gap: 6px;
-      padding: 5px 8px;
+      flex-direction: column;
+      gap: 5px;
+      padding: 8px 10px;
       border: 1px solid var(--border);
       border-radius: 7px;
-      background: rgba(5, 11, 20, 0.82);
-      color: #8195ab;
+      background: var(--legend-bg);
+      color: var(--muted);
       font-size: 8px;
-      pointer-events: none;
+      max-width: 320px;
+      backdrop-filter: blur(8px);
+      transition: background 0.2s ease, border-color 0.2s ease;
     }
-    .legend-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 3px; }
-    .legend-cyan { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
-    .legend-amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
-    .legend-purple { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
-    .legend-green { background: var(--green); }
+    .legend-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      cursor: pointer;
+      user-select: none;
+    }
+    .legend-toggle-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 7.5px;
+      padding: 1px 5px;
+      font-weight: 700;
+    }
+    .legend-toggle-btn:hover {
+      background: var(--panel-3);
+    }
+    .legend-body {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      transition: max-height 0.2s ease;
+    }
+    .legend.minimized .legend-body {
+      display: none;
+    }
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .legend-divider {
+      width: 100%;
+      height: 1px;
+      background: var(--border);
+      margin: 2px 0;
+    }
+    .legend-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 3px; }
+    
+    .leg-ur { background: #ff99cc; }
+    .leg-fr { background: #99ccff; }
+    .leg-dr { background: #ffcc99; }
+    .leg-pr { background: #99ff99; }
+    .leg-el { background: #ffff99; }
+
+    .leg-passed { background: #059669; }
+    .leg-failed { background: #dc2626; }
+    .leg-pathway { background: #9333ea; }
+    .leg-critical { background: #4f46e5; }
+    .leg-willing { background: #0891b2; }
 
     /* AUTH SCREEN */
     #authScreen {
@@ -715,24 +816,23 @@
       width: min(380px, 92vw);
       border: 1px solid var(--border);
       border-radius: 12px;
-      background: #091322;
+      background: var(--modal-bg);
       padding: 22px;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.4);
     }
     .auth-title { font-size: 16px; font-weight: 900; }
     .auth-sub { margin-top: 4px; color: var(--muted); font-size: 10px; line-height: 1.5; }
-    .auth-field { width: 100%; margin-top: 10px; min-height: 36px; border: 1px solid var(--border); border-radius: 7px; background: #07111e; color: #dce8f6; padding: 8px 10px; font-size: 11px; outline: none; }
+    .auth-field { width: 100%; margin-top: 10px; min-height: 36px; border: 1px solid var(--border); border-radius: 7px; background: var(--control-bg); color: var(--control-color); padding: 8px 10px; font-size: 11px; outline: none; }
     .auth-field:focus { border-color: rgba(34, 211, 238, 0.55); }
-    .auth-btn { width: 100%; margin-top: 12px; min-height: 38px; border-radius: 7px; background: linear-gradient(135deg, #075985, #0e7490); border: 1px solid rgba(34, 211, 238, 0.5); color: white; font-weight: 800; font-size: 11px; }
+    .auth-btn { width: 100%; margin-top: 12px; min-height: 38px; border-radius: 7px; background: linear-gradient(135deg, #0284c7, #0369a1); border: 1px solid rgba(34, 211, 238, 0.5); color: white; font-weight: 800; font-size: 11px; }
     .auth-toggle { margin-top: 12px; text-align: center; color: var(--muted); font-size: 9.5px; }
     .auth-toggle button { background: none; border: none; color: var(--cyan); font-weight: 700; padding: 0; font-size: 9.5px; }
     .auth-error { margin-top: 8px; color: var(--red); font-size: 9.5px; display: none; }
     .auth-status { margin-top: 10px; color: var(--muted); font-size: 8.5px; line-height: 1.5; }
-    .user-chip { display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 7px; background: rgba(17, 30, 48, 0.9); padding: 5px 9px; font-size: 9.5px; color: #dce8f6; font-weight: 700; }
+    .user-chip { display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 7px; background: var(--panel-2); padding: 5px 9px; font-size: 9.5px; color: var(--text); font-weight: 700; }
     .user-chip button { background: none; border: none; color: var(--red); font-size: 9px; font-weight: 800; padding: 0; }
 
-    /* TERM HIGHLIGHT COLORS FOR PATHWAY SUGGESTION */
-    .course-node.plan-t1 { border-color: #34d399 !important; box-shadow: 0 0 0 1px rgba(52,211,153,0.3), 0 0 16px rgba(52,211,153,0.4) !important; }
+    .course-node.plan-t1 { border-color: #9333ea !important; box-shadow: 0 0 0 1px rgba(147,51,234,0.4), 0 0 16px rgba(147,51,234,0.5) !important; }
     .course-node.plan-t2 { border-color: #38bdf8 !important; box-shadow: 0 0 0 1px rgba(56,189,248,0.3), 0 0 16px rgba(56,189,248,0.4) !important; }
     .course-node.plan-t3 { border-color: #818cf8 !important; box-shadow: 0 0 0 1px rgba(129,140,248,0.3), 0 0 16px rgba(129,140,248,0.4) !important; }
     .course-node.plan-t4 { border-color: #f59e0b !important; box-shadow: 0 0 0 1px rgba(245,158,11,0.3), 0 0 16px rgba(245,158,11,0.4) !important; }
@@ -741,11 +841,11 @@
     .plan-badge { position: absolute; top: -8px; right: -8px; z-index: 6; border-radius: 999px; font-size: 8px; font-weight: 900; padding: 2px 6px; color: #06111e; }
 
     .pathway-panel, .willing-panel { padding: 4px 0 2px; }
-    .pathway-term-block { border: 1px solid var(--border); border-radius: 8px; background: rgba(13,24,40,0.6); padding: 8px 10px; margin-bottom: 8px; }
-    .pathway-term-title { font-size: 9.5px; font-weight: 900; color: #e5edf7; display: flex; justify-content: space-between; }
+    .pathway-term-block { border: 1px solid var(--border); border-radius: 8px; background: var(--panel-2); padding: 8px 10px; margin-bottom: 8px; }
+    .pathway-term-title { font-size: 9.5px; font-weight: 900; color: var(--text); display: flex; justify-content: space-between; }
     .pathway-term-courses { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 5px; }
-    .willing-item { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border: 1px solid rgba(148,163,184,0.13); border-radius: 7px; background: #0a1524; margin-bottom: 5px; }
-    .willing-item.selected { border-color: rgba(34,211,238,0.6); background: rgba(8,51,68,0.28); }
+    .willing-item { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border: 1px solid var(--border); border-radius: 7px; background: var(--control-bg); margin-bottom: 5px; }
+    .willing-item.selected { border-color: rgba(34,211,238,0.6); background: rgba(34,211,238,0.08); }
     .willing-cap-bar { height: 6px; border-radius: 999px; background: rgba(148,163,184,0.15); margin-top: 6px; overflow: hidden; }
     .willing-cap-fill { height: 100%; background: linear-gradient(90deg,#22d3ee,#818cf8); transition: width 0.2s ease; }
     .willing-cap-fill.over { background: #fb7185; }
@@ -830,6 +930,12 @@
             My Term List
           </button>
 
+          <!-- THEME TOGGLE BUTTON -->
+          <button class="action-button" id="themeToggleBtn" type="button">
+            <span class="icon" data-lucide="sun" id="themeIcon"></span>
+            <span id="themeBtnText">Light Mode</span>
+          </button>
+
           <button class="action-button danger" id="resetBtn" type="button">
             <span class="icon" data-lucide="rotate-ccw"></span>
             Reset All
@@ -899,11 +1005,31 @@
           </div>
         </div>
 
-        <div class="legend">
-          <span><span class="legend-dot legend-cyan"></span>Prerequisites</span>
-          <span><span class="legend-dot legend-amber"></span>Downstream Unlocks</span>
-          <span><span class="legend-dot legend-purple"></span>Critical Chain</span>
-          <span><span class="legend-dot legend-green"></span>Passed</span>
+        <!-- MINIMIZABLE / MAXIMIZABLE LEGEND -->
+        <div class="legend" id="legendBox">
+          <div class="legend-header-row" id="legendToggleRow">
+            <span style="font-weight:900; color:var(--text); font-size:9px;">Map Legend &amp; States</span>
+            <button class="legend-toggle-btn" id="legendToggleBtn" type="button">Minimize</button>
+          </div>
+          <div class="legend-body">
+            <div class="legend-row">
+              <span style="font-weight:800; color:var(--text); width:100%;">Course Map Categories:</span>
+              <span><span class="legend-dot leg-ur"></span>University Req. (UR)</span>
+              <span><span class="legend-dot leg-fr"></span>Faculty Req. (FR)</span>
+              <span><span class="legend-dot leg-dr"></span>Discipline Req. (DR)</span>
+              <span><span class="legend-dot leg-pr"></span>Program Req. (PR)</span>
+              <span><span class="legend-dot leg-el"></span>Elective</span>
+            </div>
+            <div class="legend-divider"></div>
+            <div class="legend-row">
+              <span style="font-weight:800; color:var(--text); width:100%;">Status &amp; Highlights:</span>
+              <span><span class="legend-dot leg-passed"></span>Passed</span>
+              <span><span class="legend-dot leg-failed"></span>Failed</span>
+              <span><span class="legend-dot leg-pathway"></span>Suggested Pathway</span>
+              <span><span class="legend-dot leg-critical"></span>Longest Critical Path</span>
+              <span><span class="legend-dot leg-willing"></span>My Term List</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -925,13 +1051,13 @@
         <button class="drawer-close" id="closePasteModal" type="button"><span class="icon" data-lucide="x"></span></button>
       </div>
       <div class="modal-body">
-        <p style="font-size: 8.5px; color: #8fa2b8; margin-bottom: 8px; line-height: 1.5;">
+        <p style="font-size: 8.5px; color: var(--muted); margin-bottom: 8px; line-height: 1.5;">
           Format examples:<br>
           • Graded Courses (e.g. <code>MTHS002: A, PHYS001: B+, EMCS001: A-</code>)<br>
           • Pass/Fail Non-GPA Courses: <code>MEES280: P, MEES281: P, MEES381: P</code> (Only P or F accepted)<br>
           • Or list of passed course codes: <code>MTHS002, PHYS001, EMCS001, GENS001</code>
         </p>
-        <textarea id="gradePasteArea" rows="7" style="width: 100%; border: 1px solid var(--border); border-radius: 8px; background: #07111e; color: #dce8f6; padding: 8px; font-size: 10px; font-family: monospace; outline: none;" placeholder="MTHS002: A, PHYS001: B+, MEES280: P, MEES281: P ..."></textarea>
+        <textarea id="gradePasteArea" rows="7" style="width: 100%; border: 1px solid var(--border); border-radius: 8px; background: var(--control-bg); color: var(--control-color); padding: 8px; font-size: 10px; font-family: monospace; outline: none;" placeholder="MTHS002: A, PHYS001: B+, MEES280: P, MEES281: P ..."></textarea>
       </div>
       <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 6px;">
         <button class="action-button primary" id="applyPastedGradesBtn" type="button">
@@ -1078,7 +1204,7 @@
     }
 
     const TOTAL_DEGREE_CREDITS = 155;
-    const STORAGE_KEY = "cufe_mechatronics_navigator_v37";
+    const STORAGE_KEY = "cufe_mechatronics_navigator_v45";
 
     const LETTER_POINTS = {
       "A+": 4.0, "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7,
@@ -1114,7 +1240,7 @@
       { code: "MDPS133", title: "Materials for Mechatronics", ch: 3, defaultTerm: "Y1S", prereqs: [], cat: "Discipline" },
       { code: "MCNS101", title: "Thermodynamics", ch: 3, defaultTerm: "Y1S", prereqs: ["PHYS001"], cat: "Discipline" },
       { code: "EMCS002", title: "Engineering Mechanics - Statics", ch: 2, defaultTerm: "Y1S", prereqs: [], cat: "Faculty" },
-      { code: "PHYS002", title: "Electricity and Magnetism", ch: 3, defaultTerm: "Y1S", prereqs: [], cat: "Faculty" }, // Prerequisites removed as requested
+      { code: "PHYS002", title: "Electricity and Magnetism", ch: 3, defaultTerm: "Y1S", prereqs: [], cat: "Faculty" },
       { code: "MCNS202", title: "Fluid Mechanics", ch: 3, defaultTerm: "Y1S", prereqs: ["MTHS002"], cat: "Discipline" },
       { code: "MTHS003", title: "Calculus 2", ch: 3, defaultTerm: "Y1S", prereqs: ["MTHS002"], cat: "Faculty" },
 
@@ -1170,20 +1296,20 @@
     ];
 
     const ELECTIVES_E1_POOL = [
-      { code: "GENS009", title: "Introduction to Design Thinking", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
-      { code: "GENS201", title: "Ethics and Legislation", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
-      { code: "GENS202", title: "Advanced Critical Thinking", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
-      { code: "GENS203", title: "Entrepreneurship", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
-      { code: "GENS204", title: "Interdisciplinary Project", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
-      { code: "GENS205", title: "Advanced Risk Management", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
-      { code: "GENS206", title: "Technical Writing in Arabic", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
-      { code: "GENS207", title: "Foreign Language", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
-      { code: "GENS208", title: "Marketing", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
-      { code: "GENS209", title: "Selections of Life Long Skills", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
-      { code: "GENS210", title: "Scientific Research Methods", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
-      { code: "GENS235", title: "Business Communication", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
-      { code: "GENS236", title: "Service Management", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" },
-      { code: "GENS237", title: "Ethics & Legislation in Construction", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "Elective", group: "E1" }
+      { code: "GENS009", title: "Introduction to Design Thinking", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "University", group: "E1" },
+      { code: "GENS201", title: "Ethics and Legislation", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "University", group: "E1" },
+      { code: "GENS202", title: "Advanced Critical Thinking", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "University", group: "E1" },
+      { code: "GENS203", title: "Entrepreneurship", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "University", group: "E1" },
+      { code: "GENS204", title: "Interdisciplinary Project", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "University", group: "E1" },
+      { code: "GENS205", title: "Advanced Risk Management", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "University", group: "E1" },
+      { code: "GENS206", title: "Technical Writing in Arabic", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "University", group: "E1" },
+      { code: "GENS207", title: "Foreign Language", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "University", group: "E1" },
+      { code: "GENS208", title: "Marketing", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "University", group: "E1" },
+      { code: "GENS209", title: "Selections of Life Long Skills", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "University", group: "E1" },
+      { code: "GENS210", title: "Scientific Research Methods", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "University", group: "E1" },
+      { code: "GENS235", title: "Business Communication", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "University", group: "E1" },
+      { code: "GENS236", title: "Service Management", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "University", group: "E1" },
+      { code: "GENS237", title: "Ethics & Legislation in Construction", ch: 2, defaultTerm: "Y3F", prereqs: [], cat: "University", group: "E1" }
     ];
 
     const ELECTIVES_E2_POOL = [
@@ -1229,6 +1355,7 @@
       manualPass: {},
       courseTerms: {},
       totalYears: 4,
+      theme: "dark",
       selectedElectives: {
         E1: ELECTIVES_E1_POOL[0].code,
         E2: [],
@@ -1334,6 +1461,11 @@
       const grade = getGrade(code);
       if (grade === "P" || PASSING_GRADES[grade] || state.manualPass[code] === true) return true;
       return false;
+    }
+
+    function isFailed(code) {
+      const grade = getGrade(code);
+      return grade === "F";
     }
 
     function getCompletedCredits() {
@@ -1473,6 +1605,7 @@
 
     function getStatus(course) {
       if (isPassed(course.code)) return "passed";
+      if (isFailed(course.code)) return "failed";
       if (getGrade(course.code) === "IP") return "ip";
       if (isEligible(course)) return "ready";
       return "locked";
@@ -1557,17 +1690,18 @@
       return longestOverall;
     }
 
+    let activeCriticalChainSet = new Set();
     function highlightCriticalPath() {
       state.criticalPathMode = true;
       state.pinnedCode = null;
       const chain = findLongestCriticalPath();
-      const chainSet = new Set(chain);
+      activeCriticalChainSet = new Set(chain);
 
       document.querySelectorAll(".course-node").forEach(node => {
         const c = node.dataset.code;
-        node.classList.remove("upstream", "downstream", "dimmed", "selected", "critical");
-        if (chainSet.has(c)) {
-          node.classList.add("critical");
+        node.classList.remove("upstream", "downstream", "dimmed", "selected", "critical-card-highlight");
+        if (activeCriticalChainSet.has(c)) {
+          node.classList.add("critical-card-highlight");
         } else {
           node.classList.add("dimmed");
         }
@@ -1752,6 +1886,7 @@
       });
     }
 
+    let activePathwayCodesSet = new Set();
     function renderNodes() {
       nodeLayer.innerHTML = "";
       buildPositions();
@@ -1763,21 +1898,33 @@
         if (!pos) return;
 
         const node = document.createElement("div");
-        node.className = "course-node";
+        
+        let nodeCatClass = "cat-discipline-node";
+        let catClass = "cat-discipline";
+        if (course.cat === "University") { nodeCatClass = "cat-university-node"; catClass = "cat-university"; }
+        else if (course.cat === "Faculty") { nodeCatClass = "cat-faculty-node"; catClass = "cat-faculty"; }
+        else if (course.cat === "Program") { nodeCatClass = "cat-program-node"; catClass = "cat-program"; }
+        else if (course.cat === "Elective") { nodeCatClass = "cat-elective-node"; catClass = "cat-elective"; }
+
+        node.className = `course-node ${nodeCatClass}`;
         node.dataset.code = course.code;
         node.style.left = pos.x + "px";
         node.style.top = pos.y + "px";
 
+        if (isPassed(course.code)) {
+          node.classList.add("status-passed-card");
+        } else if (isFailed(course.code)) {
+          node.classList.add("status-failed-card");
+        } else if (activePathwayCodesSet.has(course.code)) {
+          node.classList.add("pathway-card-highlight");
+        } else if (state.willingList.includes(course.code)) {
+          node.classList.add("willing-card-highlight");
+        }
+
         const top = document.createElement("div");
         top.className = "node-top";
-        const nonGpaTag = course.isNonGpa ? '<span style="font-size:7px; color:#fb923c; font-weight:800; margin-left:3px;">[Pass/Fail]</span>' : '';
+        const nonGpaTag = course.isNonGpa ? '<span style="font-size:7px; font-weight:800; margin-left:3px;">[Pass/Fail]</span>' : '';
         top.innerHTML = `<div class="node-code">${course.code} ${nonGpaTag}</div><div class="node-ch">${course.ch} CH</div>`;
-
-        let catClass = "cat-discipline";
-        if (course.cat === "University") catClass = "cat-university";
-        if (course.cat === "Faculty") catClass = "cat-faculty";
-        if (course.cat === "Program") catClass = "cat-program";
-        if (course.cat === "Elective") catClass = "cat-elective";
 
         const category = document.createElement("div");
         category.className = "node-category " + catClass;
@@ -1795,6 +1942,9 @@
         if (status === "passed") {
           pill.className = "status-pill status-passed";
           pill.innerHTML = `<span class="icon" data-lucide="check"></span> Passed · ${getGrade(course.code)}`;
+        } else if (status === "failed") {
+          pill.className = "status-pill status-ip";
+          pill.innerHTML = `<span class="icon" data-lucide="x-circle"></span> Failed · F`;
         } else if (status === "ip") {
           pill.className = "status-pill status-ip";
           pill.innerHTML = `<span class="icon" data-lucide="clock-3"></span> In Progress`;
@@ -1940,7 +2090,7 @@
 
       document.querySelectorAll(".course-node").forEach(node => {
         const c = node.dataset.code;
-        node.classList.remove("upstream", "downstream", "dimmed", "selected", "critical");
+        node.classList.remove("upstream", "downstream", "dimmed", "selected", "critical-card-highlight");
         if (c === code) node.classList.add("selected");
         else if (upSet.has(c)) node.classList.add("upstream");
         else if (downSet.has(c)) node.classList.add("downstream");
@@ -1964,7 +2114,7 @@
 
     function clearPathHighlight() {
       document.querySelectorAll(".course-node").forEach(node => {
-        node.classList.remove("upstream", "downstream", "dimmed", "critical");
+        node.classList.remove("upstream", "downstream", "dimmed", "critical-card-highlight");
         if (state.pinnedCode && node.dataset.code === state.pinnedCode) node.classList.add("selected");
         else node.classList.remove("selected");
       });
@@ -2148,6 +2298,7 @@
         manualPass: {},
         courseTerms: {},
         totalYears: 4,
+        theme: "dark",
         selectedElectives: {
           E1: ELECTIVES_E1_POOL[0].code,
           E2: [],
@@ -2160,6 +2311,24 @@
 
     function resetStateToDefaults() {
       Object.assign(state, defaultAccountState());
+      applyTheme(state.theme);
+    }
+
+    function applyTheme(themeName) {
+      state.theme = themeName;
+      document.documentElement.setAttribute("data-theme", themeName);
+      const btnText = document.getElementById("themeBtnText");
+      const icon = document.getElementById("themeIcon");
+      if (btnText && icon) {
+        if (themeName === "light") {
+          btnText.textContent = "Dark Mode";
+          icon.setAttribute("data-lucide", "moon");
+        } else {
+          btnText.textContent = "Light Mode";
+          icon.setAttribute("data-lucide", "sun");
+        }
+        if (window.lucide) window.lucide.createIcons();
+      }
     }
 
     function userStorageKey() {
@@ -2174,6 +2343,7 @@
         manualPass: state.manualPass,
         courseTerms: state.courseTerms,
         totalYears: state.totalYears,
+        theme: state.theme,
         selectedElectives: state.selectedElectives,
         willingList: state.willingList,
         willingTermCap: state.willingTermCap
@@ -2188,6 +2358,7 @@
           manual_pass: state.manualPass,
           course_terms: state.courseTerms,
           total_years: state.totalYears,
+          theme: state.theme,
           selected_electives: state.selectedElectives,
           willing_list: state.willingList,
           willing_term_cap: state.willingTermCap,
@@ -2210,6 +2381,7 @@
           state.manualPass = saved.manualPass || {};
           state.courseTerms = saved.courseTerms || {};
           state.totalYears = saved.totalYears || 4;
+          if (saved.theme) applyTheme(saved.theme);
           if (saved.selectedElectives) {
             state.selectedElectives = {
               E1: saved.selectedElectives.E1 || ELECTIVES_E1_POOL[0].code,
@@ -2237,6 +2409,7 @@
         state.manualPass = data.manual_pass || {};
         state.courseTerms = data.course_terms || {};
         state.totalYears = data.total_years || 4;
+        if (data.theme) applyTheme(data.theme);
         if (data.selected_electives) {
           state.selectedElectives = {
             E1: data.selected_electives.E1 || ELECTIVES_E1_POOL[0].code,
@@ -2269,7 +2442,7 @@
             <div class="elective-top">
               <input type="radio" name="e1Choice" class="elective-checkbox" value="${c.code}" ${state.selectedElectives.E1 === c.code ? 'checked' : ''}>
               <div style="flex:1;">
-                <div style="display:flex; justify-content:space-between;"><span class="elective-code">${c.code} · ${c.ch} CH</span><span style="font-size:7px; font-weight:800; color:${st==='ready'?'#38bdf8':'#8fa2b8'}">${statusBadge}</span></div>
+                <div style="display:flex; justify-content:space-between;"><span class="elective-code">${c.code} · ${c.ch} CH</span><span style="font-size:7px; font-weight:800; color:${st==='ready'?'#38bdf8':'var(--muted)'}">${statusBadge}</span></div>
                 <div class="elective-name">${c.title}</div>
                 <div class="elective-prereqs">Requirements: None</div>
               </div>
@@ -2288,7 +2461,7 @@
             <div class="elective-top">
               <input type="checkbox" class="elective-checkbox e2-cb" value="${c.code}" ${sel ? 'checked' : ''}>
               <div style="flex:1;">
-                <div style="display:flex; justify-content:space-between;"><span class="elective-code">${c.code} · ${c.ch} CH</span><span style="font-size:7px; font-weight:800; color:${st==='ready'?'#38bdf8':'#8fa2b8'}">${statusBadge}</span></div>
+                <div style="display:flex; justify-content:space-between;"><span class="elective-code">${c.code} · ${c.ch} CH</span><span style="font-size:7px; font-weight:800; color:${st==='ready'?'#38bdf8':'var(--muted)'}">${statusBadge}</span></div>
                 <div class="elective-name">${c.title}</div>
                 <div class="elective-prereqs">Requirements: ${reqStr}</div>
               </div>
@@ -2307,7 +2480,7 @@
             <div class="elective-top">
               <input type="checkbox" class="elective-checkbox e3-cb" value="${c.code}" ${sel ? 'checked' : ''}>
               <div style="flex:1;">
-                <div style="display:flex; justify-content:space-between;"><span class="elective-code">${c.code} · ${c.ch} CH</span><span style="font-size:7px; font-weight:800; color:${st==='ready'?'#38bdf8':'#8fa2b8'}">${statusBadge}</span></div>
+                <div style="display:flex; justify-content:space-between;"><span class="elective-code">${c.code} · ${c.ch} CH</span><span style="font-size:7px; font-weight:800; color:${st==='ready'?'#38bdf8':'var(--muted)'}">${statusBadge}</span></div>
                 <div class="elective-name">${c.title}</div>
                 <div class="elective-prereqs">Requirements: ${reqStr}</div>
               </div>
@@ -2574,6 +2747,13 @@
         }
       });
 
+      // THEME TOGGLE EVENT LISTENER
+      document.getElementById("themeToggleBtn").addEventListener("click", () => {
+        const nextTheme = state.theme === "dark" ? "light" : "dark";
+        applyTheme(nextTheme);
+        saveState();
+      });
+
       document.getElementById("zoomInBtn").addEventListener("click", () => { state.zoom = Math.min(1.5, state.zoom * 1.15); setTransform(); });
       document.getElementById("zoomOutBtn").addEventListener("click", () => { state.zoom = Math.max(0.3, state.zoom * 0.85); setTransform(); });
       document.getElementById("fitBtn").addEventListener("click", () => { state.zoom = 0.62; state.panX = 25; state.panY = 18; setTransform(); });
@@ -2602,6 +2782,18 @@
 
       window.addEventListener("mouseup", () => { isPanning = false; });
 
+      // LEGEND MINIMIZE / MAXIMIZE TOGGLE SETUP
+      document.getElementById("legendToggleRow").addEventListener("click", () => {
+        const box = document.getElementById("legendBox");
+        const btn = document.getElementById("legendToggleBtn");
+        box.classList.toggle("minimized");
+        if (box.classList.contains("minimized")) {
+          btn.textContent = "Maximize";
+        } else {
+          btn.textContent = "Minimize";
+        }
+      });
+
       setupPathwayUI();
       setupWillingUI();
 
@@ -2617,6 +2809,7 @@
         const badge = n.querySelector(".plan-badge");
         if (badge) badge.remove();
       });
+      activePathwayCodesSet.clear();
     }
 
     function computeSuggestedPathway(numTerms, capCH) {
@@ -2680,16 +2873,15 @@
       el.innerHTML = html;
 
       clearPathwayHighlight();
-      const classes = ["plan-t1", "plan-t2", "plan-t3", "plan-t4", "plan-t5", "plan-t6"];
-      result.plan.forEach((t, idx) => {
-        const cls = classes[idx % classes.length];
+      result.plan.forEach((t) => {
         t.courses.forEach(c => {
+          activePathwayCodesSet.add(c.code);
           const node = document.querySelector(`.course-node[data-code="${c.code}"]`);
           if (node) {
-            node.classList.add(cls);
+            node.classList.add("pathway-card-highlight");
             const badge = document.createElement("div");
             badge.className = "plan-badge";
-            badge.style.background = getComputedStyle(node).borderColor;
+            badge.style.background = "#c084fc";
             badge.textContent = "T" + t.term;
             node.style.position = "absolute";
             node.appendChild(badge);
@@ -2744,7 +2936,7 @@
             <div style="flex:1;">
               <div class="elective-code">${c.code} · ${c.ch} CH</div>
               <div class="elective-name">${c.title}</div>
-              <div class="elective-prereqs" style="font-size:7.5px; color:#8fa2b8;">Requirements: ${reqStr}</div>
+              <div class="elective-prereqs" style="font-size:7.5px; color:var(--muted);">Requirements: ${reqStr}</div>
             </div>
           </label>`;
       }).join('') || '<span class="drawer-note">No eligible courses right now — mark more prerequisites as passed first.</span>';
