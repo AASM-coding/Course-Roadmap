@@ -2383,7 +2383,7 @@
         manualPass: {},
         courseTerms: {},
         totalYears: 4,
-        startYear: 2024,
+        startYear: getFallbackStartYear(),
         theme: "dark",
         selectedElectives: {
           E1: ELECTIVES_E1_POOL[0].code,
@@ -2416,6 +2416,20 @@
         }
         if (window.lucide) window.lucide.createIcons();
       }
+    }
+
+    function setStartYear(year) {
+      state.startYear = year;
+      try { localStorage.setItem("cufe_start_year_pref", String(year)); } catch (e) {}
+    }
+
+    function getFallbackStartYear() {
+      try {
+        const raw = localStorage.getItem("cufe_start_year_pref");
+        const parsed = Number(raw);
+        if (raw && !isNaN(parsed)) return parsed;
+      } catch (e) {}
+      return 2024;
     }
 
     function userStorageKey() {
@@ -2470,7 +2484,7 @@
           state.manualPass = saved.manualPass || {};
           state.courseTerms = saved.courseTerms || {};
           state.totalYears = saved.totalYears || 4;
-          state.startYear = saved.startYear || 2024;
+          state.startYear = saved.startYear || getFallbackStartYear();
           if (saved.theme) applyTheme(saved.theme);
           if (saved.selectedElectives) {
             state.selectedElectives = {
@@ -2499,7 +2513,7 @@
         state.manualPass = data.manual_pass || {};
         state.courseTerms = data.course_terms || {};
         state.totalYears = data.total_years || 4;
-        state.startYear = data.start_year || 2024;
+        state.startYear = data.start_year || getFallbackStartYear();
         if (data.theme) applyTheme(data.theme);
         if (data.selected_electives) {
           state.selectedElectives = {
@@ -2842,7 +2856,7 @@
       document.getElementById("startYearInput").addEventListener("change", (e) => {
         let val = Number(e.target.value) || 2024;
         val = Math.max(2000, Math.min(2100, val));
-        state.startYear = val;
+        setStartYear(val);
         e.target.value = val;
         saveState();
         renderAll();
