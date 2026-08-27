@@ -105,67 +105,77 @@
     }
 
     .topbar-inner {
-      padding: 12px 18px 10px;
+      padding: 10px 14px;
     }
 
     .brand-row {
       display: flex;
       justify-content: space-between;
-      gap: 16px;
+      gap: 12px;
       align-items: center;
+      flex-wrap: wrap;
     }
 
     .brand-title {
       margin: 0;
-      font-size: 18px;
+      font-size: 16px;
       line-height: 1.2;
       font-weight: 800;
       letter-spacing: -0.025em;
     }
 
     .brand-subtitle {
-      margin-top: 3px;
+      margin-top: 2px;
       color: var(--muted);
-      font-size: 10px;
+      font-size: 9px;
     }
 
     .metrics {
       display: grid;
-      grid-template-columns: repeat(3, minmax(120px, 1fr));
-      gap: 8px;
-      min-width: 440px;
+      grid-template-columns: repeat(3, minmax(100px, 1fr));
+      gap: 6px;
+      width: 100%;
+    }
+
+    @media (min-width: 768px) {
+      .metrics {
+        width: auto;
+        min-width: 420px;
+      }
+      .brand-title { font-size: 18px; }
+      .topbar-inner { padding: 12px 18px 10px; }
     }
 
     .metric {
-      padding: 6px 10px;
+      padding: 5px 8px;
       border: 1px solid var(--border);
-      border-radius: 9px;
+      border-radius: 8px;
       background: var(--metric-bg);
       transition: background 0.2s ease, border-color 0.2s ease;
     }
 
     .metric-label {
-      font-size: 8px;
+      font-size: 7.5px;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.1em;
       color: var(--muted);
     }
 
     .metric-value {
-      margin-top: 2px;
-      font-size: 15px;
+      margin-top: 1px;
+      font-size: 13px;
       font-weight: 800;
     }
 
     .metric-sub {
       color: var(--muted);
-      font-size: 8px;
+      font-size: 7.5px;
     }
 
     .action-row {
-      margin-top: 10px;
+      margin-top: 8px;
       display: flex;
-      gap: 6px;
+      gap: 5px;
       flex-wrap: wrap;
       align-items: center;
     }
@@ -174,12 +184,12 @@
       border: 1px solid var(--border);
       background: var(--panel-2);
       color: var(--text);
-      border-radius: 7px;
-      padding: 6px 9px;
+      border-radius: 6px;
+      padding: 5px 8px;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      font-size: 10px;
+      gap: 4px;
+      font-size: 9.5px;
       font-weight: 700;
       transition: 0.16s ease;
     }
@@ -208,8 +218,8 @@
     }
 
     .icon {
-      width: 13px;
-      height: 13px;
+      width: 12px;
+      height: 12px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -217,29 +227,29 @@
     }
 
     .filter-row {
-      margin-top: 8px;
+      margin-top: 6px;
       display: flex;
-      gap: 6px;
+      gap: 5px;
       align-items: center;
       flex-wrap: wrap;
     }
 
     .filter-label {
       color: var(--muted);
-      font-size: 9px;
+      font-size: 8.5px;
       text-transform: uppercase;
-      letter-spacing: 0.09em;
+      letter-spacing: 0.08em;
       font-weight: 700;
     }
 
     .control {
-      min-height: 28px;
+      min-height: 26px;
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 5px;
       background: var(--control-bg);
       color: var(--control-color);
-      padding: 4px 7px;
-      font-size: 9.5px;
+      padding: 3px 6px;
+      font-size: 9px;
       outline: none;
       transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     }
@@ -250,22 +260,29 @@
     }
 
     .search-control {
-      min-width: 220px;
+      min-width: 160px;
       flex: 1;
     }
 
     .training-strip {
       display: flex;
-      gap: 5px;
+      gap: 4px;
       margin-left: auto;
       flex-wrap: wrap;
+      width: 100%;
+    }
+
+    @media (min-width: 768px) {
+      .training-strip {
+        width: auto;
+      }
     }
 
     .milestone {
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 4px 7px;
-      font-size: 8.5px;
+      border-radius: 5px;
+      padding: 3px 6px;
+      font-size: 8px;
       color: var(--muted);
       background: var(--panel-2);
       white-space: nowrap;
@@ -313,22 +330,22 @@
     .graph-toolbar {
       position: absolute;
       z-index: 20;
-      top: 12px;
-      left: 12px;
+      top: 10px;
+      left: 10px;
       display: flex;
-      gap: 5px;
-      padding: 4px;
+      gap: 4px;
+      padding: 3px;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 7px;
       background: var(--topbar-bg);
       backdrop-filter: blur(10px);
     }
 
     .graph-tool {
-      width: 27px;
-      height: 27px;
+      width: 25px;
+      height: 25px;
       border: 1px solid transparent;
-      border-radius: 5px;
+      border-radius: 4px;
       background: var(--panel-2);
       color: var(--text);
       display: inline-flex;
@@ -343,16 +360,21 @@
 
     .graph-help {
       position: absolute;
-      right: 12px;
-      top: 12px;
+      right: 10px;
+      top: 10px;
       z-index: 20;
       color: var(--muted);
-      font-size: 8.5px;
-      padding: 4px 8px;
+      font-size: 8px;
+      padding: 3px 6px;
       border: 1px solid var(--border);
       background: var(--topbar-bg);
-      border-radius: 6px;
+      border-radius: 5px;
       pointer-events: none;
+      display: none;
+    }
+
+    @media (min-width: 768px) {
+      .graph-help { display: block; }
     }
 
     #graphViewport {
@@ -360,13 +382,14 @@
       inset: 0;
       overflow: hidden;
       cursor: grab;
+      touch-action: none;
     }
 
     #graphViewport.dragging {
       cursor: grabbing;
     }
 
-    /* CUSTOM GRAPH SCROLLBARS (shown when the zoomed graph overflows the viewport) */
+    /* CUSTOM GRAPH SCROLLBARS */
     .graph-scrollbar {
       position: absolute;
       z-index: 40;
@@ -387,14 +410,14 @@
       left: 8px;
       right: 8px;
       bottom: 6px;
-      height: 8px;
+      height: 7px;
     }
 
     .graph-scrollbar.v-scrollbar {
       top: 8px;
       bottom: 8px;
       right: 6px;
-      width: 8px;
+      width: 7px;
     }
 
     .graph-scrollbar-thumb {
@@ -521,7 +544,7 @@
       font-weight: 600;
     }
 
-    /* PERMANENT LIGHT-PASTEL COURSE NODES (Always fixed pastel map colors regardless of theme) */
+    /* COURSE NODES */
     .course-node {
       position: absolute;
       width: 242px;
@@ -565,13 +588,14 @@
       outline: 3px solid #4f46e5 !important;
       box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.3), 0 8px 22px rgba(0,0,0,0.2) !important;
     }
+
+    /* NEON BLUE PULSING GLOW EFFECT FOR MY TERM LIST */
+    @keyframes neonBluePulse {
+      0%, 100% { outline: 3px solid #38bdf8; box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.5), 0 0 25px rgba(34, 211, 238, 0.9); }
+      50% { outline: 3px solid #22d3ee; box-shadow: 0 0 0 6px rgba(34, 211, 238, 0.85), 0 0 38px rgba(56, 189, 248, 1); }
+    }
     .course-node.willing-card-highlight {
-      outline: 2px solid #38bdf8 !important;
-      box-shadow:
-        0 0 6px 1px rgba(56, 189, 248, 0.95),
-        0 0 18px 4px rgba(56, 189, 248, 0.75),
-        0 0 36px 10px rgba(56, 189, 248, 0.5),
-        0 0 60px 16px rgba(56, 189, 248, 0.25) !important;
+      animation: neonBluePulse 2s ease-in-out infinite !important;
     }
 
     .course-node.dimmed {
@@ -798,19 +822,19 @@
     /* MINIMIZABLE LEGEND */
     .legend {
       position: absolute;
-      left: 12px;
-      bottom: 12px;
+      left: 10px;
+      bottom: 10px;
       z-index: 20;
       display: flex;
       flex-direction: column;
-      gap: 5px;
-      padding: 8px 10px;
+      gap: 4px;
+      padding: 6px 8px;
       border: 1px solid var(--border);
-      border-radius: 7px;
+      border-radius: 6px;
       background: var(--legend-bg);
       color: var(--muted);
-      font-size: 8px;
-      max-width: 320px;
+      font-size: 7.5px;
+      max-width: 280px;
       backdrop-filter: blur(8px);
       transition: background 0.2s ease, border-color 0.2s ease;
     }
@@ -827,8 +851,8 @@
       border: 1px solid var(--border);
       border-radius: 4px;
       color: var(--text);
-      font-size: 7.5px;
-      padding: 1px 5px;
+      font-size: 7px;
+      padding: 1px 4px;
       font-weight: 700;
     }
     .legend-toggle-btn:hover {
@@ -837,7 +861,7 @@
     .legend-body {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 4px;
       transition: max-height 0.2s ease;
     }
     .legend.minimized .legend-body {
@@ -846,16 +870,16 @@
     .legend-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
     }
     .legend-divider {
       width: 100%;
       height: 1px;
       background: var(--border);
-      margin: 2px 0;
+      margin: 1px 0;
     }
-    .legend-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 3px; }
+    .legend-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 2px; }
     
     .leg-ur { background: #ff99cc; }
     .leg-fr { background: #99ccff; }
@@ -920,7 +944,13 @@
   <!-- AUTH SCREEN -->
   <div id="authScreen">
     <div class="auth-card">
-      <div class="auth-title" id="authTitle">Log In</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <div class="auth-title" id="authTitle">Log In</div>
+        <button class="action-button" id="authThemeToggleBtn" type="button" style="padding:4px 7px; font-size:9px;">
+          <span class="icon" data-lucide="sun" id="authThemeIcon"></span>
+          <span id="authThemeBtnText">Light Mode</span>
+        </button>
+      </div>
       <div class="auth-sub">Create a username &amp; password to save your course plan. No email or verification needed.</div>
       <input id="authUsername" class="auth-field" type="text" placeholder="Username" autocomplete="username">
       <input id="authPassword" class="auth-field" type="password" placeholder="Password" autocomplete="current-password">
@@ -1008,44 +1038,42 @@
 
         <div class="filter-row">
           <span class="filter-label">Start Year</span>
-          <input id="startYearInput" class="control" type="number" min="2000" max="2100" step="1" style="width:80px;" value="2024">
+          <input id="startYearInput" class="control" type="number" min="2000" max="2100" step="1" style="width:70px;" value="2024">
 
-          <span class="filter-label">Years of Study</span>
+          <span class="filter-label">Years</span>
           <select id="yearsFilter" class="control">
-            <option value="4">4 Years (12 Terms Total)</option>
-            <option value="5">5 Years (15 Terms Total)</option>
-            <option value="6">6 Years (18 Terms Total)</option>
-            <option value="7">7 Years (21 Terms Total)</option>
-            <option value="8">8 Years (24 Terms Total)</option>
-            <option value="9">9 Years (27 Terms Total)</option>
-            <option value="10">10 Years (30 Terms Total)</option>
+            <option value="4">4 Years (12 Terms)</option>
+            <option value="5">5 Years (15 Terms)</option>
+            <option value="6">6 Years (18 Terms)</option>
+            <option value="7">7 Years (21 Terms)</option>
+            <option value="8">8 Years (24 Terms)</option>
           </select>
 
           <span class="filter-label">Status</span>
           <select id="statusFilter" class="control">
             <option value="all">All</option>
             <option value="passed">Passed</option>
-            <option value="ready">Unlocked / Eligible</option>
+            <option value="ready">Unlocked</option>
             <option value="locked">Locked</option>
           </select>
 
-          <span class="filter-label">Department</span>
+          <span class="filter-label">Dept</span>
           <select id="categoryFilter" class="control">
-            <option value="all">All Departments</option>
+            <option value="all">All Depts</option>
             <option value="University">University</option>
             <option value="Faculty">Faculty</option>
-            <option value="Discipline">Discipline / Program</option>
-            <option value="Program">Program Core</option>
-            <option value="Elective">Electives</option>
+            <option value="Discipline">Discipline</option>
+            <option value="Program">Program</option>
+            <option value="Elective">Elective</option>
           </select>
 
-          <input id="searchInput" class="control search-control" type="search" placeholder="Type course code (e.g. MDPS372) to auto-pan & highlight" autocomplete="off">
+          <input id="searchInput" class="control search-control" type="search" placeholder="Course code (e.g. MDPS372)..." autocomplete="off">
 
           <div class="training-strip">
-            <div class="milestone" id="it1Milestone">IT1 · Courses + 60 CH + AA</div>
-            <div class="milestone" id="it2Milestone">IT2 · Courses + IT1 passed</div>
-            <div class="milestone" id="labMilestone">LAB · 108 CH + AA</div>
-            <div class="milestone" id="projectMilestone">PROJECT · 110 CH + AA</div>
+            <div class="milestone" id="it1Milestone">IT1 · 60 CH</div>
+            <div class="milestone" id="it2Milestone">IT2 · IT1 passed</div>
+            <div class="milestone" id="labMilestone">LAB · 108 CH</div>
+            <div class="milestone" id="projectMilestone">PROJECT · 110 CH</div>
           </div>
         </div>
       </div>
@@ -1082,16 +1110,16 @@
         <!-- MINIMIZABLE / MAXIMIZABLE LEGEND -->
         <div class="legend" id="legendBox">
           <div class="legend-header-row" id="legendToggleRow">
-            <span style="font-weight:900; color:var(--text); font-size:9px;">Map Legend &amp; States</span>
+            <span style="font-weight:900; color:var(--text); font-size:8.5px;">Map Legend &amp; States</span>
             <button class="legend-toggle-btn" id="legendToggleBtn" type="button">Minimize</button>
           </div>
           <div class="legend-body">
             <div class="legend-row">
-              <span style="font-weight:800; color:var(--text); width:100%;">Course Map Categories:</span>
-              <span><span class="legend-dot leg-ur"></span>University Req. (UR)</span>
-              <span><span class="legend-dot leg-fr"></span>Faculty Req. (FR)</span>
-              <span><span class="legend-dot leg-dr"></span>Discipline Req. (DR)</span>
-              <span><span class="legend-dot leg-pr"></span>Program Req. (PR)</span>
+              <span style="font-weight:800; color:var(--text); width:100%;">Categories:</span>
+              <span><span class="legend-dot leg-ur"></span>UR</span>
+              <span><span class="legend-dot leg-fr"></span>FR</span>
+              <span><span class="legend-dot leg-dr"></span>DR</span>
+              <span><span class="legend-dot leg-pr"></span>PR</span>
               <span><span class="legend-dot leg-el"></span>Elective</span>
             </div>
             <div class="legend-divider"></div>
@@ -1099,9 +1127,9 @@
               <span style="font-weight:800; color:var(--text); width:100%;">Status &amp; Highlights:</span>
               <span><span class="legend-dot leg-passed"></span>Passed</span>
               <span><span class="legend-dot leg-failed"></span>Failed</span>
-              <span><span class="legend-dot leg-pathway"></span>Suggested Pathway</span>
-              <span><span class="legend-dot leg-critical"></span>Longest Critical Path</span>
-              <span><span class="legend-dot leg-willing"></span>My Term List</span>
+              <span><span class="legend-dot leg-pathway"></span>Pathway</span>
+              <span><span class="legend-dot leg-critical"></span>Critical</span>
+              <span><span class="legend-dot leg-willing"></span>Term List</span>
             </div>
           </div>
         </div>
@@ -1278,7 +1306,7 @@
     }
 
     const TOTAL_DEGREE_CREDITS = 155;
-    const STORAGE_KEY = "cufe_mechatronics_navigator_v45";
+    const STORAGE_KEY = "cufe_mechatronics_navigator_v52";
 
     const LETTER_POINTS = {
       "A+": 4.0, "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7,
@@ -1430,7 +1458,7 @@
       courseTerms: {},
       totalYears: 4,
       startYear: 2024,
-      theme: "dark",
+      theme: "light",
       selectedElectives: {
         E1: ELECTIVES_E1_POOL[0].code,
         E2: [],
@@ -2728,6 +2756,30 @@
         if (vThumbDragging) { vThumbDragging = false; graphVScrollbarThumb.classList.remove("dragging"); }
       });
 
+      // Touch events support for mobile panning and scrollbar handling
+      let touchStartX = 0, touchStartY = 0;
+      graphViewport.addEventListener("touchstart", (e) => {
+        if (e.target.closest(".course-node") || e.target.closest("select") || e.target.closest("button")) return;
+        if (e.touches.length === 1) {
+          isPanning = true;
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+          startPanX = state.panX;
+          startPanY = state.panY;
+        }
+      }, { passive: true });
+
+      graphViewport.addEventListener("touchmove", (e) => {
+        if (!isPanning || e.touches.length !== 1) return;
+        const dx = e.touches[0].clientX - touchStartX;
+        const dy = e.touches[0].clientY - touchStartY;
+        state.panX = startPanX + dx;
+        state.panY = startPanY + dy;
+        setTransform();
+      }, { passive: true });
+
+      graphViewport.addEventListener("touchend", () => { isPanning = false; }, { passive: true });
+
       window.addEventListener("resize", () => updateGraphScrollbars());
     }
 
@@ -3179,6 +3231,7 @@
             state.willingList = state.willingList.filter(x => x !== code);
           }
           renderWillingList();
+          renderNodes();
         });
       });
     }
@@ -3200,10 +3253,12 @@
       document.getElementById("clearWillingBtn").addEventListener("click", () => {
         state.willingList = [];
         renderWillingList();
+        renderNodes();
       });
       document.getElementById("saveWillingBtn").addEventListener("click", () => {
         saveState();
         document.getElementById("willingModal").classList.remove("open");
+        renderNodes();
         showToast(`Term list saved: ${state.willingList.length} courses.`);
       });
     }
