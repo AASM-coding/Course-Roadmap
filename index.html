@@ -102,6 +102,103 @@
       backdrop-filter: blur(14px);
       z-index: 50;
       transition: background 0.2s ease, border-color 0.2s ease;
+      position: relative;
+    }
+
+    /* Curtain control: hides/reveals the full top controls area so the roadmap
+       can use nearly the entire viewport. Works on desktop and touch screens. */
+    .topbar-curtain {
+      position: absolute;
+      left: 50%;
+      bottom: -28px;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 20px;
+      border: 1px solid var(--border);
+      border-top: 0;
+      border-radius: 0 0 8px 8px;
+      background: var(--topbar-bg);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      z-index: 70;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.14);
+      cursor: pointer;
+      transition: transform .22s cubic-bezier(.2,.75,.2,1), color .16s ease, background .16s ease, box-shadow .16s ease;
+    }
+    .topbar-curtain::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -7px;
+      width: 72px;
+      height: 7px;
+      transform: translateX(-50%);
+      border: 1px solid var(--border);
+      border-bottom: 0;
+      border-radius: 7px 7px 0 0;
+      background: var(--topbar-bg);
+      box-shadow: 0 -1px 5px rgba(0,0,0,0.05);
+      pointer-events: none;
+    }
+    .topbar-inner {
+      max-height: 520px;
+      overflow: hidden;
+      transition: max-height .24s cubic-bezier(.2,.75,.2,1), padding .24s cubic-bezier(.2,.75,.2,1), opacity .16s ease;
+    }
+    .topbar-curtain:hover, .topbar-curtain:focus-visible {
+      color: var(--text);
+      background: var(--panel-2);
+      outline: none;
+    }
+    .topbar-curtain .icon {
+      width: 12px;
+      height: 12px;
+      transition: transform .18s ease;
+    }
+    @media (max-width: 850px) {
+      .topbar-inner { max-height: 760px; }
+      .topbar-curtain { touch-action: manipulation; width:32px; height:22px; bottom:-29px; }
+      .topbar-curtain::before { width:84px; height:8px; top:-8px; }
+      .topbar.is-curtained .topbar-curtain { bottom:-29px; }
+      .topbar.is-curtained .topbar-curtain::before { top:auto; bottom:-8px; }
+    }
+
+    .topbar.is-curtained {
+      border-bottom-color: transparent;
+      background: transparent;
+      backdrop-filter: none;
+      pointer-events: none;
+    }
+    .topbar.is-curtained .topbar-inner {
+      visibility: hidden;
+      pointer-events: none;
+      max-height: 0;
+      min-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      opacity: 0;
+      overflow: hidden;
+    }
+    .topbar.is-curtained .topbar-curtain {
+      pointer-events: auto;
+      bottom: -28px;
+      border-top: 1px solid var(--border);
+      border-bottom: 0;
+      border-radius: 8px 8px 0 0;
+      transform: translateX(-50%);
+    }
+    .topbar.is-curtained .topbar-curtain::before {
+      top: auto;
+      bottom: -7px;
+      border-top: 0;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0 0 7px 7px;
+    }
+    .topbar.is-curtained .topbar-curtain .icon {
+      transform: rotate(180deg);
     }
 
     .topbar-inner {
@@ -1106,7 +1203,9 @@
         -webkit-user-select: none;
         user-select: none;
       }
-      .topbar-inner { padding: 10px 10px 8px; }
+      .topbar-inner { padding: 10px 10px 12px; }
+      .topbar-curtain { width: 26px; height: 20px; bottom: -11px; }
+      .topbar-curtain .icon { width: 13px; height: 13px; }
       .brand-row { flex-direction: column; align-items: stretch; gap: 8px; }
       .brand-title { font-size: 16px; }
       .brand-subtitle { font-size: 9px; line-height: 1.35; }
@@ -1270,7 +1369,10 @@
   </div>
 
   <div class="app-shell">
-    <header class="topbar">
+    <header class="topbar" id="mainTopbar">
+      <button class="topbar-curtain" id="topbarCurtainBtn" type="button" aria-label="Hide controls" aria-expanded="true" title="Hide controls">
+        <span class="icon" data-lucide="chevron-up"></span>
+      </button>
       <div class="topbar-inner">
         <div class="brand-row">
           <div>
@@ -3454,15 +3556,55 @@
 
       window.addEventListener("mouseup", () => { isPanning = false; graphViewport.classList.remove("dragging"); });
 
-      // Robust touch panning: swipes can start on empty space OR on course cards.
-      // A short tap still opens a course; an actual drag pans the roadmap and then
-      // suppresses the synthetic tap that mobile browsers may emit after a swipe.
+      // Touch navigation: one finger pans the roadmap; two fingers pinch-zoom.
+      // A short tap still opens a course card, while an actual drag/gesture is
+      // treated as navigation and suppresses the synthetic click afterward.
       let touchPanActive = false;
       let touchMoved = false;
+      let pinchActive = false;
+      let pinchStartDistance = 0;
+      let pinchStartZoom = 0;
+      let pinchStartWorldX = 0;
+      let pinchStartWorldY = 0;
       let touchStartX = 0, touchStartY = 0, touchStartPanX = 0, touchStartPanY = 0;
+
+      function touchDistance(a, b) {
+        return Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+      }
+
+      function touchMidpoint(a, b, rect) {
+        return {
+          x: ((a.clientX + b.clientX) / 2) - rect.left,
+          y: ((a.clientY + b.clientY) / 2) - rect.top
+        };
+      }
+
       graphViewport.addEventListener("touchstart", (e) => {
+        const rect = graphViewport.getBoundingClientRect();
+
+        if (e.touches.length === 2) {
+          // Switch immediately from pan to pinch when the second finger lands.
+          touchPanActive = false;
+          touchMoved = true;
+          pinchActive = true;
+          window.__graphTouchMoved = true;
+
+          const a = e.touches[0];
+          const b = e.touches[1];
+          pinchStartDistance = Math.max(1, touchDistance(a, b));
+          pinchStartZoom = state.zoom;
+
+          const mid = touchMidpoint(a, b, rect);
+          pinchStartWorldX = (mid.x - state.panX) / state.zoom;
+          pinchStartWorldY = (mid.y - state.panY) / state.zoom;
+          graphViewport.classList.add("dragging");
+          e.preventDefault();
+          return;
+        }
+
         if (e.touches.length !== 1) return;
         const t = e.touches[0];
+        pinchActive = false;
         touchPanActive = true;
         touchMoved = false;
         window.__graphTouchMoved = false;
@@ -3471,9 +3613,30 @@
         touchStartPanX = state.panX;
         touchStartPanY = state.panY;
         graphViewport.classList.add("dragging");
-      }, { passive: true });
+      }, { passive: false });
 
       graphViewport.addEventListener("touchmove", (e) => {
+        const rect = graphViewport.getBoundingClientRect();
+
+        if (e.touches.length === 2 && pinchActive) {
+          const a = e.touches[0];
+          const b = e.touches[1];
+          const distance = Math.max(1, touchDistance(a, b));
+          const mid = touchMidpoint(a, b, rect);
+          const scale = distance / pinchStartDistance;
+          const newZoom = Math.max(0.3, Math.min(1.5, pinchStartZoom * scale));
+
+          state.zoom = newZoom;
+          state.panX = mid.x - pinchStartWorldX * state.zoom;
+          state.panY = mid.y - pinchStartWorldY * state.zoom;
+          touchMoved = true;
+          window.__graphTouchMoved = true;
+          setTransform();
+          updateGraphScrollbars();
+          e.preventDefault();
+          return;
+        }
+
         if (!touchPanActive || e.touches.length !== 1) return;
         const t = e.touches[0];
         const dx = t.clientX - touchStartX;
@@ -3487,24 +3650,65 @@
         state.panX = touchStartPanX + dx;
         state.panY = touchStartPanY + dy;
         setTransform();
+        updateGraphScrollbars();
       }, { passive: false });
 
       const finishTouchPan = () => {
         touchPanActive = false;
+        pinchActive = false;
+        graphViewport.classList.remove("dragging");
         if (touchMoved) {
           window.__graphTouchMoved = true;
-          setTimeout(() => { window.__graphTouchMoved = false; }, 120);
+          setTimeout(() => { window.__graphTouchMoved = false; }, 180);
         }
         touchMoved = false;
-        graphViewport.classList.remove("dragging");
       };
 
-      graphViewport.addEventListener("touchend", finishTouchPan, { passive: true });
+      graphViewport.addEventListener("touchend", (e) => {
+        // If a pinch ends with one finger still down, continue as a normal pan
+        // from the finger's current position instead of getting stuck.
+        if (e.touches.length === 1 && pinchActive) {
+          const t = e.touches[0];
+          pinchActive = false;
+          touchPanActive = true;
+          touchMoved = true;
+          window.__graphTouchMoved = true;
+          touchStartX = t.clientX;
+          touchStartY = t.clientY;
+          touchStartPanX = state.panX;
+          touchStartPanY = state.panY;
+          graphViewport.classList.add("dragging");
+          return;
+        }
+        if (e.touches.length === 0) finishTouchPan();
+      }, { passive: false });
+
       graphViewport.addEventListener("touchcancel", finishTouchPan, { passive: true });
 
       window.addEventListener("resize", () => {
         updateGraphScrollbars();
       });
+
+      // ===== TOPBAR CURTAIN =====
+      const mainTopbar = document.getElementById("mainTopbar");
+      const topbarCurtainBtn = document.getElementById("topbarCurtainBtn");
+      if (mainTopbar && topbarCurtainBtn) {
+        const setTopbarCurtain = (collapsed) => {
+          mainTopbar.classList.toggle("is-curtained", collapsed);
+          topbarCurtainBtn.setAttribute("aria-expanded", String(!collapsed));
+          topbarCurtainBtn.setAttribute("aria-label", collapsed ? "Show controls" : "Hide controls");
+          topbarCurtainBtn.setAttribute("title", collapsed ? "Show controls" : "Hide controls");
+          topbarCurtainBtn.innerHTML = `<span class="icon" data-lucide="${collapsed ? "chevron-down" : "chevron-up"}"></span>`;
+          if (window.lucide) window.lucide.createIcons();
+          requestAnimationFrame(() => {
+            updateGraphScrollbars();
+            setTransform();
+          });
+        };
+        topbarCurtainBtn.addEventListener("click", () => {
+          setTopbarCurtain(!mainTopbar.classList.contains("is-curtained"));
+        });
+      }
 
       // CLICK ANYWHERE OUTSIDE THE COURSE DRAWER TO CLOSE IT
       document.addEventListener("click", (e) => {
