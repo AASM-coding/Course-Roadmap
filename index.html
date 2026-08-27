@@ -1088,14 +1088,23 @@
        the app shell and controls reflow to the available viewport width. */
     @media (max-width: 850px) {
       .topbar {
-        max-height: 54vh;
+        max-height: 38vh;
         overflow-y: auto;
         overflow-x: hidden;
         -webkit-overflow-scrolling: touch;
       }
       .workspace {
-        min-height: 46vh;
+        min-height: 62vh;
         flex: 1 1 auto;
+        min-width: 0;
+      }
+      .graph-panel {
+        min-height: 62vh;
+      }
+      #graphViewport {
+        touch-action: none;
+        -webkit-user-select: none;
+        user-select: none;
       }
       .topbar-inner { padding: 10px 10px 8px; }
       .brand-row { flex-direction: column; align-items: stretch; gap: 8px; }
@@ -1224,6 +1233,8 @@
     }
 
     @media (max-width: 480px) {
+      .topbar { max-height: 34vh; }
+      .workspace, .graph-panel { min-height: 66vh; }
       .brand-title { font-size: 15px; }
       .brand-subtitle { font-size: 8px; }
       .action-row { grid-template-columns: 1fr; }
@@ -1231,6 +1242,8 @@
       .metric-value { font-size: 12px; }
       .training-strip { grid-template-columns: 1fr; }
       .user-chip { gap: 5px; font-size: 8.5px; }
+      .graph-toolbar { top: 5px; left: 5px; }
+      .graph-tool { width: 34px; height: 34px; }
       .dry-run-legend { gap: 5px; }
       .dry-run-legend-item { font-size: 7.5px; }
     }
@@ -3372,6 +3385,14 @@
         saveState();
       });
 
+      function resetGraphView() {
+        const isMobile = window.innerWidth <= 850;
+        state.zoom = isMobile ? 0.40 : 0.62;
+        state.panX = isMobile ? 8 : 25;
+        state.panY = isMobile ? 14 : 18;
+        setTransform();
+      }
+
       // Zoom while keeping a given viewport-relative point (px, py) visually fixed in place.
       function zoomAtPoint(px, py, newZoom) {
         newZoom = Math.max(0.3, Math.min(1.5, newZoom));
@@ -3390,8 +3411,8 @@
 
       document.getElementById("zoomInBtn").addEventListener("click", () => { zoomAtViewportCenter(state.zoom * 1.15); });
       document.getElementById("zoomOutBtn").addEventListener("click", () => { zoomAtViewportCenter(state.zoom * 0.85); });
-      document.getElementById("fitBtn").addEventListener("click", () => { state.zoom = 0.62; state.panX = 25; state.panY = 18; setTransform(); });
-      document.getElementById("resetViewBtn").addEventListener("click", () => { state.zoom = 0.62; state.panX = 25; state.panY = 18; setTransform(); clearPathHighlight(); });
+      document.getElementById("fitBtn").addEventListener("click", () => { resetGraphView(); });
+      document.getElementById("resetViewBtn").addEventListener("click", () => { resetGraphView(); clearPathHighlight(); });
 
       graphViewport.addEventListener("wheel", (e) => {
         e.preventDefault();
@@ -3416,7 +3437,45 @@
         setTransform();
       });
 
-      window.addEventListener("mouseup", () => { isPanning = false; });
+      window.addEventListener("mouseup", () => { isPanning = false; graphViewport.classList.remove("dragging"); });
+
+      // Touch-friendly roadmap panning on phones/tablets. Course cards remain tappable;
+      // dragging the empty roadmap surface pans the graph instead of scrolling the page.
+      let touchPanActive = false;
+      let touchStartX = 0, touchStartY = 0, touchStartPanX = 0, touchStartPanY = 0;
+      graphViewport.addEventListener("touchstart", (e) => {
+        if (e.touches.length !== 1 || e.target.closest(".course-node")) return;
+        const t = e.touches[0];
+        touchPanActive = true;
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+        touchStartPanX = state.panX;
+        touchStartPanY = state.panY;
+        graphViewport.classList.add("dragging");
+      }, { passive: true });
+
+      graphViewport.addEventListener("touchmove", (e) => {
+        if (!touchPanActive || e.touches.length !== 1) return;
+        e.preventDefault();
+        const t = e.touches[0];
+        state.panX = touchStartPanX + (t.clientX - touchStartX);
+        state.panY = touchStartPanY + (t.clientY - touchStartY);
+        setTransform();
+      }, { passive: false });
+
+      graphViewport.addEventListener("touchend", () => {
+        touchPanActive = false;
+        graphViewport.classList.remove("dragging");
+      }, { passive: true });
+
+      graphViewport.addEventListener("touchcancel", () => {
+        touchPanActive = false;
+        graphViewport.classList.remove("dragging");
+      }, { passive: true });
+
+      window.addEventListener("resize", () => {
+        updateGraphScrollbars();
+      });
 
       // CLICK ANYWHERE OUTSIDE THE COURSE DRAWER TO CLOSE IT
       document.addEventListener("click", (e) => {
@@ -3446,7 +3505,7 @@
       setupGraphScrollbarDrag();
 
       renderAll();
-      setTransform();
+      resetGraphView();
     }
 
     // ===== SUGGESTED PATHWAY =====
