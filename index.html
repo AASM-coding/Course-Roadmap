@@ -2500,7 +2500,6 @@
     }
 
     async function loadStateFromSupabase() {
-      resetStateToDefaults();
       if (!supabaseClient || !currentUser) return;
       const { data, error } = await supabaseClient
         .from("student_state")
@@ -2512,8 +2511,8 @@
         state.grades = data.grades || {};
         state.manualPass = data.manual_pass || {};
         state.courseTerms = data.course_terms || {};
-        state.totalYears = data.total_years || 4;
-        state.startYear = data.start_year || getFallbackStartYear();
+        state.totalYears = data.total_years || state.totalYears;
+        state.startYear = data.start_year || state.startYear;
         if (data.theme) applyTheme(data.theme);
         if (data.selected_electives) {
           state.selectedElectives = {
