@@ -1050,6 +1050,7 @@
     .dry-run-block.pathway:not(.selected) { box-shadow: inset 0 0 0 3px #9333ea; }
     .dry-run-block:hover { filter: brightness(0.98); transform: translateY(-1px); z-index:7; }
     .dry-run-code { font-weight: 900; font-size:9.5px; color:#111; }
+    .dry-run-name { font-size:6.9px; line-height:1.05; font-weight:700; color:#222; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
     .dry-run-session { font-size:6.5px; text-transform:uppercase; font-weight:800; color:#3d3d3d; margin-top:1px; }
     .dry-run-location { font-size:6.2px; color:#515151; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
     .dry-run-placeholder {
@@ -3574,6 +3575,7 @@
                  style="${dryRunBlockStyle(entry, laneLayout.laneById.get(entry.id) || 0, laneLayout.laneCount)}"
                  aria-label="${entry.name} · ${entry.code} · ${entry.session} · ${formatDryRunTime(entry.start)}–${formatDryRunTime(entry.end)}">
               <div class="dry-run-code">${entry.code}</div>
+              <div class="dry-run-name">${entry.name}</div>
               <div class="dry-run-session">${entry.session}</div>
               <div class="dry-run-location">${entry.location || ""}</div>
             </div>`;
