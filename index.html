@@ -2956,16 +2956,34 @@
         saveState();
       });
 
-      document.getElementById("zoomInBtn").addEventListener("click", () => { state.zoom = Math.min(1.5, state.zoom * 1.15); setTransform(); });
-      document.getElementById("zoomOutBtn").addEventListener("click", () => { state.zoom = Math.max(0.3, state.zoom * 0.85); setTransform(); });
+      // Zoom while keeping a given viewport-relative point (px, py) visually fixed in place.
+      function zoomAtPoint(px, py, newZoom) {
+        newZoom = Math.max(0.3, Math.min(1.5, newZoom));
+        const worldX = (px - state.panX) / state.zoom;
+        const worldY = (py - state.panY) / state.zoom;
+        state.zoom = newZoom;
+        state.panX = px - worldX * state.zoom;
+        state.panY = py - worldY * state.zoom;
+        setTransform();
+      }
+
+      function zoomAtViewportCenter(newZoom) {
+        const rect = graphViewport.getBoundingClientRect();
+        zoomAtPoint(rect.width / 2, rect.height / 2, newZoom);
+      }
+
+      document.getElementById("zoomInBtn").addEventListener("click", () => { zoomAtViewportCenter(state.zoom * 1.15); });
+      document.getElementById("zoomOutBtn").addEventListener("click", () => { zoomAtViewportCenter(state.zoom * 0.85); });
       document.getElementById("fitBtn").addEventListener("click", () => { state.zoom = 0.62; state.panX = 25; state.panY = 18; setTransform(); });
       document.getElementById("resetViewBtn").addEventListener("click", () => { state.zoom = 0.62; state.panX = 25; state.panY = 18; state.criticalPathMode = false; setTransform(); clearPathHighlight(); });
 
       graphViewport.addEventListener("wheel", (e) => {
         e.preventDefault();
         const factor = e.deltaY < 0 ? 1.08 : 0.92;
-        state.zoom = Math.max(0.3, Math.min(1.5, state.zoom * factor));
-        setTransform();
+        const rect = graphViewport.getBoundingClientRect();
+        const px = e.clientX - rect.left;
+        const py = e.clientY - rect.top;
+        zoomAtPoint(px, py, state.zoom * factor);
       }, { passive: false });
 
       graphViewport.addEventListener("mousedown", (e) => {
