@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#07111f">
-  <title>CUFE Mechatronics Engineering Degree Navigator</title>
+  <title>Mechatronics Compass</title>
 
   <script>
     // Apply the last-used theme immediately (before first paint) so the app
@@ -1098,11 +1098,124 @@
       display:flex; flex-wrap:wrap; gap:7px; font-size:8px; color:#454545;
     }
     .dry-run-course-tag { border:1px solid #aaa; border-radius:3px; background:#fff; padding:3px 6px; }
+    /* RESPONSIVE LAYOUT: keep the planner usable on phones without changing the
+       desktop graph/data model. The graph itself remains pannable/zoomable, while
+       the app shell and controls reflow to the available viewport width. */
     @media (max-width: 850px) {
+      .topbar { overflow: visible; }
+      .topbar-inner { padding: 10px 10px 8px; }
+      .brand-row { flex-direction: column; align-items: stretch; gap: 8px; }
+      .brand-title { font-size: 16px; }
+      .brand-subtitle { font-size: 9px; line-height: 1.35; }
+      .metrics {
+        min-width: 0;
+        width: 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 5px;
+      }
+      .metric { padding: 6px 7px; }
+      .metric-label { font-size: 7px; letter-spacing: 0.08em; }
+      .metric-value { font-size: 13px; }
+      .metric-sub { font-size: 7px; }
+
+      .user-chip {
+        order: -1;
+        width: 100%;
+        justify-content: space-between;
+        padding: 6px 8px;
+      }
+      .user-chip .dry-run-top-btn { margin-left: auto; }
+
+      .action-row {
+        margin-top: 8px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 5px;
+      }
+      .action-button {
+        min-width: 0;
+        width: 100%;
+        justify-content: center;
+        padding: 7px 6px;
+        font-size: 9px;
+        white-space: normal;
+        line-height: 1.2;
+      }
+
+      .filter-row {
+        margin-top: 7px;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 5px 6px;
+        align-items: center;
+      }
+      .filter-label { font-size: 8px; }
+      .control {
+        width: 100% !important;
+        min-width: 0;
+        min-height: 32px;
+        font-size: 10px;
+      }
+      .search-control { grid-column: 1 / -1; }
+      .training-strip {
+        grid-column: 1 / -1;
+        width: 100%;
+        margin-left: 0;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px;
+      }
+      .milestone {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .graph-toolbar {
+        top: 7px;
+        left: 7px;
+        gap: 4px;
+        padding: 3px;
+      }
+      .graph-tool { width: 32px; height: 32px; }
+      .graph-help { display: none; }
+
+      .drawer {
+        width: min(100vw, 380px);
+        max-width: 100vw;
+      }
+      .drawer-inner { padding: 12px; }
+
       .dry-run-modal { width: 99vw; max-height: 96vh; }
+      .dry-run-header { padding: 8px 9px; }
+      .dry-run-title { font-size: 12px; }
+      .dry-run-subtitle { font-size: 8px; }
+      .dry-run-header-actions { flex-shrink: 0; }
+      .dry-run-content { padding: 5px; }
       .dry-run-grid { grid-template-columns: repeat(3, max-content); }
       .dry-time-head .time-main { font-size:8px; }
       .dry-time-head .time-end { font-size:7px; }
+      .dry-run-footer {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .dry-run-footer-left, .dry-run-footer-right {
+        width: 100%;
+        justify-content: stretch;
+      }
+      .dry-run-action { flex: 1; }
+    }
+
+    @media (max-width: 480px) {
+      .brand-title { font-size: 15px; }
+      .brand-subtitle { font-size: 8px; }
+      .action-row { grid-template-columns: 1fr; }
+      .metrics { gap: 4px; }
+      .metric-value { font-size: 12px; }
+      .training-strip { grid-template-columns: 1fr; }
+      .user-chip { gap: 5px; font-size: 8.5px; }
+      .dry-run-legend { gap: 5px; }
+      .dry-run-legend-item { font-size: 7.5px; }
     }
 
   </style>
@@ -1131,7 +1244,7 @@
       <div class="topbar-inner">
         <div class="brand-row">
           <div>
-            <h1 class="brand-title">CUFE Mechatronics Engineering (MEE) Degree Navigator &amp; Prerequisite DAG</h1>
+            <h1 class="brand-title">Mechatronics Compass</h1>
             <div class="brand-subtitle">155 CH · 3 Terms/Year Structure (Fall/Spring/Summer) · Created by Mahmoud Mohamed El-Aidy &amp; Adham Adel Sayed</div>
           </div>
 
@@ -1483,7 +1596,23 @@
       : null;
 
     const SESSION_KEY = "cufe_nav_session_user";
-    let currentUser = null; // { id, username }
+    // Accounts created before this deployment are legacy accounts and are not permitted
+    // to use account persistence. Delete those accounts from Supabase before deploying.
+    const ACCOUNT_CUTOFF_ISO = "2026-08-28T00:00:00.000Z";
+    let currentUser = null; // { id, username, created_at }
+
+    function isSupportedAccount(user) {
+      if (!user || !user.created_at) return false;
+      const created = Date.parse(user.created_at);
+      const cutoff = Date.parse(ACCOUNT_CUTOFF_ISO);
+      return Number.isFinite(created) && created >= cutoff;
+    }
+
+    function assertSupportedAccount(user) {
+      if (!isSupportedAccount(user)) {
+        throw new Error("This is a legacy account from before the current MEE Compass update. Please create a new account to use saved data.");
+      }
+    }
 
     async function hashPassword(pw) {
       const enc = new TextEncoder().encode(pw);
@@ -3068,21 +3197,25 @@
         }
         throw new Error(error.message);
       }
-      return { id: data.id, username: data.username };
+      const user = { id: data.id, username: data.username, created_at: data.created_at };
+      assertSupportedAccount(user);
+      return user;
     }
 
     async function logIn(username, password) {
       const password_hash = await hashPassword(password);
       const { data, error } = await supabaseClient
         .from("users")
-        .select("id, username, password_hash")
+        .select("id, username, password_hash, created_at")
         .eq("username", username)
         .maybeSingle();
       if (error) throw new Error(error.message);
       if (!data || data.password_hash !== password_hash) {
         throw new Error("Incorrect username or password.");
       }
-      return { id: data.id, username: data.username };
+      const user = { id: data.id, username: data.username, created_at: data.created_at };
+      assertSupportedAccount(user);
+      return user;
     }
 
     function logOut() {
@@ -3117,12 +3250,26 @@
       const savedUser = localStorage.getItem(SESSION_KEY);
       if (savedUser && supabaseClient) {
         try {
-          currentUser = JSON.parse(savedUser);
-          loadState();
-          loadStateFromSupabase().then(() => {
-            showApp();
-            initApp();
-          });
+          const cachedUser = JSON.parse(savedUser);
+          // Re-validate the session against the users table so legacy accounts cannot
+          // regain access simply by retaining an old browser session.
+          supabaseClient.from("users").select("id, username, created_at").eq("id", cachedUser.id).maybeSingle()
+            .then(({ data, error }) => {
+              if (error || !data) throw new Error("Account session is no longer valid.");
+              assertSupportedAccount(data);
+              currentUser = { id: data.id, username: data.username, created_at: data.created_at };
+              localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+              loadState();
+              return loadStateFromSupabase();
+            }).then(() => {
+              showApp();
+              initApp();
+            }).catch((e) => {
+              console.warn(e.message);
+              currentUser = null;
+              localStorage.removeItem(SESSION_KEY);
+              document.getElementById("authStatus").textContent = e.message;
+            });
         } catch (e) { localStorage.removeItem(SESSION_KEY); }
       }
     }
@@ -3149,6 +3296,7 @@
         currentUser = authMode === "signup"
           ? await signUp(username, password)
           : await logIn(username, password);
+        assertSupportedAccount(currentUser);
         localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
         loadState();
         await loadStateFromSupabase();
