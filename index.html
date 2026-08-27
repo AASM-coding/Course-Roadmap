@@ -2439,6 +2439,12 @@
 
         node.addEventListener("click", (e) => {
           if (e.target.tagName === "SELECT") return;
+          if (window.__graphTouchMoved) {
+            window.__graphTouchMoved = false;
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
           state.pinnedCode = course.code;
           applyPathHighlight(course.code);
           openDrawer(course.code);
@@ -3047,7 +3053,16 @@
       document.getElementById("e3Count").textContent = `${state.selectedElectives.E3.length} / 2 selected (${state.selectedElectives.E3.length * 3}/6 CH)`;
     }
 
+    function clampGraphPan() {
+      const rect = graphViewport.getBoundingClientRect();
+      const maxX = Math.max(0, GRAPH_WORLD_WIDTH * state.zoom - rect.width);
+      const maxY = Math.max(0, GRAPH_WORLD_HEIGHT * state.zoom - rect.height);
+      state.panX = Math.max(-maxX, Math.min(0, state.panX));
+      state.panY = Math.max(-maxY, Math.min(0, state.panY));
+    }
+
     function setTransform() {
+      clampGraphPan();
       graphWorld.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
       updateGraphScrollbars();
     }
@@ -3388,8 +3403,8 @@
       function resetGraphView() {
         const isMobile = window.innerWidth <= 850;
         state.zoom = isMobile ? 0.40 : 0.62;
-        state.panX = isMobile ? 8 : 25;
-        state.panY = isMobile ? 14 : 18;
+        state.panX = isMobile ? 0 : 25;
+        state.panY = isMobile ? 0 : 18;
         setTransform();
       }
 
@@ -3439,14 +3454,18 @@
 
       window.addEventListener("mouseup", () => { isPanning = false; graphViewport.classList.remove("dragging"); });
 
-      // Touch-friendly roadmap panning on phones/tablets. Course cards remain tappable;
-      // dragging the empty roadmap surface pans the graph instead of scrolling the page.
+      // Robust touch panning: swipes can start on empty space OR on course cards.
+      // A short tap still opens a course; an actual drag pans the roadmap and then
+      // suppresses the synthetic tap that mobile browsers may emit after a swipe.
       let touchPanActive = false;
+      let touchMoved = false;
       let touchStartX = 0, touchStartY = 0, touchStartPanX = 0, touchStartPanY = 0;
       graphViewport.addEventListener("touchstart", (e) => {
-        if (e.touches.length !== 1 || e.target.closest(".course-node")) return;
+        if (e.touches.length !== 1) return;
         const t = e.touches[0];
         touchPanActive = true;
+        touchMoved = false;
+        window.__graphTouchMoved = false;
         touchStartX = t.clientX;
         touchStartY = t.clientY;
         touchStartPanX = state.panX;
@@ -3456,22 +3475,32 @@
 
       graphViewport.addEventListener("touchmove", (e) => {
         if (!touchPanActive || e.touches.length !== 1) return;
-        e.preventDefault();
         const t = e.touches[0];
-        state.panX = touchStartPanX + (t.clientX - touchStartX);
-        state.panY = touchStartPanY + (t.clientY - touchStartY);
+        const dx = t.clientX - touchStartX;
+        const dy = t.clientY - touchStartY;
+        if (!touchMoved && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+          touchMoved = true;
+          window.__graphTouchMoved = true;
+        }
+        if (!touchMoved) return;
+        e.preventDefault();
+        state.panX = touchStartPanX + dx;
+        state.panY = touchStartPanY + dy;
         setTransform();
       }, { passive: false });
 
-      graphViewport.addEventListener("touchend", () => {
+      const finishTouchPan = () => {
         touchPanActive = false;
+        if (touchMoved) {
+          window.__graphTouchMoved = true;
+          setTimeout(() => { window.__graphTouchMoved = false; }, 120);
+        }
+        touchMoved = false;
         graphViewport.classList.remove("dragging");
-      }, { passive: true });
+      };
 
-      graphViewport.addEventListener("touchcancel", () => {
-        touchPanActive = false;
-        graphViewport.classList.remove("dragging");
-      }, { passive: true });
+      graphViewport.addEventListener("touchend", finishTouchPan, { passive: true });
+      graphViewport.addEventListener("touchcancel", finishTouchPan, { passive: true });
 
       window.addEventListener("resize", () => {
         updateGraphScrollbars();
