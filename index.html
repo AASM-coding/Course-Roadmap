@@ -1596,21 +1596,26 @@
       : null;
 
     const SESSION_KEY = "cufe_nav_session_user";
-    // Accounts created before this deployment are legacy accounts and are not permitted
+    // Accounts created before August 26, 2026 are legacy accounts and are not permitted
     // to use account persistence. Delete those accounts from Supabase before deploying.
-    const ACCOUNT_CUTOFF_ISO = "2026-08-28T00:00:00.000Z";
+    const ACCOUNT_CUTOFF_ISO = "2026-08-26T00:00:00.000Z";
     let currentUser = null; // { id, username, created_at }
 
     function isSupportedAccount(user) {
-      if (!user || !user.created_at) return false;
-      const created = Date.parse(user.created_at);
+      // The account cutoff is only enforced when Supabase provides a valid
+      // creation timestamp. This keeps current accounts usable even if an
+      // older database schema/session does not return created_at. Legacy
+      // accounts with a known pre-cutoff timestamp are still rejected.
+      if (!user) return false;
+      const created = Date.parse(user.created_at || "");
+      if (!Number.isFinite(created)) return true;
       const cutoff = Date.parse(ACCOUNT_CUTOFF_ISO);
-      return Number.isFinite(created) && created >= cutoff;
+      return created >= cutoff;
     }
 
     function assertSupportedAccount(user) {
       if (!isSupportedAccount(user)) {
-        throw new Error("This is a legacy account from before the current MEE Compass update. Please create a new account to use saved data.");
+        throw new Error("This is a legacy account from before August 26, 2026. Please create a new account to use saved data.");
       }
     }
 
@@ -3197,9 +3202,12 @@
         }
         throw new Error(error.message);
       }
-      const user = { id: data.id, username: data.username, created_at: data.created_at };
-      assertSupportedAccount(user);
-      return user;
+      // A successful signup has just created this account, so it is always a
+      // supported account. Do not run the legacy cutoff against the signup
+      // response: some Supabase schemas/permissions may omit or delay
+      // created_at in the returned row. The cutoff is enforced on subsequent
+      // logins/session validation using the actual stored account timestamp.
+      return { id: data.id, username: data.username, created_at: data.created_at || new Date().toISOString() };
     }
 
     async function logIn(username, password) {
