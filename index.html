@@ -913,6 +913,173 @@
     .willing-cap-bar { height: 6px; border-radius: 999px; background: rgba(148,163,184,0.15); margin-top: 6px; overflow: hidden; }
     .willing-cap-fill { height: 100%; background: linear-gradient(90deg,#22d3ee,#818cf8); transition: width 0.2s ease; }
     .willing-cap-fill.over { background: #fb7185; }
+
+    /* ===== DRY RUN FEATURE (ADDED ONLY; EXISTING SITE COLORS UNTOUCHED) ===== */
+    .dry-run-top-btn {
+      min-height: 24px;
+      padding: 4px 7px !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 6px !important;
+      background: var(--panel-2) !important;
+      color: var(--text) !important;
+      font-size: 8.5px !important;
+      font-weight: 800 !important;
+      white-space: nowrap;
+      display: inline-flex !important;
+      align-items: center;
+      gap: 4px;
+      transition: 0.16s ease;
+    }
+    .dry-run-top-btn:hover {
+      border-color: rgba(56, 189, 248, 0.45) !important;
+      background: var(--panel-3) !important;
+      color: var(--text) !important;
+      transform: translateY(-1px);
+    }
+    .dry-run-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      background: rgba(0,0,0,0.68);
+      backdrop-filter: blur(5px);
+    }
+    .dry-run-backdrop.open { display: flex; }
+    .dry-run-modal {
+      width: min(1280px, 98vw);
+      max-height: 94vh;
+      overflow: hidden;
+      border: 1px solid rgba(15,23,42,0.35);
+      border-radius: 4px;
+      background: #f3f3f3;
+      color: #222;
+      box-shadow: 0 30px 90px rgba(0,0,0,0.45);
+      display: flex;
+      flex-direction: column;
+    }
+    .dry-run-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-bottom: 1px solid #6b6b6b;
+      background: #eeeeee;
+    }
+    .dry-run-title { font-size: 14px; font-weight: 900; letter-spacing: -0.015em; }
+    .dry-run-subtitle { margin-top: 3px; font-size: 8.5px; color: #555; line-height: 1.4; }
+    .dry-run-header-actions { display: flex; gap: 5px; align-items: center; }
+    .dry-run-icon-btn {
+      width: 28px; height: 28px; border: 1px solid #777; border-radius: 3px;
+      background: #f6f6f6; color: #222; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .dry-run-content { min-height: 0; flex: 1; overflow: auto; padding: 8px; }
+    .dry-run-statusbar {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+      margin-bottom: 7px; font-size: 8px; color: #3f3f3f;
+    }
+    .dry-run-count {
+      padding: 3px 6px; border: 1px solid #b7b7b7; border-radius: 3px; background: #fafafa; font-weight: 800;
+    }
+    .dry-run-legend { display:flex; flex-wrap:wrap; gap:7px; align-items:center; }
+    .dry-run-legend-item { display:inline-flex; align-items:center; gap:3px; }
+    .dry-run-legend-swatch { width:11px; height:11px; border:1px solid #555; display:inline-block; }
+    .dry-run-legend-lecture { background:#ffff99; }
+    .dry-run-legend-tutorial { background:#99ccff; }
+    .dry-run-legend-selected { background:#99ff99; }
+    .dry-run-legend-pathway { background:#ffffff; border:3px solid #9333ea; box-sizing:border-box; }
+    .dry-run-table-scroll { overflow-x: auto; overflow-y: visible; border: 2px solid #444; background:#fff; }
+    .dry-run-grid {
+      min-width: 1120px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+    }
+    .dry-day { min-width: 220px; border-right: 1px solid #777; }
+    .dry-day:last-child { border-right: 0; }
+    .dry-day-header {
+      height: 42px; border-bottom: 1px solid #777; background:#efefef;
+      display:flex; align-items:center; justify-content:center;
+      font-family: Georgia, 'Times New Roman', serif; font-size: 14px; font-weight: 900; color:#222;
+    }
+    .dry-time-head {
+      height: 40px; border-bottom: 1px solid #777; background:#dbe8f8;
+      display:grid; grid-template-columns: repeat(11, 1fr); overflow:hidden;
+    }
+    .dry-time-head span {
+      min-width:0; border-right:1px solid #a8bfd8; display:flex; align-items:center; justify-content:center;
+      flex-direction:column; font-size:7px; color:#6b7c8f; line-height:1.05;
+    }
+    .dry-time-head span:last-child { border-right:0; }
+    .dry-time-head .time-main { font-size:8px; }
+    .dry-time-head .time-end { font-size:6.5px; }
+    .dry-day-body {
+      position: relative;
+      height: 550px;
+      background:
+        repeating-linear-gradient(to bottom, #c6d7ec 0, #c6d7ec 1px, #ffffff 1px, #ffffff 50px),
+        repeating-linear-gradient(to right, #c6d7ec 0, #c6d7ec 1px, transparent 1px, transparent calc(100% / 11));
+    }
+    .dry-slot-row {
+      position:absolute; left:0; right:0; height:50px;
+      border-bottom:1px solid #c1d1e2; pointer-events:none;
+    }
+    .dry-slot-row:nth-child(odd) { background: rgba(225,235,246,0.12); }
+    .dry-run-block {
+      position:absolute;
+      left:1px; right:1px;
+      border:1px solid #777;
+      padding: 3px 4px;
+      font-size: 9px;
+      line-height:1.12;
+      overflow:hidden;
+      cursor:pointer;
+      user-select:none;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      flex-direction:column;
+      transition: filter .12s ease, transform .12s ease, box-shadow .12s ease;
+      z-index:4;
+    }
+    .dry-run-block.lecture { background:#ffff99; }
+    .dry-run-block.tutorial { background:#99ccff; }
+    .dry-run-block.selected { background:#99ff99; border-color:#1b5e20; box-shadow: inset 0 0 0 2px rgba(27,94,32,0.25); }
+    .dry-run-block.pathway:not(.selected) { box-shadow: inset 0 0 0 3px #9333ea; }
+    .dry-run-block:hover { filter: brightness(0.98); transform: translateY(-1px); z-index:7; }
+    .dry-run-code { font-weight: 900; font-size:9.5px; color:#111; }
+    .dry-run-session { font-size:6.5px; text-transform:uppercase; font-weight:800; color:#3d3d3d; margin-top:1px; }
+    .dry-run-location { font-size:6.2px; color:#515151; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+    .dry-run-placeholder {
+      min-height: 250px; display:flex; align-items:center; justify-content:center;
+      font-size:10px; color:#666; text-align:center; padding:25px;
+      background:#fff;
+    }
+    .dry-run-footer {
+      border-top: 1px solid #777;
+      padding: 7px 8px;
+      background:#ededed;
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+    }
+    .dry-run-footer-left, .dry-run-footer-right { display:flex; gap:6px; align-items:center; }
+    .dry-run-action {
+      border:1px solid #666; border-radius:3px; background:#f7f7f7; color:#222;
+      padding:5px 9px; font-size:9px; font-weight:900; min-height:28px;
+    }
+    .dry-run-action.primary { background:#99ff99; border-color:#377a37; }
+    .dry-run-action:hover { filter:brightness(0.97); }
+    .dry-run-summary {
+      display:flex; flex-wrap:wrap; gap:7px; font-size:8px; color:#454545;
+    }
+    .dry-run-course-tag { border:1px solid #aaa; border-radius:3px; background:#fff; padding:3px 6px; }
+    @media (max-width: 850px) {
+      .dry-run-modal { width: 99vw; max-height: 96vh; }
+      .dry-day { min-width: 205px; }
+      .dry-run-grid { min-width: 1025px; }
+    }
+
   </style>
 </head>
 
@@ -947,6 +1114,10 @@
             <span class="icon" data-lucide="user"></span>
             <span id="userChipName"></span>
             <button id="logoutBtn" type="button">Log Out</button>
+            <button id="dryRunBtn" class="dry-run-top-btn" type="button" title="Open Dry Run Schedule">
+              <span class="icon" data-lucide="calendar-clock"></span>
+              Dry Run
+            </button>
           </div>
 
           <div class="metrics">
@@ -1256,6 +1427,24 @@
     </div>
   </div>
 
+
+  <!-- DRY RUN / TIMETABLE PLANNER -->
+  <div class="dry-run-backdrop" id="dryRunModal">
+    <div class="dry-run-modal" role="dialog" aria-modal="true" aria-labelledby="dryRunTitle">
+      <div class="dry-run-header">
+        <div>
+          <div class="dry-run-title" id="dryRunTitle">Dry Run · Upcoming Eligible Courses</div>
+          <div class="dry-run-subtitle" id="dryRunSubtitle">Only currently eligible, unpassed courses with timetable data are shown. Click a lecture/tutorial block to select it. Overlapping selections are blocked.</div>
+        </div>
+        <div class="dry-run-header-actions">
+          <button class="dry-run-icon-btn" id="closeDryRunBtn" type="button" title="Close Dry Run"><span class="icon" data-lucide="x"></span></button>
+        </div>
+      </div>
+      <div class="dry-run-content" id="dryRunContent"></div>
+      <div class="dry-run-footer" id="dryRunFooter"></div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <script>
@@ -1438,6 +1627,8 @@
       },
       willingList: [],
       willingTermCap: 18,
+      dryRunSelections: [],
+      dryRunSubmitted: false,
       pinnedCode: null,
       hoveredCode: null,
       criticalPathMode: false,
@@ -2448,7 +2639,9 @@
         theme: state.theme,
         selectedElectives: state.selectedElectives,
         willingList: state.willingList,
-        willingTermCap: state.willingTermCap
+        willingTermCap: state.willingTermCap,
+        dryRunSelections: state.dryRunSelections,
+        dryRunSubmitted: state.dryRunSubmitted
       }));
 
       if (!supabaseClient || !currentUser) return;
@@ -2495,6 +2688,8 @@
           }
           state.willingList = saved.willingList || [];
           state.willingTermCap = saved.willingTermCap || 18;
+          state.dryRunSelections = Array.isArray(saved.dryRunSelections) ? saved.dryRunSelections : [];
+          state.dryRunSubmitted = !!saved.dryRunSubmitted;
         }
       } catch (e) {}
     }
@@ -2942,6 +3137,8 @@
           state.manualPass = {};
           state.courseTerms = {};
           state.willingList = [];
+          state.dryRunSelections = [];
+          state.dryRunSubmitted = false;
           state.criticalPathMode = false;
           saveState();
           renderAll();
@@ -3026,6 +3223,7 @@
 
       setupPathwayUI();
       setupWillingUI();
+      setupDryRunUI();
       setupGraphScrollbarDrag();
 
       renderAll();
@@ -3223,6 +3421,277 @@
         saveState();
         document.getElementById("willingModal").classList.remove("open");
         showToast(`Term list saved: ${state.willingList.length} courses.`);
+      });
+    }
+
+
+    // ===== DRY RUN SCHEDULE DATA (FILTERED FROM schedule.xlsx BY EXISTING WEBSITE COURSE CODES) =====
+    const DRY_RUN_SCHEDULE = [{"id":"r55","code":"CHES001","name":"Chemistry for Engineers","session":"Tutorial","day":"Sunday","start":480,"end":590,"group":"2","location":"[51202]51202-60-الشيخ زايد"},{"id":"r56","code":"CHES001","name":"Chemistry for Engineers","session":"Tutorial","day":"Tuesday","start":600,"end":710,"group":"3","location":"[51113]51113-50-الشيخ زايد"},{"id":"r57","code":"CHES001","name":"Chemistry for Engineers","session":"Tutorial","day":"Monday","start":480,"end":590,"group":"4","location":"[51114]51114-50-الشيخ زايد"},{"id":"r58","code":"CHES001","name":"Chemistry for Engineers","session":"Lecture","day":"Sunday","start":480,"end":590,"group":"4","location":"[51116]51116-50-الشيخ زايد"},{"id":"r59","code":"CHES001","name":"Chemistry for Engineers","session":"Lecture","day":"Sunday","start":600,"end":710,"group":"6","location":"[51116]51116-50-الشيخ زايد"},{"id":"r60","code":"CHES001","name":"Chemistry for Engineers","session":"Lecture","day":"Tuesday","start":480,"end":590,"group":"5","location":"[51116]51116-50-الشيخ زايد"},{"id":"r61","code":"CHES001","name":"Chemistry for Engineers","session":"Lecture","day":"Monday","start":600,"end":710,"group":"3","location":"[51116]51116-50-الشيخ زايد"},{"id":"r62","code":"CHES001","name":"Chemistry for Engineers","session":"Lecture","day":"Monday","start":780,"end":890,"group":"2","location":"[51116]51116-50-الشيخ زايد"},{"id":"r64","code":"CHES001","name":"Chemistry for Engineers","session":"Tutorial","day":"Monday","start":600,"end":710,"group":"1","location":"[51201]51201-50-الشيخ زايد"},{"id":"r65","code":"CHES001","name":"Chemistry for Engineers","session":"Tutorial","day":"Wednesday","start":720,"end":830,"group":"5","location":"[51215]51215-60-الشيخ زايد"},{"id":"r66","code":"CHES001","name":"Chemistry for Engineers","session":"Tutorial","day":"Tuesday","start":480,"end":590,"group":"6","location":"[51216]51216-الشيخ زايد"},{"id":"r73","code":"CMPS102","name":"Programming Techniques","session":"Tutorial","day":"Wednesday","start":780,"end":950,"group":"0","location":"[3707]3707-45-الجيزة الرئيسي"},{"id":"r74","code":"CMPS102","name":"Programming Techniques","session":"Tutorial","day":"Wednesday","start":960,"end":1130,"group":"0","location":"[3708]3708-45-الجيزة الرئيسي"},{"id":"r75","code":"CMPS102","name":"Programming Techniques","session":"Tutorial","day":"Thursday","start":480,"end":650,"group":"0","location":"[3706]3706-45-الجيزة الرئيسي"},{"id":"r76","code":"CMPS102","name":"Programming Techniques","session":"Tutorial","day":"Thursday","start":780,"end":950,"group":"0","location":"[3706]3706-45-الجيزة الرئيسي"},{"id":"r77","code":"CMPS102","name":"Programming Techniques","session":"Lecture","day":"Monday","start":540,"end":650,"group":"0","location":"[3703]3703-90-الجيزة الرئيسي"},{"id":"r78","code":"CMPS102","name":"Programming Techniques","session":"Lecture","day":"Monday","start":660,"end":770,"group":"0","location":"[3703]3703-90-الجيزة الرئيسي"},{"id":"r79","code":"CMPS102","name":"Programming Techniques","session":"Lecture","day":"Monday","start":840,"end":950,"group":"0","location":"[3703]3703-90-الجيزة الرئيسي"},{"id":"r80","code":"CMPS102","name":"Programming Techniques","session":"Tutorial","day":"Wednesday","start":480,"end":650,"group":"0","location":"[3203]Digital Computer Lab-45-الجيزة الرئيسي"},{"id":"r81","code":"CMPS102","name":"Programming Techniques","session":"Tutorial","day":"Thursday","start":960,"end":1130,"group":"0","location":"[3201](CCEC Lab1) Lab Second Flour Arc.Building-30-الجيزة الرئيسي"},{"id":"r82","code":"CMPS103","name":"Data Structures and Algorithms","session":"Lecture","day":"Wednesday","start":540,"end":650,"group":"0","location":"[3704]3704-60-الجيزة الرئيسي"},{"id":"r83","code":"CMPS103","name":"Data Structures and Algorithms","session":"Lecture","day":"Wednesday","start":660,"end":770,"group":"0","location":"[3704]3704-60-الجيزة الرئيسي"},{"id":"r84","code":"CMPS103","name":"Data Structures and Algorithms","session":"Tutorial","day":"Sunday","start":960,"end":1130,"group":"0","location":"[3706]3706-45-الجيزة الرئيسي"},{"id":"r85","code":"CMPS103","name":"Data Structures and Algorithms","session":"Tutorial","day":"Sunday","start":780,"end":950,"group":"0","location":"[3706]3706-45-الجيزة الرئيسي"},{"id":"r86","code":"CMPS103","name":"Data Structures and Algorithms","session":"Tutorial","day":"Sunday","start":480,"end":650,"group":"0","location":"[3707]3707-45-الجيزة الرئيسي"},{"id":"r87","code":"CMPS103","name":"Data Structures and Algorithms","session":"Tutorial","day":"Sunday","start":780,"end":950,"group":"0","location":"[3707]3707-45-الجيزة الرئيسي"},{"id":"r88","code":"CMPS118","name":"Introduction to Logic Design","session":"Tutorial","day":"Wednesday","start":540,"end":650,"group":"0","location":"[3709]3709-45-الجيزة الرئيسي"},{"id":"r89","code":"CMPS118","name":"Introduction to Logic Design","session":"Tutorial","day":"Wednesday","start":660,"end":770,"group":"0","location":"[3709]3709-45-الجيزة الرئيسي"},{"id":"r90","code":"CMPS118","name":"Introduction to Logic Design","session":"Tutorial","day":"Wednesday","start":960,"end":1070,"group":"0","location":"[3709]3709-45-الجيزة الرئيسي"},{"id":"r91","code":"CMPS118","name":"Introduction to Logic Design","session":"Lecture","day":"Wednesday","start":480,"end":650,"group":"0","location":"[3702]3702-60-الجيزة الرئيسي"},{"id":"r92","code":"CMPS118","name":"Introduction to Logic Design","session":"Lecture","day":"Monday","start":660,"end":770,"group":"0","location":"[3702]3702-60-الجيزة الرئيسي"},{"id":"r93","code":"CMPS201","name":"Microprocessor Systems","session":"Lecture","day":"Tuesday","start":540,"end":650,"group":"0","location":"[3701]مدرج أولى حاسبات-60-الجيزة الرئيسي"},{"id":"r94","code":"CMPS201","name":"Microprocessor Systems","session":"Tutorial","day":"Thursday","start":480,"end":650,"group":"0","location":"[3708]3708-45-الجيزة الرئيسي"},{"id":"r95","code":"CMPS201","name":"Microprocessor Systems","session":"Tutorial","day":"Thursday","start":660,"end":830,"group":"0","location":"[3708]3708-45-الجيزة الرئيسي"},{"id":"r96","code":"CMPS201","name":"Microprocessor Systems","session":"Tutorial","day":"Tuesday","start":780,"end":950,"group":"0","location":"[3708]3708-45-الجيزة الرئيسي"},{"id":"r97","code":"CMPS201","name":"Microprocessor Systems","session":"Tutorial","day":"Tuesday","start":960,"end":1130,"group":"0","location":"[3708]3708-45-الجيزة الرئيسي"},{"id":"r98","code":"CMPS201","name":"Microprocessor Systems","session":"Tutorial","day":"Thursday","start":960,"end":1130,"group":"0","location":"[3706]3706-45-الجيزة الرئيسي"},{"id":"r99","code":"CMPS201","name":"Microprocessor Systems","session":"Lecture","day":"Monday","start":540,"end":650,"group":"0","location":"[18102]18102-60-الجيزة الرئيسي"},{"id":"r100","code":"CMPS201","name":"Microprocessor Systems","session":"Lecture","day":"Monday","start":660,"end":770,"group":"0","location":"[18102]18102-60-الجيزة الرئيسي"},{"id":"r101","code":"CMPS202","name":"Introduction to Database Management Systems","session":"Tutorial","day":"Thursday","start":480,"end":650,"group":"0","location":"[3707]3707-45-الجيزة الرئيسي"},{"id":"r102","code":"CMPS202","name":"Introduction to Database Management Systems","session":"Tutorial","day":"Thursday","start":780,"end":950,"group":"0","location":"[3707]3707-45-الجيزة الرئيسي"},{"id":"r103","code":"CMPS202","name":"Introduction to Database Management Systems","session":"Tutorial","day":"Monday","start":780,"end":950,"group":"0","location":"[3706]3706-45-الجيزة الرئيسي"},{"id":"r104","code":"CMPS202","name":"Introduction to Database Management Systems","session":"Tutorial","day":"Monday","start":960,"end":1130,"group":"0","location":"[3706]3706-45-الجيزة الرئيسي"},{"id":"r105","code":"CMPS202","name":"Introduction to Database Management Systems","session":"Lecture","day":"Wednesday","start":540,"end":650,"group":"0","location":"[3703]3703-90-الجيزة الرئيسي"},{"id":"r106","code":"CMPS202","name":"Introduction to Database Management Systems","session":"Lecture","day":"Wednesday","start":660,"end":770,"group":"0","location":"[3703]3703-90-الجيزة الرئيسي"},{"id":"r107","code":"CMPS202","name":"Introduction to Database Management Systems","session":"Tutorial","day":"Monday","start":480,"end":650,"group":"0","location":"[3201](CCEC Lab1) Lab Second Flour Arc.Building-30-الجيزة الرئيسي"},{"id":"r113","code":"CMPS302","name":"Algorithms Design and Analysis","session":"Tutorial","day":"Sunday","start":780,"end":950,"group":"0","location":"[3708]3708-45-الجيزة الرئيسي"},{"id":"r114","code":"CMPS302","name":"Algorithms Design and Analysis","session":"Tutorial","day":"Sunday","start":960,"end":1130,"group":"0","location":"[3708]3708-45-الجيزة الرئيسي"},{"id":"r115","code":"CMPS302","name":"Algorithms Design and Analysis","session":"Tutorial","day":"Tuesday","start":960,"end":1130,"group":"0","location":"[3707]3707-45-الجيزة الرئيسي"},{"id":"r116","code":"CMPS302","name":"Algorithms Design and Analysis","session":"Lecture","day":"Thursday","start":660,"end":770,"group":"0","location":"[3701]مدرج أولى حاسبات-60-الجيزة الرئيسي"},{"id":"r117","code":"CMPS302","name":"Algorithms Design and Analysis","session":"Lecture","day":"Wednesday","start":840,"end":950,"group":"0","location":"[3701]مدرج أولى حاسبات-60-الجيزة الرئيسي"},{"id":"r128","code":"CMPS402","name":"Machine Intelligence","session":"Lecture","day":"Thursday","start":660,"end":770,"group":"0","location":"-----"},{"id":"r129","code":"CMPS402","name":"Machine Intelligence","session":"Tutorial","day":"Sunday","start":480,"end":650,"group":"0","location":"[3706]3706-45-الجيزة الرئيسي"},{"id":"r130","code":"CMPS402","name":"Machine Intelligence","session":"Tutorial","day":"Wednesday","start":780,"end":950,"group":"0","location":"[3708]3708-45-الجيزة الرئيسي"},{"id":"r138","code":"CMPS446","name":"Image Processing and Computer Vision","session":"Tutorial","day":"Monday","start":480,"end":650,"group":"0","location":"[0](CCEC Lab5) Lab Second Flour Arc.Building-0-الجيزة الرئيسي"},{"id":"r139","code":"CMPS446","name":"Image Processing and Computer Vision","session":"Lecture","day":"Thursday","start":960,"end":1070,"group":"0","location":"[3702]3702-60-الجيزة الرئيسي"},{"id":"r140","code":"CMPS446","name":"Image Processing and Computer Vision","session":"Tutorial","day":"Wednesday","start":480,"end":650,"group":"0","location":"[3707]3707-45-الجيزة الرئيسي"},{"id":"r141","code":"CMPS450","name":"Pattern Recognition and Artificial Neural Networks","session":"Lecture","day":"Sunday","start":960,"end":1070,"group":"0","location":"[3707]3707-45-الجيزة الرئيسي"},{"id":"r142","code":"CMPS450","name":"Pattern Recognition and Artificial Neural Networks","session":"Tutorial","day":"Sunday","start":780,"end":950,"group":"0","location":"[3201](CCEC Lab1) Lab Second Flour Arc.Building-30-الجيزة الرئيسي"},{"id":"r198","code":"EECS303","name":"Signal Analysis for Mechatronic Systems","session":"Lecture","day":"Tuesday","start":960,"end":1070,"group":"0","location":"[20512]20512-45-الجيزة الرئيسي"},{"id":"r199","code":"EECS303","name":"Signal Analysis for Mechatronic Systems","session":"Tutorial","day":"Wednesday","start":960,"end":1070,"group":"0","location":"[20512]20512-45-الجيزة الرئيسي"},{"id":"r235","code":"EMCS001","name":"Engineering Mechanics- Dynamics","session":"Lecture","day":"Sunday","start":720,"end":830,"group":"3","location":"[51113]51113-50-الشيخ زايد"},{"id":"r236","code":"EMCS001","name":"Engineering Mechanics- Dynamics","session":"Tutorial","day":"Wednesday","start":660,"end":830,"group":"3","location":"[51113]51113-50-الشيخ زايد"},{"id":"r237","code":"EMCS001","name":"Engineering Mechanics- Dynamics","session":"Lecture","day":"Monday","start":600,"end":710,"group":"5","location":"[51215]51215-60-الشيخ زايد"},{"id":"r238","code":"EMCS001","name":"Engineering Mechanics- Dynamics","session":"Tutorial","day":"Tuesday","start":660,"end":830,"group":"5","location":"[51215]51215-60-الشيخ زايد"},{"id":"r239","code":"EMCS001","name":"Engineering Mechanics- Dynamics","session":"Lecture","day":"Sunday","start":480,"end":590,"group":"1","location":"[51201]51201-50-الشيخ زايد"},{"id":"r240","code":"EMCS001","name":"Engineering Mechanics- Dynamics","session":"Tutorial","day":"Sunday","start":660,"end":830,"group":"1","location":"[51201]51201-50-الشيخ زايد"},{"id":"r241","code":"EMCS001","name":"Engineering Mechanics- Dynamics","session":"Lecture","day":"Wednesday","start":660,"end":770,"group":"4","location":"[51114]51114-50-الشيخ زايد"},{"id":"r242","code":"EMCS001","name":"Engineering Mechanics- Dynamics","session":"Tutorial","day":"Tuesday","start":480,"end":650,"group":"4","location":"[51114]51114-50-الشيخ زايد"},{"id":"r243","code":"EMCS001","name":"Engineering Mechanics- Dynamics","session":"Lecture","day":"Sunday","start":600,"end":710,"group":"2","location":"[51202]51202-60-الشيخ زايد"},{"id":"r244","code":"EMCS001","name":"Engineering Mechanics- Dynamics","session":"Tutorial","day":"Wednesday","start":480,"end":650,"group":"2","location":"[51202]51202-60-الشيخ زايد"},{"id":"r245","code":"EMCS001","name":"Engineering Mechanics- Dynamics","session":"Lecture","day":"Monday","start":720,"end":830,"group":"6","location":"[51216]51216-الشيخ زايد"},{"id":"r246","code":"EMCS001","name":"Engineering Mechanics- Dynamics","session":"Tutorial","day":"Monday","start":480,"end":650,"group":"6","location":"[51216]51216-الشيخ زايد"},{"id":"r255","code":"EPES201","name":"Electrical Engineering Fundamentals","session":"Lecture","day":"Monday","start":840,"end":950,"group":"0","location":"[20512]20512-45-الجيزة الرئيسي"},{"id":"r256","code":"EPES201","name":"Electrical Engineering Fundamentals","session":"Lecture","day":"Wednesday","start":960,"end":1070,"group":"0","location":"[20506]20506-45-الجيزة الرئيسي"},{"id":"r257","code":"EPES201","name":"Electrical Engineering Fundamentals","session":"Tutorial","day":"Thursday","start":960,"end":1130,"group":"0","location":"[20506]20506-45-الجيزة الرئيسي"},{"id":"r258","code":"EPES201","name":"Electrical Engineering Fundamentals","session":"Tutorial","day":"Thursday","start":780,"end":950,"group":"0","location":"[20506]20506-45-الجيزة الرئيسي"},{"id":"r267","code":"EPES303","name":"Electric Drive Systems","session":"Lecture","day":"Monday","start":540,"end":650,"group":"0","location":"[14501]14501-50-الجيزة الرئيسي"},{"id":"r268","code":"EPES303","name":"Electric Drive Systems","session":"Lecture","day":"Monday","start":960,"end":1070,"group":"0","location":"[14501]14501-50-الجيزة الرئيسي"},{"id":"r269","code":"EPES303","name":"Electric Drive Systems","session":"Tutorial","day":"Thursday","start":780,"end":950,"group":"0","location":"[14501]14501-50-الجيزة الرئيسي"},{"id":"r270","code":"EPES303","name":"Electric Drive Systems","session":"Tutorial","day":"Thursday","start":960,"end":1130,"group":"0","location":"[14501]14501-50-الجيزة الرئيسي"},{"id":"r273","code":"EPES305","name":"Industrial Instrumentation","session":"Lecture","day":"Monday","start":960,"end":1070,"group":"0","location":"[14503]14503-50-الجيزة الرئيسي"},{"id":"r274","code":"EPES305","name":"Industrial Instrumentation","session":"Lecture","day":"Tuesday","start":840,"end":950,"group":"0","location":"[14503]14503-50-الجيزة الرئيسي"},{"id":"r275","code":"EPES305","name":"Industrial Instrumentation","session":"Tutorial","day":"Thursday","start":840,"end":950,"group":"0","location":"[14503]14503-50-الجيزة الرئيسي"},{"id":"r276","code":"EPES305","name":"Industrial Instrumentation","session":"Tutorial","day":"Thursday","start":960,"end":1070,"group":"0","location":"[14503]14503-50-الجيزة الرئيسي"},{"id":"r311","code":"EPES450","name":"Programmable Logic Controllers","session":"Tutorial","day":"Thursday","start":780,"end":950,"group":"0","location":"[14300]14300-60-الجيزة الرئيسي"},{"id":"r312","code":"EPES450","name":"Programmable Logic Controllers","session":"Tutorial","day":"Thursday","start":960,"end":1130,"group":"0","location":"[14300]14300-60-الجيزة الرئيسي"},{"id":"r313","code":"EPES450","name":"Programmable Logic Controllers","session":"Lecture","day":"Wednesday","start":540,"end":650,"group":"0","location":"[14501]14501-50-الجيزة الرئيسي"},{"id":"r314","code":"EPES450","name":"Programmable Logic Controllers","session":"Lecture","day":"Wednesday","start":660,"end":770,"group":"0","location":"[14501]14501-50-الجيزة الرئيسي"},{"id":"r315","code":"EPES451","name":"Industrial Communication and Network","session":"Tutorial","day":"Tuesday","start":960,"end":1070,"group":"0","location":"[14501]14501-50-الجيزة الرئيسي"},{"id":"r316","code":"EPES451","name":"Industrial Communication and Network","session":"Lecture","day":"Tuesday","start":840,"end":950,"group":"0","location":"[14501]14501-50-الجيزة الرئيسي"},{"id":"r317","code":"EPES451","name":"Industrial Communication and Network","session":"Lecture","day":"Tuesday","start":660,"end":770,"group":"0","location":"[14300]14300-60-الجيزة الرئيسي"},{"id":"r318","code":"EPES451","name":"Industrial Communication and Network","session":"Tutorial","day":"Tuesday","start":840,"end":950,"group":"0","location":"[14300]14300-60-الجيزة الرئيسي"},{"id":"r320","code":"GENS001","name":"Critical and Creative Thinking","session":"Lecture","day":"Wednesday","start":780,"end":890,"group":"4","location":"[51114]51114-50-الشيخ زايد"},{"id":"r321","code":"GENS001","name":"Critical and Creative Thinking","session":"Lecture","day":"Wednesday","start":540,"end":650,"group":"3","location":"[51113]51113-50-الشيخ زايد"},{"id":"r322","code":"GENS001","name":"Critical and Creative Thinking","session":"Lecture","day":"Monday","start":720,"end":830,"group":"1","location":"[51201]51201-50-الشيخ زايد"},{"id":"r323","code":"GENS001","name":"Critical and Creative Thinking","session":"Lecture","day":"Wednesday","start":660,"end":770,"group":"2","location":"[51204]51204-50-الشيخ زايد"},{"id":"r324","code":"GENS001","name":"Critical and Creative Thinking","session":"Lecture","day":"Wednesday","start":480,"end":590,"group":"6","location":"[51216]51216-الشيخ زايد"},{"id":"r325","code":"GENS002","name":"Societal Issues","session":"Lecture","day":"Tuesday","start":540,"end":650,"group":"0","location":"[20109]20109-45-الجيزة الرئيسي"},{"id":"r326","code":"GENS004","name":"Proficiency and Capacity Building","session":"Lecture","day":"Sunday","start":840,"end":890,"group":"2","location":"[51202]51202-60-الشيخ زايد"},{"id":"r327","code":"GENS004","name":"Proficiency and Capacity Building","session":"Lecture","day":"Sunday","start":600,"end":650,"group":"1","location":"[51201]51201-50-الشيخ زايد"},{"id":"r328","code":"GENS004","name":"Proficiency and Capacity Building","session":"Lecture","day":"Sunday","start":660,"end":710,"group":"3","location":"[51113]51113-50-الشيخ زايد"},{"id":"r329","code":"GENS004","name":"Proficiency and Capacity Building","session":"Lecture","day":"Monday","start":600,"end":650,"group":"4","location":"[51114]51114-50-الشيخ زايد"},{"id":"r330","code":"GENS004","name":"Proficiency and Capacity Building","session":"Lecture","day":"Monday","start":720,"end":770,"group":"5","location":"[51215]51215-60-الشيخ زايد"},{"id":"r332","code":"GENS005","name":"Writing and Presentation Skills","session":"Lecture","day":"Tuesday","start":540,"end":650,"group":"0","location":"[20102]20102-45-الجيزة الرئيسي"},{"id":"r333","code":"GENS005","name":"Writing and Presentation Skills","session":"Lecture","day":"Tuesday","start":660,"end":770,"group":"0","location":"[20102]20102-45-الجيزة الرئيسي"},{"id":"r334","code":"GENS009","name":"Introduction to Design Thinking","session":"Lecture","day":"Wednesday","start":660,"end":770,"group":"2","location":"[51219]51219-صالة رسم-الشيخ زايد"},{"id":"r335","code":"GENS110","name":"Fundamentals of Management, Risk and Environment","session":"Lecture","day":"Sunday","start":660,"end":770,"group":"0","location":"[20103]20103-60-الجيزة الرئيسي"},{"id":"r336","code":"GENS110","name":"Fundamentals of Management, Risk and Environment","session":"Lecture","day":"Tuesday","start":540,"end":650,"group":"0","location":"[20103]20103-60-الجيزة الرئيسي"},{"id":"r337","code":"GENS110","name":"Fundamentals of Management, Risk and Environment","session":"Lecture","day":"Tuesday","start":660,"end":770,"group":"0","location":"[20103]20103-60-الجيزة الرئيسي"},{"id":"r338","code":"GENS110","name":"Fundamentals of Management, Risk and Environment","session":"Lecture","day":"Thursday","start":540,"end":650,"group":"0","location":"[20103]20103-60-الجيزة الرئيسي"},{"id":"r339","code":"GENS110","name":"Fundamentals of Management, Risk and Environment","session":"Lecture","day":"Thursday","start":660,"end":770,"group":"0","location":"[20103]20103-60-الجيزة الرئيسي"},{"id":"r340","code":"GENS120","name":"Fundamentals of Economics and Accounting","session":"Lecture","day":"Sunday","start":540,"end":650,"group":"0","location":"[20109]20109-45-الجيزة الرئيسي"},{"id":"r341","code":"GENS120","name":"Fundamentals of Economics and Accounting","session":"Lecture","day":"Sunday","start":660,"end":770,"group":"0","location":"[20109]20109-45-الجيزة الرئيسي"},{"id":"r342","code":"GENS120","name":"Fundamentals of Economics and Accounting","session":"Lecture","day":"Thursday","start":540,"end":650,"group":"0","location":"[20109]20109-45-الجيزة الرئيسي"},{"id":"r343","code":"GENS120","name":"Fundamentals of Economics and Accounting","session":"Lecture","day":"Thursday","start":660,"end":770,"group":"0","location":"[20109]20109-45-الجيزة الرئيسي"},{"id":"r344","code":"GENS207","name":"Foreign Language","session":"Lecture","day":"Tuesday","start":540,"end":650,"group":"0","location":"[20110]20110-45-الجيزة الرئيسي"},{"id":"r345","code":"GENS207","name":"Foreign Language","session":"Lecture","day":"Tuesday","start":660,"end":770,"group":"0","location":"[20110]20110-45-الجيزة الرئيسي"},{"id":"r346","code":"GENS208","name":"Marketing","session":"Lecture","day":"Tuesday","start":540,"end":650,"group":"0","location":"[20105]20105-45-الجيزة الرئيسي"},{"id":"r347","code":"GENS208","name":"Marketing","session":"Lecture","day":"Tuesday","start":660,"end":770,"group":"0","location":"[20105]20105-45-الجيزة الرئيسي"},{"id":"r348","code":"GENS209","name":"Selections of Life Long Skills","session":"Lecture","day":"Sunday","start":540,"end":650,"group":"0","location":"[20103]20103-60-الجيزة الرئيسي"},{"id":"r349","code":"GENS210","name":"Scientific Research Methods","session":"Lecture","day":"Tuesday","start":840,"end":950,"group":"0","location":"[20105]20105-45-الجيزة الرئيسي"},{"id":"r350","code":"GENS236","name":"Service Management","session":"Lecture","day":"Sunday","start":660,"end":770,"group":"0","location":"[20107]20107-45-الجيزة الرئيسي"},{"id":"r351","code":"GENS237","name":"Ethics and Legislation In Construction Industry","session":"Lecture","day":"Tuesday","start":660,"end":770,"group":"0","location":"[20107]20107-45-الجيزة الرئيسي"},{"id":"r373","code":"INTS001","name":"Engineering Graphics","session":"Lecture","day":"Monday","start":480,"end":590,"group":"2","location":"[51219]51219-صالة رسم-الشيخ زايد"},{"id":"r374","code":"INTS001","name":"Engineering Graphics","session":"Tutorial","day":"Monday","start":600,"end":770,"group":"2","location":"[51219]51219-صالة رسم-الشيخ زايد"},{"id":"r377","code":"INTS005","name":"Information Technology","session":"Lecture","day":"Wednesday","start":660,"end":710,"group":"5","location":"[51215]51215-60-الشيخ زايد"},{"id":"r378","code":"INTS005","name":"Information Technology","session":"Lecture","day":"Sunday","start":660,"end":710,"group":"4","location":"[51114]51114-50-الشيخ زايد"},{"id":"r379","code":"INTS005","name":"Information Technology","session":"Lecture","day":"Tuesday","start":660,"end":710,"group":"2","location":"[51202]51202-60-الشيخ زايد"},{"id":"r380","code":"INTS005","name":"Information Technology","session":"Tutorial","day":"Tuesday","start":660,"end":830,"group":"6","location":"[51213]LAB 1 (Zayed)-30-الشيخ زايد"},{"id":"r382","code":"INTS005","name":"Information Technology","session":"Tutorial","day":"Wednesday","start":540,"end":710,"group":"1","location":"[51213]LAB 1 (Zayed)-30-الشيخ زايد"},{"id":"r383","code":"INTS005","name":"Information Technology","session":"Lecture","day":"Wednesday","start":480,"end":530,"group":"1","location":"[51213]LAB 1 (Zayed)-30-الشيخ زايد"},{"id":"r384","code":"INTS005","name":"Information Technology","session":"Tutorial","day":"Sunday","start":720,"end":890,"group":"4","location":"[51214]LAB 2 (Zayed)-25-الشيخ زايد"},{"id":"r385","code":"INTS005","name":"Information Technology","session":"Tutorial","day":"Tuesday","start":720,"end":890,"group":"2","location":"[51214]LAB 2 (Zayed)-25-الشيخ زايد"},{"id":"r386","code":"INTS005","name":"Information Technology","session":"Tutorial","day":"Wednesday","start":480,"end":650,"group":"5","location":"[51214]LAB 2 (Zayed)-25-الشيخ زايد"},{"id":"r388","code":"INTS005","name":"Information Technology","session":"Lecture","day":"Tuesday","start":840,"end":890,"group":"6","location":"[51216]51216-الشيخ زايد"},{"id":"r391","code":"MCNS202","name":"Fluid Mechanics","session":"Lecture","day":"Thursday","start":840,"end":950,"group":"0","location":"[18102]18102-60-الجيزة الرئيسي"},{"id":"r392","code":"MCNS202","name":"Fluid Mechanics","session":"Tutorial","day":"Thursday","start":660,"end":770,"group":"0","location":"[14503]14503-50-الجيزة الرئيسي"},{"id":"r393","code":"MCNS202","name":"Fluid Mechanics","session":"Tutorial","day":"Tuesday","start":960,"end":1070,"group":"0","location":"[14503]14503-50-الجيزة الرئيسي"},{"id":"r394","code":"MCNS202","name":"Fluid Mechanics","session":"Lecture","day":"Sunday","start":840,"end":950,"group":"0","location":"[14501]14501-50-الجيزة الرئيسي"},{"id":"r395","code":"MCNS326","name":"Heat Transfer","session":"Lecture","day":"Monday","start":840,"end":950,"group":"0","location":"[14501]14501-50-الجيزة الرئيسي"},{"id":"r396","code":"MCNS326","name":"Heat Transfer","session":"Lecture","day":"Monday","start":660,"end":770,"group":"0","location":"[14501]14501-50-الجيزة الرئيسي"},{"id":"r397","code":"MCNS326","name":"Heat Transfer","session":"Tutorial","day":"Sunday","start":840,"end":950,"group":"0","location":"[14502]14502-30-الجيزة الرئيسي"},{"id":"r398","code":"MCNS326","name":"Heat Transfer","session":"Tutorial","day":"Thursday","start":840,"end":950,"group":"0","location":"[18201]18201-45-الجيزة الرئيسي"},{"id":"r407","code":"MDPS133","name":"Materials for Mechatronics","session":"Tutorial","day":"Wednesday","start":960,"end":1130,"group":"0","location":"[14502]14502-30-الجيزة الرئيسي"},{"id":"r408","code":"MDPS133","name":"Materials for Mechatronics","session":"Tutorial","day":"Wednesday","start":780,"end":950,"group":"0","location":"[14502]14502-30-الجيزة الرئيسي"},{"id":"r409","code":"MDPS133","name":"Materials for Mechatronics","session":"Lecture","day":"Wednesday","start":660,"end":770,"group":"0","location":"[14503]14503-50-الجيزة الرئيسي"},{"id":"r410","code":"MDPS133","name":"Materials for Mechatronics","session":"Lecture","day":"Wednesday","start":840,"end":950,"group":"0","location":"[14503]14503-50-الجيزة الرئيسي"},{"id":"r411","code":"MDPS217","name":"Machine Drawing","session":"Tutorial","day":"Tuesday","start":840,"end":1070,"group":"0","location":"[14402]14402-60-الجيزة الرئيسي"},{"id":"r412","code":"MDPS217","name":"Machine Drawing","session":"Tutorial","day":"Wednesday","start":540,"end":770,"group":"0","location":"[14402]14402-60-الجيزة الرئيسي"},{"id":"r413","code":"MDPS217","name":"Machine Drawing","session":"Tutorial","day":"Wednesday","start":840,"end":1070,"group":"0","location":"[14402]14402-60-الجيزة الرئيسي"},{"id":"r414","code":"MDPS217","name":"Machine Drawing","session":"Lecture","day":"Sunday","start":540,"end":650,"group":"0","location":"[14300]14300-60-الجيزة الرئيسي"},{"id":"r415","code":"MDPS217","name":"Machine Drawing","session":"Lecture","day":"Sunday","start":840,"end":950,"group":"0","location":"[14300]14300-60-الجيزة الرئيسي"},{"id":"r416","code":"MDPS217","name":"Machine Drawing","session":"Lecture","day":"Sunday","start":960,"end":1070,"group":"0","location":"[14300]14300-60-الجيزة الرئيسي"},{"id":"r417","code":"MDPS241","name":"Manufacturing Processes I","session":"Lecture","day":"Monday","start":540,"end":650,"group":"0","location":"[14300]14300-60-الجيزة الرئيسي"},{"id":"r418","code":"MDPS241","name":"Manufacturing Processes I","session":"Lecture","day":"Monday","start":660,"end":770,"group":"0","location":"[14300]14300-60-الجيزة الرئيسي"},{"id":"r419","code":"MDPS241","name":"Manufacturing Processes I","session":"Tutorial","day":"Thursday","start":480,"end":650,"group":"0","location":"[14300]14300-60-الجيزة الرئيسي"},{"id":"r420","code":"MDPS241","name":"Manufacturing Processes I","session":"Tutorial","day":"Thursday","start":780,"end":950,"group":"0","location":"[14502]14502-30-الجيزة الرئيسي"},{"id":"r421","code":"MDPS242","name":"Manufacturing Processes II","session":"Tutorial","day":"Sunday","start":780,"end":950,"group":"0","location":"-----"},{"id":"r422","code":"MDPS242","name":"Manufacturing Processes II","session":"Tutorial","day":"Sunday","start":480,"end":650,"group":"0","location":"[14501]14501-50-الجيزة الرئيسي"},{"id":"r423","code":"MDPS242","name":"Manufacturing Processes II","session":"Lecture","day":"Wednesday","start":660,"end":770,"group":"0","location":"[14502]14502-30-الجيزة الرئيسي"},{"id":"r424","code":"MDPS242","name":"Manufacturing Processes II","session":"Lecture","day":"Wednesday","start":540,"end":650,"group":"0","location":"[14502]14502-30-الجيزة الرئيسي"},{"id":"r425","code":"MDPS251","name":"Kinematics of Machine Components","session":"Tutorial","day":"Thursday","start":780,"end":950,"group":"0","location":"[20511]20511-45-الجيزة الرئيسي"},{"id":"r426","code":"MDPS251","name":"Kinematics of Machine Components","session":"Tutorial","day":"Thursday","start":960,"end":1130,"group":"0","location":"[20511]20511-45-الجيزة الرئيسي"},{"id":"r427","code":"MDPS251","name":"Kinematics of Machine Components","session":"Lecture","day":"Wednesday","start":540,"end":650,"group":"0","location":"[18102]18102-60-الجيزة الرئيسي"},{"id":"r428","code":"MDPS251","name":"Kinematics of Machine Components","session":"Lecture","day":"Wednesday","start":660,"end":770,"group":"0","location":"[18102]18102-60-الجيزة الرئيسي"},{"id":"r429","code":"MDPS261","name":"Stress Analysis","session":"Tutorial","day":"Thursday","start":840,"end":950,"group":"0","location":"[20509]20509-45-الجيزة الرئيسي"},{"id":"r430","code":"MDPS261","name":"Stress Analysis","session":"Lecture","day":"Monday","start":540,"end":650,"group":"0","location":"[14503]14503-50-الجيزة الرئيسي"},{"id":"r431","code":"MDPS261","name":"Stress Analysis","session":"Lecture","day":"Monday","start":660,"end":770,"group":"0","location":"[14503]14503-50-الجيزة الرئيسي"},{"id":"r432","code":"MDPS261","name":"Stress Analysis","session":"Tutorial","day":"Monday","start":840,"end":950,"group":"0","location":"[14503]14503-50-الجيزة الرئيسي"},{"id":"r433","code":"MDPS352","name":"Machine Design","session":"Lecture","day":"Monday","start":540,"end":650,"group":"0","location":"[20509]20509-45-الجيزة الرئيسي"},{"id":"r434","code":"MDPS352","name":"Machine Design","session":"Lecture","day":"Monday","start":660,"end":770,"group":"0","location":"[20509]20509-45-الجيزة الرئيسي"},{"id":"r435","code":"MDPS352","name":"Machine Design","session":"Tutorial","day":"Tuesday","start":780,"end":950,"group":"0","location":"[20509]20509-45-الجيزة الرئيسي"},{"id":"r436","code":"MDPS352","name":"Machine Design","session":"Tutorial","day":"Tuesday","start":960,"end":1130,"group":"0","location":"[20509]20509-45-الجيزة الرئيسي"},{"id":"r437","code":"MDPS355","name":"Dynamics of Machine Components","session":"Lecture","day":"Wednesday","start":840,"end":950,"group":"0","location":"[14300]14300-60-الجيزة الرئيسي"},{"id":"r438","code":"MDPS355","name":"Dynamics of Machine Components","session":"Tutorial","day":"Wednesday","start":960,"end":1130,"group":"0","location":"[14300]14300-60-الجيزة الرئيسي"},{"id":"r439","code":"MDPS363","name":"Finite Element Analysis","session":"Lecture","day":"Sunday","start":540,"end":650,"group":"0","location":"[14503]14503-50-الجيزة الرئيسي"},{"id":"r440","code":"MDPS363","name":"Finite Element Analysis","session":"Tutorial","day":"Monday","start":660,"end":770,"group":"0","location":"[14502]14502-30-الجيزة الرئيسي"},{"id":"r441","code":"MDPS371","name":"Mechanical Vibrations","session":"Lecture","day":"Thursday","start":660,"end":770,"group":"0","location":"[14502]14502-30-الجيزة الرئيسي"},{"id":"r442","code":"MDPS371","name":"Mechanical Vibrations","session":"Lecture","day":"Thursday","start":840,"end":950,"group":"0","location":"[20503]20503-45-الجيزة الرئيسي"},{"id":"r443","code":"MDPS371","name":"Mechanical Vibrations","session":"Tutorial","day":"Sunday","start":840,"end":950,"group":"0","location":"[18102]18102-60-الجيزة الرئيسي"},{"id":"r444","code":"MDPS371","name":"Mechanical Vibrations","session":"Tutorial","day":"Sunday","start":960,"end":1070,"group":"0","location":"[18102]18102-60-الجيزة الرئيسي"},{"id":"r445","code":"MDPS372","name":"Control System Dynamics","session":"Lecture","day":"Monday","start":660,"end":770,"group":"0","location":"[20512]20512-45-الجيزة الرئيسي"},{"id":"r446","code":"MDPS372","name":"Control System Dynamics","session":"Tutorial","day":"Thursday","start":960,"end":1130,"group":"0","location":"[20512]20512-45-الجيزة الرئيسي"},{"id":"r447","code":"MDPS374","name":"Design of Mechatronics Systems","session":"Lecture","day":"Sunday","start":600,"end":770,"group":"0","location":"[20511]20511-45-الجيزة الرئيسي"},{"id":"r448","code":"MDPS374","name":"Design of Mechatronics Systems","session":"Tutorial","day":"Sunday","start":780,"end":950,"group":"0","location":"[20511]20511-45-الجيزة الرئيسي"},{"id":"r449","code":"MDPS374","name":"Design of Mechatronics Systems","session":"Lecture","day":"Sunday","start":480,"end":650,"group":"0","location":"[14502]14502-30-الجيزة الرئيسي"},{"id":"r450","code":"MDPS374","name":"Design of Mechatronics Systems","session":"Tutorial","day":"Sunday","start":660,"end":830,"group":"0","location":"[14502]14502-30-الجيزة الرئيسي"},{"id":"r451","code":"MDPS423","name":"Robotics Engineering","session":"Lecture","day":"Tuesday","start":660,"end":770,"group":"0","location":"[14502]14502-30-الجيزة الرئيسي"},{"id":"r452","code":"MDPS423","name":"Robotics Engineering","session":"Tutorial","day":"Tuesday","start":840,"end":950,"group":"0","location":"[14502]14502-30-الجيزة الرئيسي"},{"id":"r453","code":"MDPS423","name":"Robotics Engineering","session":"Lecture","day":"Tuesday","start":840,"end":950,"group":"0","location":"[20511]20511-45-الجيزة الرئيسي"},{"id":"r454","code":"MDPS423","name":"Robotics Engineering","session":"Tutorial","day":"Tuesday","start":960,"end":1070,"group":"0","location":"[20511]20511-45-الجيزة الرئيسي"},{"id":"r455","code":"MDPS457","name":"Fluid Power Systems","session":"Lecture","day":"Tuesday","start":540,"end":650,"group":"0","location":"[14501]14501-50-الجيزة الرئيسي"},{"id":"r456","code":"MDPS457","name":"Fluid Power Systems","session":"Tutorial","day":"Thursday","start":660,"end":770,"group":"0","location":"[14501]14501-50-الجيزة الرئيسي"},{"id":"r457","code":"MDPS470","name":"Mechatronics Lab","session":"Lecture","day":"Sunday","start":720,"end":770,"group":"0","location":"[14503]14503-50-الجيزة الرئيسي"},{"id":"r458","code":"MDPS470","name":"Mechatronics Lab","session":"Tutorial","day":"Sunday","start":780,"end":890,"group":"0","location":"[14503]14503-50-الجيزة الرئيسي"},{"id":"r459","code":"MDPS470","name":"Mechatronics Lab","session":"Lecture","day":"Sunday","start":840,"end":890,"group":"0","location":"[20512]20512-45-الجيزة الرئيسي"},{"id":"r460","code":"MDPS470","name":"Mechatronics Lab","session":"Tutorial","day":"Sunday","start":900,"end":1010,"group":"0","location":"[20512]20512-45-الجيزة الرئيسي"},{"id":"r461","code":"MDPS473","name":"Automatic Control I","session":"Tutorial","day":"Tuesday","start":840,"end":950,"group":"0","location":"[20108]20108-60-الجيزة الرئيسي"},{"id":"r462","code":"MDPS473","name":"Automatic Control I","session":"Tutorial","day":"Tuesday","start":960,"end":1070,"group":"0","location":"[20108]20108-60-الجيزة الرئيسي"},{"id":"r463","code":"MDPS473","name":"Automatic Control I","session":"Lecture","day":"Wednesday","start":540,"end":650,"group":"0","location":"[14300]14300-60-الجيزة الرئيسي"},{"id":"r464","code":"MDPS473","name":"Automatic Control I","session":"Lecture","day":"Wednesday","start":660,"end":770,"group":"0","location":"[14300]14300-60-الجيزة الرئيسي"},{"id":"r465","code":"MDPS479","name":"Embedded systems for Mechatronics Applications","session":"Lecture","day":"Sunday","start":540,"end":650,"group":"0","location":"[18102]18102-60-الجيزة الرئيسي"},{"id":"r466","code":"MDPS479","name":"Embedded systems for Mechatronics Applications","session":"Lecture","day":"Sunday","start":660,"end":770,"group":"0","location":"[18102]18102-60-الجيزة الرئيسي"},{"id":"r467","code":"MDPS479","name":"Embedded systems for Mechatronics Applications","session":"Tutorial","day":"Wednesday","start":540,"end":650,"group":"0","location":"[20108]20108-60-الجيزة الرئيسي"},{"id":"r468","code":"MDPS479","name":"Embedded systems for Mechatronics Applications","session":"Tutorial","day":"Wednesday","start":660,"end":770,"group":"0","location":"[20108]20108-60-الجيزة الرئيسي"},{"id":"r469","code":"MDPS496","name":"Machine Learning for Industrial Engineering","session":"Lecture","day":"Tuesday","start":960,"end":1070,"group":"0","location":"[14300]14300-60-الجيزة الرئيسي"},{"id":"r470","code":"MDPS496","name":"Machine Learning for Industrial Engineering","session":"Tutorial","day":"Tuesday","start":660,"end":770,"group":"0","location":"[14501]14501-50-الجيزة الرئيسي"},{"id":"r472","code":"MEES481","name":"Graduation Project-1","session":"Tutorial","day":"Tuesday","start":480,"end":530,"group":"0","location":"-----"},{"id":"r473","code":"MEES482","name":"Graduation Project-2","session":"Lecture","day":"Tuesday","start":1080,"end":1130,"group":"0","location":"-----"},{"id":"r491","code":"MEPS415","name":"Power Generation","session":"Lecture","day":"Monday","start":540,"end":650,"group":"0","location":"[20511]20511-45-الجيزة الرئيسي"},{"id":"r492","code":"MEPS415","name":"Power Generation","session":"Tutorial","day":"Monday","start":960,"end":1130,"group":"0","location":"[20511]20511-45-الجيزة الرئيسي"},{"id":"r505","code":"MTHS002","name":"Calculus I","session":"Tutorial","day":"Sunday","start":480,"end":650,"group":"3","location":"[51113]51113-50-الشيخ زايد"},{"id":"r506","code":"MTHS002","name":"Calculus I","session":"Lecture","day":"Sunday","start":480,"end":590,"group":"6","location":"[51216]51216-الشيخ زايد"},{"id":"r507","code":"MTHS002","name":"Calculus I","session":"Tutorial","day":"Wednesday","start":720,"end":890,"group":"6","location":"[51216]51216-الشيخ زايد"},{"id":"r508","code":"MTHS002","name":"Calculus I","session":"Lecture","day":"Monday","start":780,"end":890,"group":"5","location":"[51215]51215-60-الشيخ زايد"},{"id":"r509","code":"MTHS002","name":"Calculus I","session":"Tutorial","day":"Sunday","start":540,"end":710,"group":"5","location":"[51215]51215-60-الشيخ زايد"},{"id":"r510","code":"MTHS002","name":"Calculus I","session":"Lecture","day":"Sunday","start":720,"end":830,"group":"2","location":"[51202]51202-60-الشيخ زايد"},{"id":"r513","code":"MTHS002","name":"Calculus I","session":"Lecture","day":"Monday","start":660,"end":770,"group":"4","location":"[51114]51114-50-الشيخ زايد"},{"id":"r514","code":"MTHS002","name":"Calculus I","session":"Tutorial","day":"Tuesday","start":660,"end":830,"group":"4","location":"[51114]51114-50-الشيخ زايد"},{"id":"r515","code":"MTHS002","name":"Calculus I","session":"Lecture","day":"Monday","start":480,"end":590,"group":"1","location":"[51201]51201-50-الشيخ زايد"},{"id":"r516","code":"MTHS002","name":"Calculus I","session":"Tutorial","day":"Wednesday","start":720,"end":890,"group":"1","location":"[51201]51201-50-الشيخ زايد"},{"id":"r525","code":"MTHS102","name":"Linear Algebra and Multivariable Integrals","session":"Lecture","day":"Thursday","start":540,"end":650,"group":"0","location":"[20504]20504-60-الجيزة الرئيسي"},{"id":"r526","code":"MTHS102","name":"Linear Algebra and Multivariable Integrals","session":"Tutorial","day":"Tuesday","start":540,"end":650,"group":"0","location":"[20504]20504-60-الجيزة الرئيسي"},{"id":"r527","code":"MTHS102","name":"Linear Algebra and Multivariable Integrals","session":"Lecture","day":"Tuesday","start":660,"end":770,"group":"0","location":"[20504]20504-60-الجيزة الرئيسي"},{"id":"r528","code":"MTHS102","name":"Linear Algebra and Multivariable Integrals","session":"Tutorial","day":"Thursday","start":660,"end":770,"group":"0","location":"[20504]20504-60-الجيزة الرئيسي"},{"id":"r529","code":"MTHS102","name":"Linear Algebra and Multivariable Integrals","session":"Lecture","day":"Sunday","start":540,"end":650,"group":"0","location":"[20510]20510-60-الجيزة الرئيسي"},{"id":"r530","code":"MTHS102","name":"Linear Algebra and Multivariable Integrals","session":"Tutorial","day":"Tuesday","start":840,"end":950,"group":"0","location":"[20510]20510-60-الجيزة الرئيسي"},{"id":"r531","code":"MTHS104","name":"Differential Equations","session":"Tutorial","day":"Tuesday","start":660,"end":770,"group":"0","location":"[20510]20510-60-الجيزة الرئيسي"},{"id":"r532","code":"MTHS104","name":"Differential Equations","session":"Lecture","day":"Sunday","start":840,"end":950,"group":"0","location":"[20510]20510-60-الجيزة الرئيسي"},{"id":"r533","code":"MTHS104","name":"Differential Equations","session":"Tutorial","day":"Tuesday","start":660,"end":770,"group":"0","location":"[20505]20505-45-الجيزة الرئيسي"},{"id":"r534","code":"MTHS104","name":"Differential Equations","session":"Tutorial","day":"Tuesday","start":540,"end":650,"group":"0","location":"[20505]20505-45-الجيزة الرئيسي"},{"id":"r535","code":"MTHS104","name":"Differential Equations","session":"Tutorial","day":"Tuesday","start":540,"end":650,"group":"0","location":"[20509]20509-45-الجيزة الرئيسي"},{"id":"r536","code":"MTHS104","name":"Differential Equations","session":"Lecture","day":"Thursday","start":840,"end":950,"group":"0","location":"[20504]20504-60-الجيزة الرئيسي"},{"id":"r537","code":"MTHS104","name":"Differential Equations","session":"Lecture","day":"Sunday","start":660,"end":770,"group":"0","location":"[20504]20504-60-الجيزة الرئيسي"},{"id":"r538","code":"MTHS104","name":"Differential Equations","session":"Lecture","day":"Sunday","start":540,"end":650,"group":"0","location":"[20503]20503-45-الجيزة الرئيسي"},{"id":"r539","code":"MTHS114","name":"Numerical Analysis","session":"Lecture","day":"Sunday","start":540,"end":650,"group":"0","location":"[20504]20504-60-الجيزة الرئيسي"},{"id":"r540","code":"MTHS114","name":"Numerical Analysis","session":"Tutorial","day":"Sunday","start":840,"end":950,"group":"0","location":"[20504]20504-60-الجيزة الرئيسي"},{"id":"r541","code":"MTHS114","name":"Numerical Analysis","session":"Lecture","day":"Thursday","start":540,"end":650,"group":"0","location":"[20510]20510-60-الجيزة الرئيسي"},{"id":"r542","code":"MTHS114","name":"Numerical Analysis","session":"Tutorial","day":"Thursday","start":660,"end":770,"group":"0","location":"[20510]20510-60-الجيزة الرئيسي"},{"id":"r543","code":"MTHS204","name":"Advanced Probability and Statistics","session":"Tutorial","day":"Tuesday","start":540,"end":650,"group":"0","location":"[20510]20510-60-الجيزة الرئيسي"},{"id":"r544","code":"MTHS204","name":"Advanced Probability and Statistics","session":"Lecture","day":"Sunday","start":540,"end":650,"group":"0","location":"[20108]20108-60-الجيزة الرئيسي"},{"id":"r545","code":"MTHS204","name":"Advanced Probability and Statistics","session":"Tutorial","day":"Thursday","start":540,"end":650,"group":"0","location":"[20108]20108-60-الجيزة الرئيسي"},{"id":"r546","code":"MTHS204","name":"Advanced Probability and Statistics","session":"Lecture","day":"Thursday","start":660,"end":770,"group":"0","location":"[20108]20108-60-الجيزة الرئيسي"},{"id":"r556","code":"PHYS001","name":"Mechanical Properties of Matter and Thermodynamics","session":"Lecture","day":"Tuesday","start":600,"end":710,"group":"1","location":"[51201]51201-50-الشيخ زايد"},{"id":"r558","code":"PHYS001","name":"Mechanical Properties of Matter and Thermodynamics","session":"Lecture","day":"Monday","start":780,"end":890,"group":"4","location":"[51114]51114-50-الشيخ زايد"},{"id":"r559","code":"PHYS001","name":"Mechanical Properties of Matter and Thermodynamics","session":"Tutorial","day":"Wednesday","start":480,"end":650,"group":"4","location":"[51114]51114-50-الشيخ زايد"},{"id":"r560","code":"PHYS001","name":"Mechanical Properties of Matter and Thermodynamics","session":"Lecture","day":"Tuesday","start":480,"end":590,"group":"3","location":"[51113]51113-50-الشيخ زايد"},{"id":"r561","code":"PHYS001","name":"Mechanical Properties of Matter and Thermodynamics","session":"Tutorial","day":"Monday","start":720,"end":890,"group":"3","location":"[51113]51113-50-الشيخ زايد"},{"id":"r562","code":"PHYS001","name":"Mechanical Properties of Matter and Thermodynamics","session":"Tutorial","day":"Tuesday","start":480,"end":650,"group":"2","location":"[51202]51202-60-الشيخ زايد"},{"id":"r564","code":"PHYS001","name":"Mechanical Properties of Matter and Thermodynamics","session":"Tutorial","day":"Sunday","start":720,"end":890,"group":"5","location":"[51215]51215-60-الشيخ زايد"},{"id":"r565","code":"PHYS001","name":"Mechanical Properties of Matter and Thermodynamics","session":"Lecture","day":"Wednesday","start":600,"end":710,"group":"6","location":"[51216]51216-الشيخ زايد"},{"id":"r566","code":"PHYS001","name":"Mechanical Properties of Matter and Thermodynamics","session":"Tutorial","day":"Sunday","start":720,"end":890,"group":"6","location":"[51216]51216-الشيخ زايد"},{"id":"r567","code":"PHYS002","name":"Electricity and Magnetism","session":"Lecture","day":"Monday","start":480,"end":590,"group":"5","location":"[51215]51215-60-الشيخ زايد"},{"id":"r570","code":"PHYS002","name":"Electricity and Magnetism","session":"Tutorial","day":"Tuesday","start":720,"end":890,"group":"1","location":"[51201]51201-50-الشيخ زايد"},{"id":"r571","code":"PHYS002","name":"Electricity and Magnetism","session":"Lecture","day":"Monday","start":480,"end":590,"group":"3","location":"[51113]51113-50-الشيخ زايد"},{"id":"r572","code":"PHYS002","name":"Electricity and Magnetism","session":"Tutorial","day":"Tuesday","start":720,"end":890,"group":"3","location":"[51113]51113-50-الشيخ زايد"}];
+    const DRY_RUN_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"];
+    const DRY_RUN_DAY_INDEX = Object.fromEntries(DRY_RUN_DAYS.map((d, i) => [d, i]));
+    const DRY_RUN_START_MIN = 8 * 60;
+    const DRY_RUN_PERIOD_MIN = 60;
+    const DRY_RUN_PERIOD_COUNT = 11;
+
+    function getDryRunEligibleCodes() {
+      const catalog = getFullActiveCatalog();
+      return new Set(catalog.filter(c => getStatus(c) === "ready").map(c => c.code));
+    }
+
+    function getDryRunEntries() {
+      const eligible = getDryRunEligibleCodes();
+      return DRY_RUN_SCHEDULE.filter(e => eligible.has(e.code));
+    }
+
+    function dryRunEntryLabel(entry) {
+      return `${entry.code} · ${entry.session} · ${formatDryRunTime(entry.start)}–${formatDryRunTime(entry.end)}`;
+    }
+
+    function formatDryRunTime(mins) {
+      const h24 = Math.floor(mins / 60);
+      const m = mins % 60;
+      const suffix = h24 >= 12 ? "PM" : "AM";
+      const h12 = (h24 % 12) || 12;
+      return `${h12}:${String(m).padStart(2, "0")} ${suffix}`;
+    }
+
+    function dryRunOverlap(a, b) {
+      return a.day === b.day && a.start < b.end && b.start < a.end;
+    }
+
+    function getDryRunSelectedEntries(entries) {
+      const ids = new Set(state.dryRunSelections || []);
+      return entries.filter(e => ids.has(e.id));
+    }
+
+    function getDryRunEntryById(id) {
+      return DRY_RUN_SCHEDULE.find(e => e.id === id) || null;
+    }
+
+    function dryRunHasActivePathway(code) {
+      return activePathwayCodesSet.size > 0 && activePathwayCodesSet.has(code);
+    }
+
+    function dryRunBlockStyle(entry, lane = 0, laneCount = 1) {
+      const top = Math.max(0, (entry.start - DRY_RUN_START_MIN) / DRY_RUN_PERIOD_MIN * 50);
+      const height = Math.max(14, (entry.end - entry.start) / DRY_RUN_PERIOD_MIN * 50 - 2);
+      const width = 100 / laneCount;
+      const left = width * lane;
+      return `top:${top}px;height:${height}px;width:calc(${width}% - 2px);left:calc(${left}% + 1px);right:auto;`;
+    }
+
+    function assignDryRunLanes(dayEntries) {
+      const sorted = [...dayEntries].sort((a, b) => a.start - b.start || a.end - b.end || a.code.localeCompare(b.code));
+      const laneEnds = [];
+      const result = new Map();
+      sorted.forEach(entry => {
+        let lane = 0;
+        while (lane < laneEnds.length && laneEnds[lane] > entry.start) lane++;
+        if (lane === laneEnds.length) laneEnds.push(entry.end);
+        else laneEnds[lane] = entry.end;
+        result.set(entry.id, lane);
+      });
+      return { laneById: result, laneCount: Math.max(1, laneEnds.length) };
+    }
+
+    function renderDryRunTable(mode = "select") {
+      const content = document.getElementById("dryRunContent");
+      const footer = document.getElementById("dryRunFooter");
+      const entries = mode === "select" ? getDryRunEntries() : getDryRunSelectedEntries(DRY_RUN_SCHEDULE);
+      if (mode === "select") {
+        const allowedIds = new Set(entries.map(e => e.id));
+        state.dryRunSelections = (state.dryRunSelections || []).filter(id => allowedIds.has(id));
+      }
+      const selected = new Set(state.dryRunSelections || []);
+      const eligibleCodes = [...getDryRunEligibleCodes()];
+
+      if (mode === "select") {
+        document.getElementById("dryRunTitle").textContent = "Dry Run · Upcoming Eligible Courses";
+        document.getElementById("dryRunSubtitle").textContent = "Only currently eligible, unpassed courses with timetable data are shown. Click a lecture/tutorial block to select it. Overlapping selections are blocked.";
+      } else {
+        document.getElementById("dryRunTitle").textContent = "Dry Run · Your Submitted Schedule";
+        document.getElementById("dryRunSubtitle").textContent = "This is the submitted timetable preview. Press Edit to return to the eligible-course dry run and change selections.";
+      }
+
+      const selectedEntries = getDryRunSelectedEntries(DRY_RUN_SCHEDULE);
+      const selectedByDay = new Map(DRY_RUN_DAYS.map(d => [d, []]));
+      entries.forEach(e => selectedByDay.get(e.day).push(e));
+
+      if (mode === "select" && entries.length === 0) {
+        content.innerHTML = `
+          <div class="dry-run-statusbar"><span class="dry-run-count">0 eligible courses with timetable data</span></div>
+          <div class="dry-run-placeholder">There are no currently eligible, unpassed courses with matching timetable data.<br>Import grades and/or complete prerequisites first.</div>`;
+        footer.innerHTML = `
+          <div class="dry-run-footer-left"><button class="dry-run-action" id="dryRunCloseBottom" type="button">Close</button></div>
+          <div class="dry-run-footer-right"></div>`;
+        document.getElementById("dryRunCloseBottom").onclick = closeDryRun;
+        return;
+      }
+
+      const courseSet = new Set(entries.map(e => e.code));
+      let html = `
+        <div class="dry-run-statusbar">
+          <span class="dry-run-count">${courseSet.size} eligible courses</span>
+          <span class="dry-run-count">${mode === "select" ? selectedEntries.length : selectedEntries.length} selected blocks</span>
+          <div class="dry-run-legend">
+            <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-lecture"></span>Lecture</span>
+            <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-tutorial"></span>Tutorial</span>
+            <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-selected"></span>Selected</span>
+            <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-pathway"></span>Suggested Pathway</span>
+          </div>
+        </div>
+        <div class="dry-run-table-scroll">
+          <div class="dry-run-grid">`;
+
+      for (const day of DRY_RUN_DAYS) {
+        const dayEntries = selectedByDay.get(day) || [];
+        const laneLayout = assignDryRunLanes(dayEntries);
+        const dayMinWidth = Math.max(220, laneLayout.laneCount * 60);
+        html += `<section class="dry-day" data-day="${day}" style="min-width:${dayMinWidth}px;">`;
+        html += `<div class="dry-day-header">${day}</div>`;
+        html += `<div class="dry-time-head">`;
+        for (let i = 0; i < DRY_RUN_PERIOD_COUNT; i++) {
+          const start = DRY_RUN_START_MIN + i * DRY_RUN_PERIOD_MIN;
+          const end = start + 50;
+          html += `<span><span class="time-main">${formatDryRunTime(start)}</span><span class="time-end">${formatDryRunTime(end)}</span></span>`;
+        }
+        html += `</div>`;
+        html += `<div class="dry-day-body">`;
+        for (let i = 0; i < DRY_RUN_PERIOD_COUNT; i++) {
+          html += `<div class="dry-slot-row" style="top:${i*50}px"></div>`;
+        }
+        dayEntries.forEach(entry => {
+          const isSelected = selected.has(entry.id);
+          const isPathway = dryRunHasActivePathway(entry.code);
+          const sessionClass = entry.session.toLowerCase().startsWith("lecture") ? "lecture" : "tutorial";
+          const disabledInPreview = mode !== "select";
+          html += `
+            <div class="dry-run-block ${sessionClass} ${isSelected ? "selected" : ""} ${isPathway ? "pathway" : ""}"
+                 data-dry-id="${entry.id}"
+                 title="${dryRunEntryLabel(entry)}${isPathway ? " · Suggested Pathway" : ""}"
+                 style="${dryRunBlockStyle(entry, laneLayout.laneById.get(entry.id) || 0, laneLayout.laneCount)}"
+                 aria-label="${dryRunEntryLabel(entry)}">
+              <div class="dry-run-code">${entry.code}</div>
+              <div class="dry-run-session">${entry.session}</div>
+              <div class="dry-run-location">${entry.location || ""}</div>
+            </div>`;
+        });
+        html += `</div></section>`;
+      }
+      html += `</div></div>`;
+
+      if (mode === "select") {
+        const selectedCodes = [...new Set(selectedEntries.map(e => e.code))];
+        html += `<div style="margin-top:7px" class="dry-run-summary">` +
+          (selectedCodes.length ? selectedCodes.map(c => `<span class="dry-run-course-tag"><strong>${c}</strong></span>`).join('') : '<span class="dry-run-course-tag">No selections yet.</span>') +
+          `</div>`;
+      } else {
+        html += `<div style="margin-top:7px" class="dry-run-summary">` +
+          (selectedEntries.length ? selectedEntries.map(e => `<span class="dry-run-course-tag"><strong>${dryRunEntryLabel(e)}</strong></span>`).join('') : '<span class="dry-run-course-tag">No blocks submitted.</span>') +
+          `</div>`;
+      }
+
+      content.innerHTML = html;
+
+      if (mode === "select") {
+        content.querySelectorAll(".dry-run-block").forEach(block => {
+          block.addEventListener("click", () => toggleDryRunEntry(block.dataset.dryId));
+        });
+        footer.innerHTML = `
+          <div class="dry-run-footer-left">
+            <button class="dry-run-action primary" id="submitDryRunBtn" type="button">Submit Schedule</button>
+            <button class="dry-run-action" id="clearDryRunSelectionBtn" type="button">Clear Selections</button>
+          </div>
+          <div class="dry-run-footer-right">
+            <button class="dry-run-action" id="dryRunCloseBottom" type="button">Close</button>
+          </div>`;
+        document.getElementById("submitDryRunBtn").onclick = submitDryRun;
+        document.getElementById("clearDryRunSelectionBtn").onclick = () => {
+          state.dryRunSelections = [];
+          saveState();
+          renderDryRunTable("select");
+        };
+        document.getElementById("dryRunCloseBottom").onclick = closeDryRun;
+      } else {
+        footer.innerHTML = `
+          <div class="dry-run-footer-left"><span style="font-size:8px;color:#555;">${selectedEntries.length} selected timetable blocks</span></div>
+          <div class="dry-run-footer-right">
+            <button class="dry-run-action" id="editDryRunBtn" type="button">Edit</button>
+            <button class="dry-run-action" id="closeDryRunBottom" type="button">Close</button>
+          </div>`;
+        document.getElementById("editDryRunBtn").onclick = () => renderDryRunTable("select");
+        document.getElementById("closeDryRunBottom").onclick = closeDryRun;
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function toggleDryRunEntry(id) {
+      const entry = getDryRunEntryById(id);
+      if (!entry) return;
+      const currentIds = new Set(state.dryRunSelections || []);
+      if (currentIds.has(id)) {
+        currentIds.delete(id);
+        state.dryRunSelections = [...currentIds];
+        saveState();
+        renderDryRunTable("select");
+        return;
+      }
+
+      const conflictingId = [...currentIds].find(existingId => {
+        const existing = getDryRunEntryById(existingId);
+        return existing && dryRunOverlap(existing, entry);
+      });
+      if (conflictingId) {
+        const existing = getDryRunEntryById(conflictingId);
+        showToast(`${entry.code} is blocked: it overlaps ${existing.code} on ${entry.day} (${formatDryRunTime(entry.start)}–${formatDryRunTime(entry.end)}). Click the selected block first to unselect it.`);
+        return;
+      }
+
+      currentIds.add(id);
+      state.dryRunSelections = [...currentIds];
+      saveState();
+      renderDryRunTable("select");
+    }
+
+    function submitDryRun() {
+      const entries = getDryRunSelectedEntries(DRY_RUN_SCHEDULE);
+      if (!entries.length) {
+        showToast("Select at least one timetable block before submitting.");
+        return;
+      }
+      // Re-check the conflict rule before submission in case schedule data changed.
+      for (let i = 0; i < entries.length; i++) {
+        for (let j = i + 1; j < entries.length; j++) {
+          if (dryRunOverlap(entries[i], entries[j])) {
+            showToast(`Schedule conflict: ${entries[i].code} overlaps ${entries[j].code} on ${entries[i].day}.`);
+            return;
+          }
+        }
+      }
+      state.dryRunSubmitted = true;
+      saveState();
+      renderDryRunTable("preview");
+      showToast("Dry run schedule submitted.");
+    }
+
+    function openDryRun(mode = "select") {
+      const modal = document.getElementById("dryRunModal");
+      modal.classList.add("open");
+      renderDryRunTable(mode);
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeDryRun() {
+      document.getElementById("dryRunModal").classList.remove("open");
+    }
+
+    function setupDryRunUI() {
+      const btn = document.getElementById("dryRunBtn");
+      if (btn) btn.addEventListener("click", () => openDryRun(state.dryRunSubmitted ? "preview" : "select"));
+      document.getElementById("closeDryRunBtn").addEventListener("click", closeDryRun);
+      document.getElementById("dryRunModal").addEventListener("click", (e) => {
+        if (e.target.id === "dryRunModal") closeDryRun();
       });
     }
 
