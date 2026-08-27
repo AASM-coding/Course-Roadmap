@@ -1378,8 +1378,8 @@
       <div class="modal-body">
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
           <div>
-            <div class="filter-label" style="margin-bottom:4px;">Terms from now</div>
-            <input id="pathwayTermsInput" class="control" type="number" min="1" max="30" value="2" style="width:90px;">
+            <div class="filter-label" style="margin-bottom:4px;">Planning Window</div>
+            <div class="control" style="width:90px; display:flex; align-items:center; min-height:34px; box-sizing:border-box;">1 Term</div>
           </div>
           <div>
             <div class="filter-label" style="margin-bottom:4px;">Max CH per term</div>
@@ -3330,7 +3330,8 @@
         document.getElementById("pathwayModal").classList.remove("open");
       });
       document.getElementById("generatePathwayBtn").addEventListener("click", () => {
-        const numTerms = Math.max(1, Math.min(30, Number(document.getElementById("pathwayTermsInput").value) || 1));
+        // Suggested Pathway is intentionally limited to the next single term.
+        const numTerms = 1;
         const capCH = Math.max(1, Math.min(21, Number(document.getElementById("pathwayCapInput").value) || 18));
         const result = computeSuggestedPathway(numTerms, capCH);
         renderPathwayResults(result);
