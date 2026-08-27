@@ -990,8 +990,8 @@
     .dry-run-legend-lecture { background:#ffff99; }
     .dry-run-legend-tutorial { background:#99ccff; }
     .dry-run-legend-selected { background:#99ff99; }
-    .dry-run-legend-matched { background:#ff99cc; }
-    .dry-run-legend-course-tutorial { background:#cc99ff; }
+    .dry-run-legend-alternative { background:#ff99cc; }
+    .dry-run-legend-matching { background:#cc99ff; }
     .dry-run-legend-pathway { background:#ffffff; border:3px solid #9333ea; box-sizing:border-box; }
     .dry-run-table-scroll { overflow-x: auto; overflow-y: visible; border: 2px solid #444; background:#fff; }
     .dry-run-grid {
@@ -1055,14 +1055,21 @@
     .dry-run-block.lecture { background:#ffff99; }
     .dry-run-block.tutorial { background:#99ccff; }
 
-    /* Dry-run tutorial highlight precedence:
-       6th color = every tutorial of the selected lecture's course.
-       5th color = the more specific same-group tutorial.
-       Both classes may exist on the same block; the 5th color must win. */
-    .dry-run-block.course-tutorial { background:#cc99ff; border-color:#8a5bb5; }
-    .dry-run-block.matched-tutorial { background:#ff99cc; border-color:#b84d7a; }
+    /* Dry-run highlight precedence:
+       Color 5 = alternative periods from the selected block's course.
+       Color 6 = the matching opposite-session period.
+       Both classes may exist on the same block; the matching color wins. */
+    .dry-run-block.alternative-course { background:#ff99cc; border-color:#b84d7a; }
+    .dry-run-block.matching-counterpart { background:#cc99ff; border-color:#8a5bb5; }
 
     .dry-run-block.selected { background:#99ff99; border-color:#1b5e20; box-shadow: inset 0 0 0 2px rgba(27,94,32,0.25); }
+    /* A single selected block is still awaiting its lecture/tutorial counterpart.
+       Once the user starts choosing another course, mark that unfinished choice
+       with a red border so it is visually clear that the first course is pending. */
+    .dry-run-block.selected.pending-decision {
+      border-color:#dc2626 !important;
+      box-shadow: inset 0 0 0 2px rgba(220,38,38,0.22), 0 0 0 2px rgba(220,38,38,0.18) !important;
+    }
     .dry-run-block.pathway:not(.selected) { box-shadow: inset 0 0 0 3px #9333ea; }
     .dry-run-block:hover { filter: brightness(0.98); transform: translateY(-1px); z-index:7; }
     .dry-run-code { font-weight: 900; font-size:9.5px; color:#111; }
@@ -1647,6 +1654,7 @@
       willingTermCap: 18,
       dryRunSelections: [],
       dryRunSubmitted: false,
+      dryRunFocusCourseCode: null,
       pinnedCode: null,
       hoveredCode: null,
       criticalPathMode: false,
@@ -2592,7 +2600,7 @@
         manualPass: {},
         courseTerms: {},
         totalYears: 4,
-        startYear: getFallbackStartYear(),
+        startYear: 2024,
         theme: "dark",
         selectedElectives: {
           E1: ELECTIVES_E1_POOL[0].code,
@@ -2600,7 +2608,9 @@
           E3: []
         },
         willingList: [],
-        willingTermCap: 18
+        willingTermCap: 18,
+        dryRunSelections: [],
+        dryRunSubmitted: false
       };
     }
 
@@ -2612,7 +2622,10 @@
     function applyTheme(themeName) {
       state.theme = themeName;
       document.documentElement.setAttribute("data-theme", themeName);
-      try { localStorage.setItem("cufe_theme_pref", themeName); } catch (e) {}
+      const key = userStorageKey();
+      if (key) {
+        try { localStorage.setItem(`${key}:theme`, themeName); } catch (e) {}
+      }
       const btnText = document.getElementById("themeBtnText");
       const icon = document.getElementById("themeIcon");
       if (btnText && icon) {
@@ -2629,15 +2642,21 @@
 
     function setStartYear(year) {
       state.startYear = year;
-      try { localStorage.setItem("cufe_start_year_pref", String(year)); } catch (e) {}
+      const key = userStorageKey();
+      if (key) {
+        try { localStorage.setItem(`${key}:startYear`, String(year)); } catch (e) {}
+      }
     }
 
     function getFallbackStartYear() {
-      try {
-        const raw = localStorage.getItem("cufe_start_year_pref");
-        const parsed = Number(raw);
-        if (raw && !isNaN(parsed)) return parsed;
-      } catch (e) {}
+      const key = userStorageKey();
+      if (key) {
+        try {
+          const raw = localStorage.getItem(`${key}:startYear`);
+          const parsed = Number(raw);
+          if (raw && !isNaN(parsed)) return parsed;
+        } catch (e) {}
+      }
       return 2024;
     }
 
@@ -2648,7 +2667,8 @@
     function saveState() {
       const key = userStorageKey();
       if (!key) return;
-      localStorage.setItem(key, JSON.stringify({
+
+      const snapshot = {
         grades: state.grades,
         manualPass: state.manualPass,
         courseTerms: state.courseTerms,
@@ -2660,22 +2680,38 @@
         willingTermCap: state.willingTermCap,
         dryRunSelections: state.dryRunSelections,
         dryRunSubmitted: state.dryRunSubmitted
-      }));
+      };
+
+      try {
+        localStorage.setItem(key, JSON.stringify(snapshot));
+        localStorage.setItem(`${key}:theme`, state.theme);
+        localStorage.setItem(`${key}:startYear`, String(state.startYear));
+      } catch (e) {
+        console.error("Local account-state save failed:", e);
+      }
 
       if (!supabaseClient || !currentUser) return;
       clearTimeout(saveDebounceTimer);
+
+      const userId = currentUser.id;
+      const supabaseSnapshot = JSON.parse(JSON.stringify(snapshot));
       saveDebounceTimer = setTimeout(async () => {
+        // Never allow a delayed save from one account to be written to another account.
+        if (!currentUser || currentUser.id !== userId) return;
+
         const { error } = await supabaseClient.from("student_state").upsert({
-          user_id: currentUser.id,
-          grades: state.grades,
-          manual_pass: state.manualPass,
-          course_terms: state.courseTerms,
-          total_years: state.totalYears,
-          start_year: state.startYear,
-          theme: state.theme,
-          selected_electives: state.selectedElectives,
-          willing_list: state.willingList,
-          willing_term_cap: state.willingTermCap,
+          user_id: userId,
+          grades: supabaseSnapshot.grades,
+          manual_pass: supabaseSnapshot.manualPass,
+          course_terms: supabaseSnapshot.courseTerms,
+          total_years: supabaseSnapshot.totalYears,
+          start_year: supabaseSnapshot.startYear,
+          theme: supabaseSnapshot.theme,
+          selected_electives: supabaseSnapshot.selectedElectives,
+          willing_list: supabaseSnapshot.willingList,
+          willing_term_cap: supabaseSnapshot.willingTermCap,
+          dry_run_selections: supabaseSnapshot.dryRunSelections,
+          dry_run_submitted: supabaseSnapshot.dryRunSubmitted,
           updated_at: new Date().toISOString()
         }, { onConflict: "user_id" });
         if (error) console.error("Supabase save failed:", error.message);
@@ -2714,28 +2750,62 @@
 
     async function loadStateFromSupabase() {
       if (!supabaseClient || !currentUser) return;
+
+      const userId = currentUser.id;
       const { data, error } = await supabaseClient
         .from("student_state")
         .select("*")
-        .eq("user_id", currentUser.id)
+        .eq("user_id", userId)
         .maybeSingle();
-      if (error) { console.error("Supabase load failed:", error.message); return; }
-      if (data) {
-        state.grades = data.grades || {};
-        state.manualPass = data.manual_pass || {};
-        state.courseTerms = data.course_terms || {};
-        state.totalYears = data.total_years || state.totalYears;
-        state.startYear = data.start_year || state.startYear;
-        if (data.theme) applyTheme(data.theme);
-        if (data.selected_electives) {
-          state.selectedElectives = {
-            E1: data.selected_electives.E1 || ELECTIVES_E1_POOL[0].code,
-            E2: Array.isArray(data.selected_electives.E2) ? data.selected_electives.E2 : [],
-            E3: Array.isArray(data.selected_electives.E3) ? data.selected_electives.E3 : []
-          };
+
+      if (error) {
+        console.error("Supabase load failed:", error.message);
+        return;
+      }
+
+      if (!data) return;
+      if (!currentUser || currentUser.id !== userId) return;
+
+      state.grades = data.grades || {};
+      state.manualPass = data.manual_pass || {};
+      state.courseTerms = data.course_terms || {};
+      state.totalYears = data.total_years || state.totalYears;
+      state.startYear = data.start_year || state.startYear;
+      if (data.theme) applyTheme(data.theme);
+      if (data.selected_electives) {
+        state.selectedElectives = {
+          E1: data.selected_electives.E1 || ELECTIVES_E1_POOL[0].code,
+          E2: Array.isArray(data.selected_electives.E2) ? data.selected_electives.E2 : [],
+          E3: Array.isArray(data.selected_electives.E3) ? data.selected_electives.E3 : []
+        };
+      }
+      state.willingList = Array.isArray(data.willing_list) ? data.willing_list : [];
+      state.willingTermCap = data.willing_term_cap || 18;
+      state.dryRunSelections = Array.isArray(data.dry_run_selections) ? data.dry_run_selections : [];
+      state.dryRunSubmitted = !!data.dry_run_submitted;
+
+      // Keep this account's browser cache synchronized with the canonical account row.
+      const key = userStorageKey();
+      if (key) {
+        try {
+          localStorage.setItem(key, JSON.stringify({
+            grades: state.grades,
+            manualPass: state.manualPass,
+            courseTerms: state.courseTerms,
+            totalYears: state.totalYears,
+            startYear: state.startYear,
+            theme: state.theme,
+            selectedElectives: state.selectedElectives,
+            willingList: state.willingList,
+            willingTermCap: state.willingTermCap,
+            dryRunSelections: state.dryRunSelections,
+            dryRunSubmitted: state.dryRunSubmitted
+          }));
+          localStorage.setItem(`${key}:theme`, state.theme);
+          localStorage.setItem(`${key}:startYear`, String(state.startYear));
+        } catch (e) {
+          console.error("Local account-state refresh failed:", e);
         }
-        state.willingList = data.willing_list || [];
-        state.willingTermCap = data.willing_term_cap || 18;
       }
     }
 
@@ -2984,9 +3054,10 @@
     }
 
     function logOut() {
+      clearTimeout(saveDebounceTimer);
+      saveDebounceTimer = null;
       currentUser = null;
       localStorage.removeItem(SESSION_KEY);
-      localStorage.removeItem(STORAGE_KEY);
       location.reload();
     }
 
@@ -3157,6 +3228,7 @@
           state.willingList = [];
           state.dryRunSelections = [];
           state.dryRunSubmitted = false;
+          state.dryRunFocusCourseCode = null;
           state.criticalPathMode = false;
           saveState();
           renderAll();
@@ -3613,42 +3685,69 @@
       return { periodCount: requiredEnd, width: requiredEnd * tileWidth };
     }
 
-    // Highlights every tutorial belonging to the selected lecture's course,
-    // regardless of group number. This also applies to CMPS courses.
-    function dryRunCourseTutorialIds(selectedEntries) {
-      const highlighted = new Set();
-      if (!selectedEntries || selectedEntries.length === 0) return highlighted;
+    // Color 5 (pink): show every other lecture/tutorial period for the same course.
+    // Only an unfinished one-session course drives these guidance highlights.
+    function dryRunAlternativeCourseIds(selectedEntries) {
+      const alternatives = new Set();
+      if (!selectedEntries || selectedEntries.length === 0) return alternatives;
+      const counts = new Map();
+      selectedEntries.forEach(selected => counts.set(selected.code, (counts.get(selected.code) || 0) + 1));
       selectedEntries.forEach(selected => {
-        if (dryRunNormalizedSession(selected) !== "lecture") return;
+        if (counts.get(selected.code) !== 1) return;
         DRY_RUN_SCHEDULE.forEach(candidate => {
-          if (candidate.code === selected.code &&
-              dryRunNormalizedSession(candidate) === "tutorial") {
-            highlighted.add(candidate.id);
+          if (candidate.code === selected.code && candidate.id !== selected.id) {
+            alternatives.add(candidate.id);
           }
         });
       });
-      return highlighted;
+      return alternatives;
     }
 
-    // For grouped non-CMPS courses, keep the existing 5th color for the
-    // more specific same-group tutorial.
-    function dryRunMatchingTutorialIds(selectedEntries) {
+    // Color 6 (purple): show the matching opposite-session period. Only an
+    // unfinished one-session course drives this guidance highlight; completed
+    // lecture+tutorial pairs stop generating guidance colors.
+    function dryRunMatchingCounterpartIds(selectedEntries) {
       const matched = new Set();
       if (!selectedEntries || selectedEntries.length === 0) return matched;
+      const counts = new Map();
+      selectedEntries.forEach(selected => counts.set(selected.code, (counts.get(selected.code) || 0) + 1));
       selectedEntries.forEach(selected => {
-        if (dryRunNormalizedSession(selected) !== "lecture") return;
-        if (dryRunIsCMPS(selected.code) || !dryRunCourseHasGroups(selected.code)) return;
-        const group = String(selected.group ?? "").trim();
-        if (!group || group === "0" || group.toLowerCase() === "nan") return;
+        if (counts.get(selected.code) !== 1) return;
+
+        const selectedSession = dryRunNormalizedSession(selected);
+        const counterpartSession = selectedSession === "lecture" ? "tutorial" : "lecture";
+        const hasGroups = !dryRunIsCMPS(selected.code) && dryRunCourseHasGroups(selected.code);
+        const selectedGroup = String(selected.group ?? "").trim();
+
         DRY_RUN_SCHEDULE.forEach(candidate => {
-          if (candidate.code === selected.code &&
-              dryRunNormalizedSession(candidate) === "tutorial" &&
-              String(candidate.group ?? "").trim() === group) {
-            matched.add(candidate.id);
+          if (candidate.code !== selected.code ||
+              candidate.id === selected.id ||
+              dryRunNormalizedSession(candidate) !== counterpartSession) return;
+
+          if (hasGroups) {
+            if (!selectedGroup || selectedGroup === "0" || selectedGroup.toLowerCase() === "nan") return;
+            if (String(candidate.group ?? "").trim() !== selectedGroup) return;
           }
+
+          matched.add(candidate.id);
         });
       });
       return matched;
+    }
+
+    // A course is pending when exactly one session (lecture OR tutorial) is
+    // selected. The most recently clicked course is treated as the active
+    // decision; unfinished selections from earlier courses get a red border.
+    function dryRunPendingCourseIds(selectedEntries) {
+      const counts = new Map();
+      (selectedEntries || []).forEach(entry => {
+        counts.set(entry.code, (counts.get(entry.code) || 0) + 1);
+      });
+      const pending = new Set();
+      counts.forEach((count, code) => {
+        if (count === 1) pending.add(code);
+      });
+      return pending;
     }
 
     function renderDryRunTable(mode = "select") {
@@ -3662,8 +3761,15 @@
       }
       const selected = new Set(state.dryRunSelections || []);
       const selectedEntries = getDryRunSelectedEntries(DRY_RUN_SCHEDULE);
-      const courseTutorialIds = dryRunCourseTutorialIds(selectedEntries);
-      const matchingTutorialIds = dryRunMatchingTutorialIds(selectedEntries);
+      const pendingCourseIds = dryRunPendingCourseIds(selectedEntries);
+      const alternativeCourseIds = mode === "select"
+        ? dryRunAlternativeCourseIds(selectedEntries)
+        : new Set();
+      const matchingCounterpartIds = mode === "select"
+        ? dryRunMatchingCounterpartIds(selectedEntries)
+        : new Set();
+      const hasMultipleSelectedCourses = new Set(selectedEntries.map(e => e.code)).size > 1;
+      const focusedCourseCode = state.dryRunFocusCourseCode || null;
       const eligibleCodes = [...getDryRunEligibleCodes()];
 
       if (mode === "select") {
@@ -3697,8 +3803,8 @@
             <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-lecture"></span>Lecture</span>
             <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-tutorial"></span>Tutorial</span>
             <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-selected"></span>Selected</span>
-            <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-matched"></span>Matching Tutorial</span>
-            <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-course-tutorial"></span>Same Course Tutorials</span>
+            <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-matching"></span>Matching Lecture/Tutorial</span>
+            <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-alternative"></span>Alternative Course periods</span>
             <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-pathway"></span>Suggested Pathway</span>
           </div>
         </div>
@@ -3725,8 +3831,10 @@
         }
         dayEntries.forEach(entry => {
           const isSelected = selected.has(entry.id);
-          const isCourseTutorial = courseTutorialIds.has(entry.id) && !isSelected;
-          const isMatchingTutorial = matchingTutorialIds.has(entry.id) && !isSelected;
+          const isAlternativeCourse = alternativeCourseIds.has(entry.id) && !isSelected;
+          const isMatchingCounterpart = matchingCounterpartIds.has(entry.id) && !isSelected;
+          const isPendingDecision = isSelected && pendingCourseIds.has(entry.code) &&
+            hasMultipleSelectedCourses && entry.code !== focusedCourseCode;
           const isPathway = dryRunHasActivePathway(entry.code);
           const sessionClass = dryRunNormalizedSession(entry);
           const selectionRule = mode === "select" ? dryRunSelectionRule(entry, selectedEntries) : { allowed: true, reason: "" };
@@ -3734,7 +3842,7 @@
           const groupText = dryRunHasGroup(entry) ? ` · Group ${entry.group}` : "";
           const hoverText = isDisabled ? `${selectionRule.reason}${groupText}` : `${entry.name} · ${entry.code} · ${entry.session}${groupText} · ${formatDryRunTime(entry.start)}–${formatDryRunTime(entry.end)}${isPathway ? " · Suggested Pathway" : ""}`;
           html += `
-            <div class="dry-run-block ${sessionClass} ${isSelected ? "selected" : ""} ${isCourseTutorial ? "course-tutorial" : ""} ${isMatchingTutorial ? "matched-tutorial" : ""} ${isPathway ? "pathway" : ""} ${isDisabled ? "disabled" : ""}"
+            <div class="dry-run-block ${sessionClass} ${isSelected ? "selected" : ""} ${isPendingDecision ? "pending-decision" : ""} ${isAlternativeCourse ? "alternative-course" : ""} ${isMatchingCounterpart ? "matching-counterpart" : ""} ${isPathway ? "pathway" : ""} ${isDisabled ? "disabled" : ""}"
                  data-dry-id="${entry.id}"
                  title="${hoverText}"
                  style="${dryRunBlockStyle(entry, rowLayout.rowById.get(entry.id) || 0, dayLayout.periodCount)}"
@@ -3804,6 +3912,7 @@
       if (currentIds.has(id)) {
         currentIds.delete(id);
         state.dryRunSelections = [...currentIds];
+        state.dryRunFocusCourseCode = entry.code;
         saveState();
         renderDryRunTable("select");
         return;
@@ -3817,6 +3926,7 @@
 
       currentIds.add(id);
       state.dryRunSelections = [...currentIds];
+      state.dryRunFocusCourseCode = entry.code;
       saveState();
       renderDryRunTable("select");
     }
