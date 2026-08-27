@@ -6,6 +6,19 @@
   <meta name="theme-color" content="#07111f">
   <title>CUFE Mechatronics Engineering Degree Navigator</title>
 
+  <script>
+    // Apply the last-used theme immediately (before first paint) so the app
+    // never flashes back to dark mode, regardless of login/account state.
+    (function () {
+      try {
+        var savedTheme = localStorage.getItem("cufe_theme_pref");
+        if (savedTheme === "light" || savedTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", savedTheme);
+        }
+      } catch (e) {}
+    })();
+  </script>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -353,6 +366,53 @@
       cursor: grabbing;
     }
 
+    /* CUSTOM GRAPH SCROLLBARS (shown when the zoomed graph overflows the viewport) */
+    .graph-scrollbar {
+      position: absolute;
+      z-index: 40;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+    }
+
+    .graph-scrollbar.visible {
+      opacity: 0.9;
+      pointer-events: auto;
+    }
+
+    .graph-scrollbar.h-scrollbar {
+      left: 8px;
+      right: 8px;
+      bottom: 6px;
+      height: 8px;
+    }
+
+    .graph-scrollbar.v-scrollbar {
+      top: 8px;
+      bottom: 8px;
+      right: 6px;
+      width: 8px;
+    }
+
+    .graph-scrollbar-thumb {
+      position: absolute;
+      background: var(--muted);
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .graph-scrollbar-thumb:hover,
+    .graph-scrollbar-thumb.dragging {
+      background: var(--cyan);
+    }
+
+    .h-scrollbar .graph-scrollbar-thumb { top: 0; height: 100%; }
+    .v-scrollbar .graph-scrollbar-thumb { left: 0; width: 100%; }
+
     #graphWorld {
       position: absolute;
       width: 9000px;
@@ -506,8 +566,12 @@
       box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.3), 0 8px 22px rgba(0,0,0,0.2) !important;
     }
     .course-node.willing-card-highlight {
-      outline: 3px solid #0891b2 !important;
-      box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.3), 0 8px 22px rgba(0,0,0,0.2) !important;
+      outline: 2px solid #38bdf8 !important;
+      box-shadow:
+        0 0 6px 1px rgba(56, 189, 248, 0.95),
+        0 0 18px 4px rgba(56, 189, 248, 0.75),
+        0 0 36px 10px rgba(56, 189, 248, 0.5),
+        0 0 60px 16px rgba(56, 189, 248, 0.25) !important;
     }
 
     .course-node.dimmed {
@@ -803,7 +867,7 @@
     .leg-failed { background: #dc2626; }
     .leg-pathway { background: #9333ea; }
     .leg-critical { background: #4f46e5; }
-    .leg-willing { background: #0891b2; }
+    .leg-willing { background: #38bdf8; }
 
     /* AUTH SCREEN */
     #authScreen {
@@ -845,7 +909,7 @@
     .pathway-term-title { font-size: 9.5px; font-weight: 900; color: var(--text); display: flex; justify-content: space-between; }
     .pathway-term-courses { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 5px; }
     .willing-item { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border: 1px solid var(--border); border-radius: 7px; background: var(--control-bg); margin-bottom: 5px; }
-    .willing-item.selected { border-color: rgba(34,211,238,0.6); background: rgba(34,211,238,0.08); }
+    .willing-item.selected { border-color: rgba(56,189,248,0.6); background: rgba(56,189,248,0.08); }
     .willing-cap-bar { height: 6px; border-radius: 999px; background: rgba(148,163,184,0.15); margin-top: 6px; overflow: hidden; }
     .willing-cap-fill { height: 100%; background: linear-gradient(90deg,#22d3ee,#818cf8); transition: width 0.2s ease; }
     .willing-cap-fill.over { background: #fb7185; }
@@ -943,6 +1007,9 @@
         </div>
 
         <div class="filter-row">
+          <span class="filter-label">Start Year</span>
+          <input id="startYearInput" class="control" type="number" min="2000" max="2100" step="1" style="width:80px;" value="2024">
+
           <span class="filter-label">Years of Study</span>
           <select id="yearsFilter" class="control">
             <option value="4">4 Years (12 Terms Total)</option>
@@ -1003,6 +1070,13 @@
             <div id="semesterLayer"></div>
             <div id="nodeLayer"></div>
           </div>
+        </div>
+
+        <div class="graph-scrollbar h-scrollbar" id="graphHScrollbar">
+          <div class="graph-scrollbar-thumb" id="graphHScrollbarThumb"></div>
+        </div>
+        <div class="graph-scrollbar v-scrollbar" id="graphVScrollbar">
+          <div class="graph-scrollbar-thumb" id="graphVScrollbarThumb"></div>
         </div>
 
         <!-- MINIMIZABLE / MAXIMIZABLE LEGEND -->
@@ -1355,6 +1429,7 @@
       manualPass: {},
       courseTerms: {},
       totalYears: 4,
+      startYear: 2024,
       theme: "dark",
       selectedElectives: {
         E1: ELECTIVES_E1_POOL[0].code,
@@ -1376,6 +1451,12 @@
     const graphWorld = document.getElementById("graphWorld");
     const edgeSvg = document.getElementById("edgeSvg");
     const nodeLayer = document.getElementById("nodeLayer");
+    const graphHScrollbar = document.getElementById("graphHScrollbar");
+    const graphHScrollbarThumb = document.getElementById("graphHScrollbarThumb");
+    const graphVScrollbar = document.getElementById("graphVScrollbar");
+    const graphVScrollbarThumb = document.getElementById("graphVScrollbarThumb");
+    const GRAPH_WORLD_WIDTH = 9000;
+    const GRAPH_WORLD_HEIGHT = 1600;
     const semesterLayer = document.getElementById("semesterLayer");
     const drawer = document.getElementById("courseDrawer");
     const drawerContent = document.getElementById("drawerContent");
@@ -1390,10 +1471,14 @@
     function getTermDefinitionList() {
       const list = [];
       const years = Number(state.totalYears) || 4;
+      const startYear = Number(state.startYear) || 2024;
+      const yy = (calendarYear) => String(calendarYear).slice(-2);
       for (let y = 1; y <= years; y++) {
-        list.push({ id: `Y${y}F`, year: y, season: "Fall", title: `Year ${y} · Fall`, isSummer: false, index: (y - 1) * 3 });
-        list.push({ id: `Y${y}S`, year: y, season: "Spring", title: `Year ${y} · Spring`, isSummer: false, index: (y - 1) * 3 + 1 });
-        list.push({ id: `Y${y}U`, year: y, season: "Summer", title: `Year ${y} · Summer`, isSummer: true, index: (y - 1) * 3 + 2 });
+        const fallYear = startYear + (y - 1);
+        const springSummerYear = startYear + y;
+        list.push({ id: `Y${y}F`, year: y, season: "Fall", title: `Fall ${yy(fallYear)}`, isSummer: false, index: (y - 1) * 3 });
+        list.push({ id: `Y${y}S`, year: y, season: "Spring", title: `Spring ${yy(springSummerYear)}`, isSummer: false, index: (y - 1) * 3 + 1 });
+        list.push({ id: `Y${y}U`, year: y, season: "Summer", title: `Summer ${yy(springSummerYear)}`, isSummer: true, index: (y - 1) * 3 + 2 });
       }
       return list;
     }
@@ -2298,6 +2383,7 @@
         manualPass: {},
         courseTerms: {},
         totalYears: 4,
+        startYear: 2024,
         theme: "dark",
         selectedElectives: {
           E1: ELECTIVES_E1_POOL[0].code,
@@ -2317,6 +2403,7 @@
     function applyTheme(themeName) {
       state.theme = themeName;
       document.documentElement.setAttribute("data-theme", themeName);
+      try { localStorage.setItem("cufe_theme_pref", themeName); } catch (e) {}
       const btnText = document.getElementById("themeBtnText");
       const icon = document.getElementById("themeIcon");
       if (btnText && icon) {
@@ -2343,6 +2430,7 @@
         manualPass: state.manualPass,
         courseTerms: state.courseTerms,
         totalYears: state.totalYears,
+        startYear: state.startYear,
         theme: state.theme,
         selectedElectives: state.selectedElectives,
         willingList: state.willingList,
@@ -2358,6 +2446,7 @@
           manual_pass: state.manualPass,
           course_terms: state.courseTerms,
           total_years: state.totalYears,
+          start_year: state.startYear,
           theme: state.theme,
           selected_electives: state.selectedElectives,
           willing_list: state.willingList,
@@ -2381,6 +2470,7 @@
           state.manualPass = saved.manualPass || {};
           state.courseTerms = saved.courseTerms || {};
           state.totalYears = saved.totalYears || 4;
+          state.startYear = saved.startYear || 2024;
           if (saved.theme) applyTheme(saved.theme);
           if (saved.selectedElectives) {
             state.selectedElectives = {
@@ -2409,6 +2499,7 @@
         state.manualPass = data.manual_pass || {};
         state.courseTerms = data.course_terms || {};
         state.totalYears = data.total_years || 4;
+        state.startYear = data.start_year || 2024;
         if (data.theme) applyTheme(data.theme);
         if (data.selected_electives) {
           state.selectedElectives = {
@@ -2537,6 +2628,94 @@
 
     function setTransform() {
       graphWorld.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
+      updateGraphScrollbars();
+    }
+
+    function updateGraphScrollbars() {
+      const viewportRect = graphViewport.getBoundingClientRect();
+      const scaledWidth = GRAPH_WORLD_WIDTH * state.zoom;
+      const scaledHeight = GRAPH_WORLD_HEIGHT * state.zoom;
+
+      const hOverflow = scaledWidth - viewportRect.width;
+      if (hOverflow > 1) {
+        graphHScrollbar.classList.add("visible");
+        const trackWidth = graphHScrollbar.clientWidth;
+        const thumbWidth = Math.min(trackWidth, Math.max(24, (viewportRect.width / scaledWidth) * trackWidth));
+        const maxThumbTravel = Math.max(0, trackWidth - thumbWidth);
+        const scrollFrac = Math.min(1, Math.max(0, -state.panX / hOverflow));
+        graphHScrollbarThumb.style.width = thumbWidth + "px";
+        graphHScrollbarThumb.style.left = (scrollFrac * maxThumbTravel) + "px";
+      } else {
+        graphHScrollbar.classList.remove("visible");
+      }
+
+      const vOverflow = scaledHeight - viewportRect.height;
+      if (vOverflow > 1) {
+        graphVScrollbar.classList.add("visible");
+        const trackHeight = graphVScrollbar.clientHeight;
+        const thumbHeight = Math.min(trackHeight, Math.max(24, (viewportRect.height / scaledHeight) * trackHeight));
+        const maxThumbTravel = Math.max(0, trackHeight - thumbHeight);
+        const scrollFrac = Math.min(1, Math.max(0, -state.panY / vOverflow));
+        graphVScrollbarThumb.style.height = thumbHeight + "px";
+        graphVScrollbarThumb.style.top = (scrollFrac * maxThumbTravel) + "px";
+      } else {
+        graphVScrollbar.classList.remove("visible");
+      }
+    }
+
+    let hThumbDragging = false, hDragStartClientX = 0, hDragStartPanX = 0;
+    let vThumbDragging = false, vDragStartClientY = 0, vDragStartPanY = 0;
+
+    function setupGraphScrollbarDrag() {
+      graphHScrollbarThumb.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        hThumbDragging = true;
+        graphHScrollbarThumb.classList.add("dragging");
+        hDragStartClientX = e.clientX;
+        hDragStartPanX = state.panX;
+      });
+
+      graphVScrollbarThumb.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        vThumbDragging = true;
+        graphVScrollbarThumb.classList.add("dragging");
+        vDragStartClientY = e.clientY;
+        vDragStartPanY = state.panY;
+      });
+
+      window.addEventListener("mousemove", (e) => {
+        if (hThumbDragging) {
+          const viewportRect = graphViewport.getBoundingClientRect();
+          const scaledWidth = GRAPH_WORLD_WIDTH * state.zoom;
+          const hOverflow = scaledWidth - viewportRect.width;
+          const trackWidth = graphHScrollbar.clientWidth;
+          const thumbWidth = graphHScrollbarThumb.clientWidth;
+          const maxThumbTravel = Math.max(0, trackWidth - thumbWidth);
+          const deltaFrac = maxThumbTravel > 0 ? (e.clientX - hDragStartClientX) / maxThumbTravel : 0;
+          state.panX = Math.max(-hOverflow, Math.min(0, hDragStartPanX - deltaFrac * hOverflow));
+          setTransform();
+        }
+        if (vThumbDragging) {
+          const viewportRect = graphViewport.getBoundingClientRect();
+          const scaledHeight = GRAPH_WORLD_HEIGHT * state.zoom;
+          const vOverflow = scaledHeight - viewportRect.height;
+          const trackHeight = graphVScrollbar.clientHeight;
+          const thumbHeight = graphVScrollbarThumb.clientHeight;
+          const maxThumbTravel = Math.max(0, trackHeight - thumbHeight);
+          const deltaFrac = maxThumbTravel > 0 ? (e.clientY - vDragStartClientY) / maxThumbTravel : 0;
+          state.panY = Math.max(-vOverflow, Math.min(0, vDragStartPanY - deltaFrac * vOverflow));
+          setTransform();
+        }
+      });
+
+      window.addEventListener("mouseup", () => {
+        if (hThumbDragging) { hThumbDragging = false; graphHScrollbarThumb.classList.remove("dragging"); }
+        if (vThumbDragging) { vThumbDragging = false; graphVScrollbarThumb.classList.remove("dragging"); }
+      });
+
+      window.addEventListener("resize", () => updateGraphScrollbars());
     }
 
     // ===== AUTH =====
@@ -2658,6 +2837,16 @@
 
     function initApp() {
       document.getElementById("yearsFilter").value = state.totalYears;
+      document.getElementById("startYearInput").value = state.startYear;
+
+      document.getElementById("startYearInput").addEventListener("change", (e) => {
+        let val = Number(e.target.value) || 2024;
+        val = Math.max(2000, Math.min(2100, val));
+        state.startYear = val;
+        e.target.value = val;
+        saveState();
+        renderAll();
+      });
 
       document.getElementById("criticalPathBtn").addEventListener("click", () => {
         highlightCriticalPath();
@@ -2782,6 +2971,16 @@
 
       window.addEventListener("mouseup", () => { isPanning = false; });
 
+      // CLICK ANYWHERE OUTSIDE THE COURSE DRAWER TO CLOSE IT
+      document.addEventListener("click", (e) => {
+        if (!drawer.classList.contains("open")) return;
+        if (e.target.closest("#courseDrawer")) return;
+        if (e.target.closest(".course-node")) return;
+        state.pinnedCode = null;
+        drawer.classList.remove("open");
+        clearPathHighlight();
+      });
+
       // LEGEND MINIMIZE / MAXIMIZE TOGGLE SETUP
       document.getElementById("legendToggleRow").addEventListener("click", () => {
         const box = document.getElementById("legendBox");
@@ -2796,6 +2995,7 @@
 
       setupPathwayUI();
       setupWillingUI();
+      setupGraphScrollbarDrag();
 
       renderAll();
       setTransform();
