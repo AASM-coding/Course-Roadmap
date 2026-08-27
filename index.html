@@ -991,7 +991,7 @@
     .dry-run-legend-tutorial { background:#99ccff; }
     .dry-run-legend-selected { background:#99ff99; }
     .dry-run-legend-matched { background:#ff99cc; }
-    .dry-run-block.matched-tutorial { background:#ff99cc; border-color:#b84d7a; }
+    .dry-run-legend-course-tutorial { background:#cc99ff; }
     .dry-run-legend-pathway { background:#ffffff; border:3px solid #9333ea; box-sizing:border-box; }
     .dry-run-table-scroll { overflow-x: auto; overflow-y: visible; border: 2px solid #444; background:#fff; }
     .dry-run-grid {
@@ -1054,6 +1054,14 @@
     }
     .dry-run-block.lecture { background:#ffff99; }
     .dry-run-block.tutorial { background:#99ccff; }
+
+    /* Dry-run tutorial highlight precedence:
+       6th color = every tutorial of the selected lecture's course.
+       5th color = the more specific same-group tutorial.
+       Both classes may exist on the same block; the 5th color must win. */
+    .dry-run-block.course-tutorial { background:#cc99ff; border-color:#8a5bb5; }
+    .dry-run-block.matched-tutorial { background:#ff99cc; border-color:#b84d7a; }
+
     .dry-run-block.selected { background:#99ff99; border-color:#1b5e20; box-shadow: inset 0 0 0 2px rgba(27,94,32,0.25); }
     .dry-run-block.pathway:not(.selected) { box-shadow: inset 0 0 0 3px #9333ea; }
     .dry-run-block:hover { filter: brightness(0.98); transform: translateY(-1px); z-index:7; }
@@ -3605,6 +3613,25 @@
       return { periodCount: requiredEnd, width: requiredEnd * tileWidth };
     }
 
+    // Highlights every tutorial belonging to the selected lecture's course,
+    // regardless of group number. This also applies to CMPS courses.
+    function dryRunCourseTutorialIds(selectedEntries) {
+      const highlighted = new Set();
+      if (!selectedEntries || selectedEntries.length === 0) return highlighted;
+      selectedEntries.forEach(selected => {
+        if (dryRunNormalizedSession(selected) !== "lecture") return;
+        DRY_RUN_SCHEDULE.forEach(candidate => {
+          if (candidate.code === selected.code &&
+              dryRunNormalizedSession(candidate) === "tutorial") {
+            highlighted.add(candidate.id);
+          }
+        });
+      });
+      return highlighted;
+    }
+
+    // For grouped non-CMPS courses, keep the existing 5th color for the
+    // more specific same-group tutorial.
     function dryRunMatchingTutorialIds(selectedEntries) {
       const matched = new Set();
       if (!selectedEntries || selectedEntries.length === 0) return matched;
@@ -3635,6 +3662,7 @@
       }
       const selected = new Set(state.dryRunSelections || []);
       const selectedEntries = getDryRunSelectedEntries(DRY_RUN_SCHEDULE);
+      const courseTutorialIds = dryRunCourseTutorialIds(selectedEntries);
       const matchingTutorialIds = dryRunMatchingTutorialIds(selectedEntries);
       const eligibleCodes = [...getDryRunEligibleCodes()];
 
@@ -3670,6 +3698,7 @@
             <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-tutorial"></span>Tutorial</span>
             <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-selected"></span>Selected</span>
             <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-matched"></span>Matching Tutorial</span>
+            <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-course-tutorial"></span>Same Course Tutorials</span>
             <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-pathway"></span>Suggested Pathway</span>
           </div>
         </div>
@@ -3696,6 +3725,7 @@
         }
         dayEntries.forEach(entry => {
           const isSelected = selected.has(entry.id);
+          const isCourseTutorial = courseTutorialIds.has(entry.id) && !isSelected;
           const isMatchingTutorial = matchingTutorialIds.has(entry.id) && !isSelected;
           const isPathway = dryRunHasActivePathway(entry.code);
           const sessionClass = dryRunNormalizedSession(entry);
@@ -3704,7 +3734,7 @@
           const groupText = dryRunHasGroup(entry) ? ` · Group ${entry.group}` : "";
           const hoverText = isDisabled ? `${selectionRule.reason}${groupText}` : `${entry.name} · ${entry.code} · ${entry.session}${groupText} · ${formatDryRunTime(entry.start)}–${formatDryRunTime(entry.end)}${isPathway ? " · Suggested Pathway" : ""}`;
           html += `
-            <div class="dry-run-block ${sessionClass} ${isSelected ? "selected" : ""} ${isMatchingTutorial ? "matched-tutorial" : ""} ${isPathway ? "pathway" : ""} ${isDisabled ? "disabled" : ""}"
+            <div class="dry-run-block ${sessionClass} ${isSelected ? "selected" : ""} ${isCourseTutorial ? "course-tutorial" : ""} ${isMatchingTutorial ? "matched-tutorial" : ""} ${isPathway ? "pathway" : ""} ${isDisabled ? "disabled" : ""}"
                  data-dry-id="${entry.id}"
                  title="${hoverText}"
                  style="${dryRunBlockStyle(entry, rowLayout.rowById.get(entry.id) || 0, dayLayout.periodCount)}"
