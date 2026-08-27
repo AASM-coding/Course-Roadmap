@@ -2991,6 +2991,9 @@
       if (!data) return;
       if (!currentUser || currentUser.id !== userId) return;
 
+      // Restore grades from the canonical Supabase account record.
+      // This is essential on a new device where account-localStorage is empty.
+      state.grades = (data.grades && typeof data.grades === "object") ? data.grades : {};
       state.manualPass = data.manual_pass || {};
       state.totalYears = data.total_years || state.totalYears;
       state.startYear = data.start_year || state.startYear;
