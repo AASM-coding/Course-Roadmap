@@ -949,7 +949,7 @@
     }
     .dry-run-backdrop.open { display: flex; }
     .dry-run-modal {
-      width: min(1280px, 98vw);
+      width: min(1800px, 99vw);
       max-height: 94vh;
       overflow: hidden;
       border: 1px solid rgba(15,23,42,0.35);
@@ -993,11 +993,11 @@
     .dry-run-legend-pathway { background:#ffffff; border:3px solid #9333ea; box-sizing:border-box; }
     .dry-run-table-scroll { overflow-x: auto; overflow-y: visible; border: 2px solid #444; background:#fff; }
     .dry-run-grid {
-      min-width: 1120px;
+      min-width: 3850px;
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(5, 770px);
     }
-    .dry-day { min-width: 220px; border-right: 1px solid #777; }
+    .dry-day { min-width: 770px; width: 770px; border-right: 1px solid #777; }
     .dry-day:last-child { border-right: 0; }
     .dry-day-header {
       height: 42px; border-bottom: 1px solid #777; background:#efefef;
@@ -1009,12 +1009,12 @@
       display:grid; grid-template-columns: repeat(11, 1fr); overflow:hidden;
     }
     .dry-time-head span {
-      min-width:0; border-right:1px solid #a8bfd8; display:flex; align-items:center; justify-content:center;
-      flex-direction:column; font-size:7px; color:#6b7c8f; line-height:1.05;
+      min-width:70px; border-right:1px solid #a8bfd8; display:flex; align-items:center; justify-content:center;
+      flex-direction:column; font-size:8px; color:#6b7c8f; line-height:1.05;
     }
     .dry-time-head span:last-child { border-right:0; }
-    .dry-time-head .time-main { font-size:8px; }
-    .dry-time-head .time-end { font-size:6.5px; }
+    .dry-time-head .time-main { font-size:9.5px; font-weight:700; white-space:nowrap; }
+    .dry-time-head .time-end { font-size:8px; white-space:nowrap; }
     .dry-day-body {
       position: relative;
       height: 550px;
@@ -1076,8 +1076,10 @@
     .dry-run-course-tag { border:1px solid #aaa; border-radius:3px; background:#fff; padding:3px 6px; }
     @media (max-width: 850px) {
       .dry-run-modal { width: 99vw; max-height: 96vh; }
-      .dry-day { min-width: 205px; }
-      .dry-run-grid { min-width: 1025px; }
+      .dry-day { min-width: 700px; width: 700px; }
+      .dry-run-grid { min-width: 3500px; grid-template-columns: repeat(5, 700px); }
+      .dry-time-head .time-main { font-size:9px; }
+      .dry-time-head .time-end { font-size:7.5px; }
     }
 
   </style>
@@ -3568,9 +3570,9 @@
           html += `
             <div class="dry-run-block ${sessionClass} ${isSelected ? "selected" : ""} ${isPathway ? "pathway" : ""}"
                  data-dry-id="${entry.id}"
-                 title="${dryRunEntryLabel(entry)}${isPathway ? " · Suggested Pathway" : ""}"
+                 title="${entry.name} · ${entry.code} · ${entry.session} · ${formatDryRunTime(entry.start)}–${formatDryRunTime(entry.end)}${isPathway ? " · Suggested Pathway" : ""}"
                  style="${dryRunBlockStyle(entry, laneLayout.laneById.get(entry.id) || 0, laneLayout.laneCount)}"
-                 aria-label="${dryRunEntryLabel(entry)}">
+                 aria-label="${entry.name} · ${entry.code} · ${entry.session} · ${formatDryRunTime(entry.start)}–${formatDryRunTime(entry.end)}">
               <div class="dry-run-code">${entry.code}</div>
               <div class="dry-run-session">${entry.session}</div>
               <div class="dry-run-location">${entry.location || ""}</div>
