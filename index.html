@@ -990,6 +990,8 @@
     .dry-run-legend-lecture { background:#ffff99; }
     .dry-run-legend-tutorial { background:#99ccff; }
     .dry-run-legend-selected { background:#99ff99; }
+    .dry-run-legend-matched { background:#ff99cc; }
+    .dry-run-block.matched-tutorial { background:#ff99cc; border-color:#b84d7a; }
     .dry-run-legend-pathway { background:#ffffff; border:3px solid #9333ea; box-sizing:border-box; }
     .dry-run-table-scroll { overflow-x: auto; overflow-y: visible; border: 2px solid #444; background:#fff; }
     .dry-run-grid {
@@ -3603,6 +3605,25 @@
       return { periodCount: requiredEnd, width: requiredEnd * tileWidth };
     }
 
+    function dryRunMatchingTutorialIds(selectedEntries) {
+      const matched = new Set();
+      if (!selectedEntries || selectedEntries.length === 0) return matched;
+      selectedEntries.forEach(selected => {
+        if (dryRunNormalizedSession(selected) !== "lecture") return;
+        if (dryRunIsCMPS(selected.code) || !dryRunCourseHasGroups(selected.code)) return;
+        const group = String(selected.group ?? "").trim();
+        if (!group || group === "0" || group.toLowerCase() === "nan") return;
+        DRY_RUN_SCHEDULE.forEach(candidate => {
+          if (candidate.code === selected.code &&
+              dryRunNormalizedSession(candidate) === "tutorial" &&
+              String(candidate.group ?? "").trim() === group) {
+            matched.add(candidate.id);
+          }
+        });
+      });
+      return matched;
+    }
+
     function renderDryRunTable(mode = "select") {
       const content = document.getElementById("dryRunContent");
       const footer = document.getElementById("dryRunFooter");
@@ -3613,6 +3634,8 @@
         state.dryRunSelections = sanitizeDryRunSelections(allowedSelections);
       }
       const selected = new Set(state.dryRunSelections || []);
+      const selectedEntries = getDryRunSelectedEntries(DRY_RUN_SCHEDULE);
+      const matchingTutorialIds = dryRunMatchingTutorialIds(selectedEntries);
       const eligibleCodes = [...getDryRunEligibleCodes()];
 
       if (mode === "select") {
@@ -3623,7 +3646,6 @@
         document.getElementById("dryRunSubtitle").textContent = "This is the submitted timetable preview. Press Edit to return to the eligible-course dry run and change selections.";
       }
 
-      const selectedEntries = getDryRunSelectedEntries(DRY_RUN_SCHEDULE);
       const selectedByDay = new Map(DRY_RUN_DAYS.map(d => [d, []]));
       entries.forEach(e => selectedByDay.get(e.day).push(e));
 
@@ -3647,6 +3669,7 @@
             <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-lecture"></span>Lecture</span>
             <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-tutorial"></span>Tutorial</span>
             <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-selected"></span>Selected</span>
+            <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-matched"></span>Matching Tutorial</span>
             <span class="dry-run-legend-item"><span class="dry-run-legend-swatch dry-run-legend-pathway"></span>Suggested Pathway</span>
           </div>
         </div>
@@ -3673,6 +3696,7 @@
         }
         dayEntries.forEach(entry => {
           const isSelected = selected.has(entry.id);
+          const isMatchingTutorial = matchingTutorialIds.has(entry.id) && !isSelected;
           const isPathway = dryRunHasActivePathway(entry.code);
           const sessionClass = dryRunNormalizedSession(entry);
           const selectionRule = mode === "select" ? dryRunSelectionRule(entry, selectedEntries) : { allowed: true, reason: "" };
@@ -3680,7 +3704,7 @@
           const groupText = dryRunHasGroup(entry) ? ` · Group ${entry.group}` : "";
           const hoverText = isDisabled ? `${selectionRule.reason}${groupText}` : `${entry.name} · ${entry.code} · ${entry.session}${groupText} · ${formatDryRunTime(entry.start)}–${formatDryRunTime(entry.end)}${isPathway ? " · Suggested Pathway" : ""}`;
           html += `
-            <div class="dry-run-block ${sessionClass} ${isSelected ? "selected" : ""} ${isPathway ? "pathway" : ""} ${isDisabled ? "disabled" : ""}"
+            <div class="dry-run-block ${sessionClass} ${isSelected ? "selected" : ""} ${isMatchingTutorial ? "matched-tutorial" : ""} ${isPathway ? "pathway" : ""} ${isDisabled ? "disabled" : ""}"
                  data-dry-id="${entry.id}"
                  title="${hoverText}"
                  style="${dryRunBlockStyle(entry, rowLayout.rowById.get(entry.id) || 0, dayLayout.periodCount)}"
