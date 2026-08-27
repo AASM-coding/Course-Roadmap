@@ -147,6 +147,20 @@
       box-shadow: 0 -1px 6px rgba(0,0,0,.08);
       pointer-events: none;
     }
+    .topbar-curtain::after {
+      content: "";
+      position: absolute;
+      left: -10px;
+      right: -10px;
+      top: 2px;
+      bottom: -14px;
+      border-radius: 12px;
+      pointer-events: auto;
+      /* Extra touch/click target lives mostly below the bar so it never steals
+         clicks from the controls above it. */
+    }
+    .topbar-curtain { touch-action: manipulation; }
+
     .topbar-inner {
       max-height: 520px;
       overflow: hidden;
@@ -777,29 +791,54 @@
     .anchor-in { left: -3px; top: 50%; transform: translateY(-50%); }
     .anchor-out { right: -3px; top: 50%; transform: translateY(-50%); }
 
-    .drawer {
-      position: absolute;
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.46);
+      z-index: 99999;
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+      transition: opacity 0.24s ease, visibility 0s linear 0.24s;
+    }
+    .drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+      visibility: visible;
+      transition-delay: 0s;
+    }
+
+.drawer {
+      position: fixed;
       top: 0;
       right: 0;
       bottom: 0;
-      width: 380px;
-      max-width: 90vw;
+      width: min(380px, 92vw);
+      max-width: 92vw;
+      height: 100dvh;
       background: var(--drawer-bg);
       border-left: 1px solid var(--border);
-      box-shadow: -15px 0 35px rgba(0, 0, 0, 0.35);
-      z-index: 60;
+      box-shadow: -18px 0 45px rgba(0, 0, 0, 0.42);
+      z-index: 100000;
       overflow-y: auto;
-      transform: translateX(100%);
-      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease;
-      display: none;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      transform: translate3d(110%, 0, 0);
+      transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+      visibility: hidden;
+      opacity: 1;
+      pointer-events: none;
+      will-change: transform;
+      isolation: isolate;
     }
 
     .drawer.open {
-      display: block;
-      transform: translateX(0);
+      visibility: visible;
+      pointer-events: auto;
+      transform: translate3d(0, 0, 0);
     }
 
-    .drawer-inner { padding: 16px; }
+.drawer-inner { padding: 16px; }
 
     .drawer-header {
       display: flex;
@@ -1210,7 +1249,7 @@
         user-select: none;
       }
       .topbar-inner { padding: 10px 10px 12px; }
-      .topbar-curtain { width: 26px; height: 20px; bottom: -11px; }
+      .topbar-curtain { width: 34px; height: 22px; bottom: -22px; }
       .topbar-curtain .icon { width: 13px; height: 13px; }
       .brand-row { flex-direction: column; align-items: stretch; gap: 8px; }
       .brand-title { font-size: 16px; }
@@ -1297,10 +1336,33 @@
       .graph-help { display: none; }
 
       .drawer {
-        width: min(100vw, 380px);
+        width: 100vw;
         max-width: 100vw;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        border-left: 0;
+        border-radius: 0;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
       }
-      .drawer-inner { padding: 12px; }
+      .drawer-inner {
+        padding: 14px 12px calc(16px + env(safe-area-inset-bottom, 0px));
+        max-width: 720px;
+        margin: 0 auto;
+      }
+      .drawer-header { align-items: flex-start; }
+      .drawer-close {
+        width: 40px;
+        height: 40px;
+        flex: 0 0 40px;
+      }
+      .drawer-code { font-size: 18px; }
+      .drawer-title { font-size: 12px; }
+      .drawer-section-title { font-size: 9px; }
+      .drawer-grade, .drawer-term { min-height: 42px; font-size: 12px; }
+      .pass-toggle { min-height: 42px; font-size: 11px; }
+      .course-badge { font-size: 10px; padding: 5px 7px; }
+      .drawer-note { font-size: 9.5px; }
 
       .dry-run-modal { width: 99vw; max-height: 96vh; }
       .dry-run-header { padding: 8px 9px; }
@@ -1383,7 +1445,7 @@
         <div class="brand-row">
           <div>
             <h1 class="brand-title">Mechatronics Compass</h1>
-            <div class="brand-subtitle">155 CH · 3 Terms/Year Structure (Fall/Spring/Summer) · Created by Mahmoud Mohamed El-Aidy &amp; Adham Adel Sayed</div>
+            <div class="brand-subtitle">155 CH · 3 Terms/Year Structure (Fall/Spring/Summer) · Created by Anakin Skywalker &amp; Peter Parker</div>
           </div>
 
           <div class="user-chip" id="userChip" style="display:none;">
@@ -1495,15 +1557,8 @@
 
     <main class="workspace">
       <section class="graph-panel">
-        <div class="graph-toolbar">
-          <button class="graph-tool" id="zoomInBtn" title="Zoom in" type="button"><span class="icon" data-lucide="zoom-in"></span></button>
-          <button class="graph-tool" id="zoomOutBtn" title="Zoom out" type="button"><span class="icon" data-lucide="zoom-out"></span></button>
-          <button class="graph-tool" id="fitBtn" title="Fit graph" type="button"><span class="icon" data-lucide="maximize-2"></span></button>
-          <button class="graph-tool" id="resetViewBtn" title="Reset view" type="button"><span class="icon" data-lucide="crosshair"></span></button>
-        </div>
-
         <div class="graph-help">
-          Hover = highlight paths · Click = pin/inspect · Change semester slot from card dropdown
+          Hover = highlight paths · Click a course = inspect · Change semester slot from card dropdown
         </div>
 
         <div id="graphViewport">
@@ -1549,6 +1604,7 @@
       </section>
 
       <!-- SLIDE-OVER OVERLAY DRAWER -->
+      <div class="drawer-backdrop" id="drawerBackdrop" aria-hidden="true"></div>
       <aside class="drawer" id="courseDrawer">
         <div class="drawer-inner" id="drawerContent"></div>
       </aside>
@@ -1950,6 +2006,7 @@
     const GRAPH_WORLD_HEIGHT = 1600;
     const semesterLayer = document.getElementById("semesterLayer");
     const drawer = document.getElementById("courseDrawer");
+    const drawerBackdrop = document.getElementById("drawerBackdrop");
     const drawerContent = document.getElementById("drawerContent");
     const toast = document.getElementById("toast");
 
@@ -2555,7 +2612,8 @@
           }
           state.pinnedCode = course.code;
           applyPathHighlight(course.code);
-          openDrawer(course.code);
+          // Open on the next frame so the roadmap gesture/pointer handlers finish first.
+          requestAnimationFrame(() => openDrawer(course.code));
         });
 
         nodeLayer.appendChild(node);
@@ -2658,6 +2716,16 @@
       });
     }
 
+    function closeCourseDrawer() {
+      state.pinnedCode = null;
+      drawer.classList.remove("open");
+      if (drawerBackdrop) {
+        drawerBackdrop.classList.remove("open");
+        drawerBackdrop.setAttribute("aria-hidden", "true");
+      }
+      clearPathHighlight();
+    }
+
     function openDrawer(code) {
       const map = getCourseMap();
       const course = map[code];
@@ -2672,9 +2740,9 @@
 
       let extraTrainingNote = "";
       if (code === "MEES281") {
-        extraTrainingNote = `<div class="drawer-note" style="margin-top:4px; color:#fde68a;">ℹ If taken in a regular term (Fall/Spring), max term credits is 15 CH and you get 1 day off (max 4 college days/week).</div>`;
+        extraTrainingNote = `<div class="drawer-note" style="margin-top:4px; color:#fde68a;">If taken in a regular term (Fall/Spring), the maximum term load is capped at 15 CH, and you are granted 1 day off (attending a max of 4 days/week).</div>`;
       } else if (code === "MEES381") {
-        extraTrainingNote = `<div class="drawer-note" style="margin-top:4px; color:#fde68a;">ℹ If taken in a regular term (Fall/Spring), max term credits is 14 CH and you get 2 days off (max 3 college days/week).</div>`;
+        extraTrainingNote = `<div class="drawer-note" style="margin-top:4px; color:#fde68a;">If taken in a regular term (Fall/Spring), the maximum term load is capped at 14 CH, and you are granted 2 days off (attending a max of 3 days/week).</div>`;
       }
 
       let html = `
@@ -2724,12 +2792,10 @@
 
       drawerContent.innerHTML = html;
       drawer.classList.add("open");
+      if (drawerBackdrop) drawerBackdrop.classList.add("open");
+      if (drawerBackdrop) drawerBackdrop.setAttribute("aria-hidden", "false");
 
-      document.getElementById("drawerCloseBtn").addEventListener("click", () => {
-        state.pinnedCode = null;
-        drawer.classList.remove("open");
-        clearPathHighlight();
-      });
+      document.getElementById("drawerCloseBtn").addEventListener("click", closeCourseDrawer);
 
       document.getElementById("drawerTerm").addEventListener("change", (e) => {
         const targetTerm = e.target.value;
@@ -3567,18 +3633,6 @@
         zoomAtPoint(rect.width / 2, rect.height / 2, newZoom);
       }
 
-      document.getElementById("zoomInBtn").addEventListener("click", () => {
-        zoomAtViewportCenter(state.zoom * 1.15);
-      });
-      document.getElementById("zoomOutBtn").addEventListener("click", () => {
-        zoomAtViewportCenter(state.zoom * 0.85);
-      });
-      document.getElementById("fitBtn").addEventListener("click", resetGraphView);
-      document.getElementById("resetViewBtn").addEventListener("click", () => {
-        resetGraphView();
-        clearPathHighlight();
-      });
-
       const activePointers = new Map();
       let gestureMode = null; // "pan" | "pinch"
       let gestureMoved = false;
@@ -3767,6 +3821,22 @@
         window.__graphTouchMoved = false;
       }, true);
 
+      // Reliable course click delegation. This capture-phase handler ensures the
+      // drawer still opens even when the roadmap gesture handler has pointer
+      // capture or a course card contains interactive controls.
+      graphViewport.addEventListener("click", (e) => {
+        if (suppressNextGraphClick || window.__graphTouchMoved) return;
+        if (e.target.closest("select, button, input, textarea")) return;
+        const courseNode = e.target.closest(".course-node");
+        if (!courseNode || !graphViewport.contains(courseNode)) return;
+        const code = courseNode.dataset.code;
+        if (!code) return;
+        state.pinnedCode = code;
+        applyPathHighlight(code);
+        e.stopPropagation();
+        requestAnimationFrame(() => openDrawer(code));
+      }, true);
+
       graphViewport.style.touchAction = "none";
       graphViewport.style.userSelect = "none";
       graphViewport.style.webkitUserSelect = "none";
@@ -3793,9 +3863,15 @@
             setTransform();
           });
         };
-        topbarCurtainBtn.addEventListener("click", () => {
+        topbarCurtainBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
           setTopbarCurtain(!mainTopbar.classList.contains("is-curtained"));
         });
+      }
+
+      if (drawerBackdrop) {
+        drawerBackdrop.addEventListener("click", closeCourseDrawer);
       }
 
       // CLICK ANYWHERE OUTSIDE THE COURSE DRAWER TO CLOSE IT
@@ -3803,9 +3879,7 @@
         if (!drawer.classList.contains("open")) return;
         if (e.target.closest("#courseDrawer")) return;
         if (e.target.closest(".course-node")) return;
-        state.pinnedCode = null;
-        drawer.classList.remove("open");
-        clearPathHighlight();
+        closeCourseDrawer();
       });
 
       // LEGEND MINIMIZE / MAXIMIZE TOGGLE SETUP
