@@ -2894,7 +2894,9 @@
       const courseTerms = { ...(snapshot.courseTerms || {}) };
       courseTerms[ACCOUNT_META_KEY] = {
         dryRunSelections: Array.isArray(snapshot.dryRunSelections) ? snapshot.dryRunSelections : [],
-        dryRunSubmitted: !!snapshot.dryRunSubmitted
+        dryRunSubmitted: !!snapshot.dryRunSubmitted,
+        startYear: Number(snapshot.startYear) || 2024,
+        theme: snapshot.theme || "dark"
       };
       return courseTerms;
     }
@@ -2931,14 +2933,15 @@
           manual_pass: supabaseSnapshot.manualPass,
           course_terms: buildSupabaseCourseTerms(supabaseSnapshot),
           total_years: supabaseSnapshot.totalYears,
-          start_year: supabaseSnapshot.startYear,
-          theme: supabaseSnapshot.theme,
           selected_electives: supabaseSnapshot.selectedElectives,
           willing_list: supabaseSnapshot.willingList,
           willing_term_cap: supabaseSnapshot.willingTermCap,
           updated_at: new Date().toISOString()
         }, { onConflict: "user_id" });
-        if (error) console.error("Supabase save failed:", error.message);
+        if (error) {
+          console.error("Supabase save failed:", error.message);
+          try { showToast(`Cloud save failed: ${error.message}`); } catch (e) {}
+        }
       }, 600);
     }
 
@@ -2988,7 +2991,24 @@
         return;
       }
 
-      if (!data) return;
+      if (!data) {
+        // First-device migration: if this account has meaningful local data,
+        // create its server row now. A blank new device does not create an empty row.
+        const hasLocalData = Object.keys(localBeforeServer.grades || {}).length > 0
+          || Object.keys(localBeforeServer.manualPass || {}).length > 0
+          || Object.keys(localBeforeServer.courseTerms || {}).length > 0
+          || (Array.isArray(localBeforeServer.dryRunSelections) && localBeforeServer.dryRunSelections.length > 0)
+          || !!localBeforeServer.dryRunSubmitted
+          || (Array.isArray(localBeforeServer.willingList) && localBeforeServer.willingList.length > 0)
+          || (Array.isArray(localBeforeServer.selectedElectives?.E2) && localBeforeServer.selectedElectives.E2.length > 0)
+          || (Array.isArray(localBeforeServer.selectedElectives?.E3) && localBeforeServer.selectedElectives.E3.length > 0)
+          || localBeforeServer.selectedElectives?.E1 !== ELECTIVES_E1_POOL[0].code
+          || Number(localBeforeServer.totalYears) !== 4
+          || Number(localBeforeServer.startYear) !== 2024
+          || localBeforeServer.theme !== "dark";
+        if (hasLocalData) saveState();
+        return;
+      }
       if (!currentUser || currentUser.id !== userId) return;
 
       // Restore grades from the canonical Supabase account record.
@@ -2996,8 +3016,6 @@
       state.grades = (data.grades && typeof data.grades === "object") ? data.grades : {};
       state.manualPass = data.manual_pass || {};
       state.totalYears = data.total_years || state.totalYears;
-      state.startYear = data.start_year || state.startYear;
-      if (data.theme) applyTheme(data.theme);
       if (data.selected_electives) {
         state.selectedElectives = {
           E1: data.selected_electives.E1 || ELECTIVES_E1_POOL[0].code,
@@ -3015,6 +3033,8 @@
         ? serverCourseTerms[ACCOUNT_META_KEY] : {};
       delete serverCourseTerms[ACCOUNT_META_KEY];
       state.courseTerms = serverCourseTerms;
+      if (storedMeta.startYear) state.startYear = Number(storedMeta.startYear) || state.startYear;
+      if (storedMeta.theme) applyTheme(storedMeta.theme);
 
       // Prefer server grades when present. For legacy accounts whose old save failed,
       // preserve the user's local grades and immediately migrate them to Supabase.
