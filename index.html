@@ -1493,6 +1493,9 @@
 
     const TOTAL_DEGREE_CREDITS = 155;
     const STORAGE_KEY = "cufe_mechatronics_navigator_v45";
+    // Reserved per-account metadata stored inside the already-existing course_terms JSON
+    // so Dry Run persistence remains compatible with older Supabase schemas.
+    const ACCOUNT_META_KEY = "__cufe_navigator_meta";
 
     const LETTER_POINTS = {
       "A+": 4.0, "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7,
@@ -2664,11 +2667,8 @@
       return currentUser ? `${STORAGE_KEY}:${currentUser.id}` : null;
     }
 
-    function saveState() {
-      const key = userStorageKey();
-      if (!key) return;
-
-      const snapshot = {
+    function buildAccountSnapshot() {
+      return {
         grades: state.grades,
         manualPass: state.manualPass,
         courseTerms: state.courseTerms,
@@ -2681,6 +2681,22 @@
         dryRunSelections: state.dryRunSelections,
         dryRunSubmitted: state.dryRunSubmitted
       };
+    }
+
+    function buildSupabaseCourseTerms(snapshot) {
+      const courseTerms = { ...(snapshot.courseTerms || {}) };
+      courseTerms[ACCOUNT_META_KEY] = {
+        dryRunSelections: Array.isArray(snapshot.dryRunSelections) ? snapshot.dryRunSelections : [],
+        dryRunSubmitted: !!snapshot.dryRunSubmitted
+      };
+      return courseTerms;
+    }
+
+    function saveState() {
+      const key = userStorageKey();
+      if (!key) return;
+
+      const snapshot = buildAccountSnapshot();
 
       try {
         localStorage.setItem(key, JSON.stringify(snapshot));
@@ -2699,19 +2715,20 @@
         // Never allow a delayed save from one account to be written to another account.
         if (!currentUser || currentUser.id !== userId) return;
 
+        // IMPORTANT: keep the core save compatible with legacy student_state schemas.
+        // Dry Run is stored inside course_terms metadata, so missing Dry Run columns
+        // can never make the entire grades/state upsert fail.
         const { error } = await supabaseClient.from("student_state").upsert({
           user_id: userId,
           grades: supabaseSnapshot.grades,
           manual_pass: supabaseSnapshot.manualPass,
-          course_terms: supabaseSnapshot.courseTerms,
+          course_terms: buildSupabaseCourseTerms(supabaseSnapshot),
           total_years: supabaseSnapshot.totalYears,
           start_year: supabaseSnapshot.startYear,
           theme: supabaseSnapshot.theme,
           selected_electives: supabaseSnapshot.selectedElectives,
           willing_list: supabaseSnapshot.willingList,
           willing_term_cap: supabaseSnapshot.willingTermCap,
-          dry_run_selections: supabaseSnapshot.dryRunSelections,
-          dry_run_submitted: supabaseSnapshot.dryRunSubmitted,
           updated_at: new Date().toISOString()
         }, { onConflict: "user_id" });
         if (error) console.error("Supabase save failed:", error.message);
@@ -2752,6 +2769,7 @@
       if (!supabaseClient || !currentUser) return;
 
       const userId = currentUser.id;
+      const localBeforeServer = buildAccountSnapshot();
       const { data, error } = await supabaseClient
         .from("student_state")
         .select("*")
@@ -2766,9 +2784,7 @@
       if (!data) return;
       if (!currentUser || currentUser.id !== userId) return;
 
-      state.grades = data.grades || {};
       state.manualPass = data.manual_pass || {};
-      state.courseTerms = data.course_terms || {};
       state.totalYears = data.total_years || state.totalYears;
       state.startYear = data.start_year || state.startYear;
       if (data.theme) applyTheme(data.theme);
@@ -2781,31 +2797,47 @@
       }
       state.willingList = Array.isArray(data.willing_list) ? data.willing_list : [];
       state.willingTermCap = data.willing_term_cap || 18;
-      state.dryRunSelections = Array.isArray(data.dry_run_selections) ? data.dry_run_selections : [];
-      state.dryRunSubmitted = !!data.dry_run_submitted;
+
+      // Load account-specific course terms and extract Dry Run metadata without
+      // exposing the reserved metadata key to the rest of the course-term logic.
+      const serverCourseTerms = (data.course_terms && typeof data.course_terms === "object") ? { ...data.course_terms } : {};
+      const storedMeta = (serverCourseTerms[ACCOUNT_META_KEY] && typeof serverCourseTerms[ACCOUNT_META_KEY] === "object")
+        ? serverCourseTerms[ACCOUNT_META_KEY] : {};
+      delete serverCourseTerms[ACCOUNT_META_KEY];
+      state.courseTerms = serverCourseTerms;
+
+      // Prefer server grades when present. For legacy accounts whose old save failed,
+      // preserve the user's local grades and immediately migrate them to Supabase.
+      const serverGrades = (data.grades && typeof data.grades === "object") ? data.grades : null;
+      const localGrades = (localBeforeServer.grades && typeof localBeforeServer.grades === "object") ? localBeforeServer.grades : {};
+      const serverHasGrades = serverGrades && Object.keys(serverGrades).length > 0;
+      const localHasGrades = Object.keys(localGrades).length > 0;
+      const shouldMigrateLegacyGrades = !serverHasGrades && localHasGrades;
+      state.grades = shouldMigrateLegacyGrades ? localGrades : (serverGrades || {});
+
+      // Support both a future dedicated Dry Run column and the schema-safe metadata fallback.
+      state.dryRunSelections = Array.isArray(data.dry_run_selections)
+        ? data.dry_run_selections
+        : (Array.isArray(storedMeta.dryRunSelections) ? storedMeta.dryRunSelections : []);
+      state.dryRunSubmitted = typeof data.dry_run_submitted === "boolean"
+        ? data.dry_run_submitted
+        : !!storedMeta.dryRunSubmitted;
 
       // Keep this account's browser cache synchronized with the canonical account row.
       const key = userStorageKey();
       if (key) {
         try {
-          localStorage.setItem(key, JSON.stringify({
-            grades: state.grades,
-            manualPass: state.manualPass,
-            courseTerms: state.courseTerms,
-            totalYears: state.totalYears,
-            startYear: state.startYear,
-            theme: state.theme,
-            selectedElectives: state.selectedElectives,
-            willingList: state.willingList,
-            willingTermCap: state.willingTermCap,
-            dryRunSelections: state.dryRunSelections,
-            dryRunSubmitted: state.dryRunSubmitted
-          }));
+          localStorage.setItem(key, JSON.stringify(buildAccountSnapshot()));
           localStorage.setItem(`${key}:theme`, state.theme);
           localStorage.setItem(`${key}:startYear`, String(state.startYear));
         } catch (e) {
           console.error("Local account-state refresh failed:", e);
         }
+      }
+
+      if (shouldMigrateLegacyGrades) {
+        // Persist the recovered legacy grades without replacing them with an empty server row.
+        saveState();
       }
     }
 
