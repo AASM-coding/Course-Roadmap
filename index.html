@@ -110,37 +110,41 @@
     .topbar-curtain {
       position: absolute;
       left: 50%;
-      bottom: -28px;
+      bottom: -22px;
       transform: translateX(-50%);
-      width: 30px;
-      height: 20px;
-      border: 1px solid var(--border);
+      width: 34px;
+      height: 22px;
+      border: 1px solid rgba(148,163,184,.42);
       border-top: 0;
-      border-radius: 0 0 8px 8px;
-      background: var(--topbar-bg);
-      color: var(--muted);
+      border-radius: 0 0 9px 9px;
+      background: rgba(15,23,42,.42);
+      color: var(--text);
       display: inline-flex;
       align-items: center;
       justify-content: center;
       padding: 0;
-      z-index: 70;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.14);
+      z-index: 100;
+      box-shadow: 0 3px 10px rgba(0,0,0,.18);
       cursor: pointer;
-      transition: transform .22s cubic-bezier(.2,.75,.2,1), color .16s ease, background .16s ease, box-shadow .16s ease;
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      transition: transform .24s cubic-bezier(.22,.75,.2,1), color .16s ease, background .16s ease, box-shadow .16s ease;
     }
     .topbar-curtain::before {
       content: "";
       position: absolute;
       left: 50%;
-      top: -7px;
-      width: 72px;
-      height: 7px;
+      top: -5px;
+      width: 76px;
+      height: 5px;
       transform: translateX(-50%);
-      border: 1px solid var(--border);
+      border: 1px solid rgba(148,163,184,.34);
       border-bottom: 0;
-      border-radius: 7px 7px 0 0;
-      background: var(--topbar-bg);
-      box-shadow: 0 -1px 5px rgba(0,0,0,0.05);
+      border-radius: 6px 6px 0 0;
+      background: rgba(15,23,42,.30);
+      -webkit-backdrop-filter: blur(5px);
+      backdrop-filter: blur(5px);
+      box-shadow: 0 -1px 6px rgba(0,0,0,.08);
       pointer-events: none;
     }
     .topbar-inner {
@@ -159,11 +163,15 @@
       transition: transform .18s ease;
     }
     @media (max-width: 850px) {
-      .topbar-inner { max-height: 760px; }
-      .topbar-curtain { touch-action: manipulation; width:32px; height:22px; bottom:-29px; }
-      .topbar-curtain::before { width:84px; height:8px; top:-8px; }
-      .topbar.is-curtained .topbar-curtain { bottom:-29px; }
-      .topbar.is-curtained .topbar-curtain::before { top:auto; bottom:-8px; }
+      /* The topbar itself stays fixed; only its inner controls scroll. This keeps
+         the curtain tab physically attached to the bar edge instead of moving
+         through the scrolled mobile controls. */
+      .topbar { overflow: visible; }
+      .topbar-inner { max-height: 38vh; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+      .topbar-curtain { touch-action: manipulation; width:32px; height:22px; bottom:-22px; }
+      .topbar-curtain::before { width:84px; height:6px; top:-6px; }
+      .topbar.is-curtained .topbar-curtain { bottom:-22px; }
+      .topbar.is-curtained .topbar-curtain::before { top:auto; bottom:-6px; }
     }
 
     .topbar.is-curtained {
@@ -184,7 +192,7 @@
     }
     .topbar.is-curtained .topbar-curtain {
       pointer-events: auto;
-      bottom: -28px;
+      bottom: -22px;
       border-top: 1px solid var(--border);
       border-bottom: 0;
       border-radius: 8px 8px 0 0;
@@ -192,7 +200,7 @@
     }
     .topbar.is-curtained .topbar-curtain::before {
       top: auto;
-      bottom: -7px;
+      bottom: -5px;
       border-top: 0;
       border-bottom: 1px solid var(--border);
       border-radius: 0 0 7px 7px;
@@ -1186,9 +1194,7 @@
     @media (max-width: 850px) {
       .topbar {
         max-height: 38vh;
-        overflow-y: auto;
-        overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
+        overflow: visible;
       }
       .workspace {
         min-height: 62vh;
@@ -3502,22 +3508,34 @@
         saveState();
       });
 
+      // ===== UNIFIED GRAPH MOTION SYSTEM =====
+      // Desktop: wheel zooms toward the cursor; left-click drag pans the roadmap.
+      // Touch: one finger pans; two fingers pinch + pan together, like a gallery image.
+      // Pointer Events unify mouse, touch, and pen behavior and avoid competing
+      // gesture handlers. Updates are applied directly for low-latency tracking.
       function resetGraphView() {
         const isMobile = window.innerWidth <= 850;
         state.zoom = isMobile ? 0.40 : 0.62;
-        state.panX = isMobile ? 0 : 25;
-        state.panY = isMobile ? 0 : 18;
+        state.panX = 0;
+        state.panY = 0;
         setTransform();
       }
 
-      // Zoom while keeping a given viewport-relative point (px, py) visually fixed in place.
+      function clampZoom(z) {
+        return Math.max(0.30, Math.min(1.50, z));
+      }
+
       function zoomAtPoint(px, py, newZoom) {
-        newZoom = Math.max(0.3, Math.min(1.5, newZoom));
-        const worldX = (px - state.panX) / state.zoom;
-        const worldY = (py - state.panY) / state.zoom;
+        const oldZoom = state.zoom;
+        newZoom = clampZoom(newZoom);
+        if (Math.abs(newZoom - oldZoom) < 0.00001) return;
+
+        // Preserve the world location beneath the gesture point.
+        const worldX = (px - state.panX) / oldZoom;
+        const worldY = (py - state.panY) / oldZoom;
         state.zoom = newZoom;
-        state.panX = px - worldX * state.zoom;
-        state.panY = py - worldY * state.zoom;
+        state.panX = px - worldX * newZoom;
+        state.panY = py - worldY * newZoom;
         setTransform();
       }
 
@@ -3526,164 +3544,211 @@
         zoomAtPoint(rect.width / 2, rect.height / 2, newZoom);
       }
 
-      document.getElementById("zoomInBtn").addEventListener("click", () => { zoomAtViewportCenter(state.zoom * 1.15); });
-      document.getElementById("zoomOutBtn").addEventListener("click", () => { zoomAtViewportCenter(state.zoom * 0.85); });
-      document.getElementById("fitBtn").addEventListener("click", () => { resetGraphView(); });
-      document.getElementById("resetViewBtn").addEventListener("click", () => { resetGraphView(); clearPathHighlight(); });
+      document.getElementById("zoomInBtn").addEventListener("click", () => {
+        zoomAtViewportCenter(state.zoom * 1.15);
+      });
+      document.getElementById("zoomOutBtn").addEventListener("click", () => {
+        zoomAtViewportCenter(state.zoom * 0.85);
+      });
+      document.getElementById("fitBtn").addEventListener("click", resetGraphView);
+      document.getElementById("resetViewBtn").addEventListener("click", () => {
+        resetGraphView();
+        clearPathHighlight();
+      });
+
+      const activePointers = new Map();
+      let gestureMode = null; // "pan" | "pinch"
+      let gestureMoved = false;
+      let gestureStartX = 0, gestureStartY = 0;
+      let gestureStartPanX = 0, gestureStartPanY = 0;
+      let pinchStartDistance = 0;
+      let pinchStartZoom = 0;
+      let pinchStartWorldX = 0, pinchStartWorldY = 0;
+      let pinchLastMidX = 0, pinchLastMidY = 0;
+      let mousePointerId = null;
+      let suppressNextGraphClick = false;
+
+      function pointerDistance(a, b) {
+        return Math.hypot(b.x - a.x, b.y - a.y);
+      }
+
+      function pointerMidpoint(a, b) {
+        return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      }
+
+      function graphPointFromEvent(e) {
+        const rect = graphViewport.getBoundingClientRect();
+        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      }
+
+      function markGestureMoved() {
+        gestureMoved = true;
+        suppressNextGraphClick = true;
+        window.__graphTouchMoved = true;
+      }
+
+      function beginPan(pointer) {
+        gestureMode = "pan";
+        gestureMoved = false;
+        gestureStartX = pointer.x;
+        gestureStartY = pointer.y;
+        gestureStartPanX = state.panX;
+        gestureStartPanY = state.panY;
+        graphViewport.classList.add("dragging");
+      }
+
+      function beginPinch() {
+        const pts = [...activePointers.values()];
+        if (pts.length < 2) return;
+        const a = pts[0], b = pts[1];
+        const mid = pointerMidpoint(a, b);
+        pinchStartDistance = Math.max(1, pointerDistance(a, b));
+        pinchStartZoom = state.zoom;
+        pinchStartWorldX = (mid.x - state.panX) / state.zoom;
+        pinchStartWorldY = (mid.y - state.panY) / state.zoom;
+        pinchLastMidX = mid.x;
+        pinchLastMidY = mid.y;
+        gestureMode = "pinch";
+        markGestureMoved();
+        graphViewport.classList.add("dragging");
+      }
+
+      function updatePan() {
+        const pointer = activePointers.values().next().value;
+        if (!pointer) return;
+        const dx = pointer.x - gestureStartX;
+        const dy = pointer.y - gestureStartY;
+        if (!gestureMoved && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) {
+          markGestureMoved();
+        }
+        if (!gestureMoved) return;
+        state.panX = gestureStartPanX + dx;
+        state.panY = gestureStartPanY + dy;
+        setTransform();
+      }
+
+      function updatePinch() {
+        const pts = [...activePointers.values()];
+        if (pts.length < 2) return;
+        const a = pts[0], b = pts[1];
+        const mid = pointerMidpoint(a, b);
+        const distance = Math.max(1, pointerDistance(a, b));
+        const scale = distance / pinchStartDistance;
+        const newZoom = clampZoom(pinchStartZoom * scale);
+
+        // Keep the world point beneath the moving midpoint stable while both
+        // translating and zooming. This is what makes the gesture feel like a photo.
+        state.zoom = newZoom;
+        state.panX = mid.x - pinchStartWorldX * newZoom;
+        state.panY = mid.y - pinchStartWorldY * newZoom;
+        pinchLastMidX = mid.x;
+        pinchLastMidY = mid.y;
+        markGestureMoved();
+        setTransform();
+      }
 
       graphViewport.addEventListener("wheel", (e) => {
         e.preventDefault();
-        const factor = e.deltaY < 0 ? 1.08 : 0.92;
         const rect = graphViewport.getBoundingClientRect();
         const px = e.clientX - rect.left;
         const py = e.clientY - rect.top;
+        // Exponential scaling works naturally for both mouse wheels and trackpads.
+        const factor = Math.exp(-e.deltaY * 0.0016);
         zoomAtPoint(px, py, state.zoom * factor);
       }, { passive: false });
 
-      graphViewport.addEventListener("mousedown", (e) => {
-        if (e.button !== 0 || e.target.closest(".course-node")) return;
-        isPanning = true;
-        panStartX = e.clientX; panStartY = e.clientY;
-        startPanX = state.panX; startPanY = state.panY;
-      });
+      graphViewport.addEventListener("pointerdown", (e) => {
+        // Only primary left mouse button participates in desktop dragging.
+        if (e.pointerType === "mouse" && e.button !== 0) return;
+        const point = graphPointFromEvent(e);
+        activePointers.set(e.pointerId, { id: e.pointerId, x: point.x, y: point.y, type: e.pointerType });
+        graphViewport.setPointerCapture?.(e.pointerId);
 
-      window.addEventListener("mousemove", (e) => {
-        if (!isPanning) return;
-        state.panX = startPanX + (e.clientX - panStartX);
-        state.panY = startPanY + (e.clientY - panStartY);
-        setTransform();
-      });
+        if (activePointers.size === 1) {
+          mousePointerId = e.pointerType === "mouse" ? e.pointerId : mousePointerId;
+          beginPan(activePointers.get(e.pointerId));
+        } else if (activePointers.size === 2) {
+          beginPinch();
+        }
+      }, { passive: false });
 
-      window.addEventListener("mouseup", () => { isPanning = false; graphViewport.classList.remove("dragging"); });
+      graphViewport.addEventListener("pointermove", (e) => {
+        if (!activePointers.has(e.pointerId)) return;
+        const point = graphPointFromEvent(e);
+        const current = activePointers.get(e.pointerId);
+        current.x = point.x;
+        current.y = point.y;
+        activePointers.set(e.pointerId, current);
 
-      // Touch navigation: one finger pans the roadmap; two fingers pinch-zoom.
-      // A short tap still opens a course card, while an actual drag/gesture is
-      // treated as navigation and suppresses the synthetic click afterward.
-      let touchPanActive = false;
-      let touchMoved = false;
-      let pinchActive = false;
-      let pinchStartDistance = 0;
-      let pinchStartZoom = 0;
-      let pinchStartWorldX = 0;
-      let pinchStartWorldY = 0;
-      let touchStartX = 0, touchStartY = 0, touchStartPanX = 0, touchStartPanY = 0;
+        if (activePointers.size >= 2) {
+          if (gestureMode !== "pinch") beginPinch();
+          updatePinch();
+          e.preventDefault();
+        } else if (gestureMode === "pan") {
+          updatePan();
+          if (gestureMoved) e.preventDefault();
+        }
+      }, { passive: false });
 
-      function touchDistance(a, b) {
-        return Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
-      }
+      function finishPointer(e) {
+        activePointers.delete(e.pointerId);
+        try { graphViewport.releasePointerCapture?.(e.pointerId); } catch (_) {}
 
-      function touchMidpoint(a, b, rect) {
-        return {
-          x: ((a.clientX + b.clientX) / 2) - rect.left,
-          y: ((a.clientY + b.clientY) / 2) - rect.top
-        };
-      }
+        if (activePointers.size >= 2) {
+          beginPinch();
+          return;
+        }
 
-      graphViewport.addEventListener("touchstart", (e) => {
-        const rect = graphViewport.getBoundingClientRect();
-
-        if (e.touches.length === 2) {
-          // Switch immediately from pan to pinch when the second finger lands.
-          touchPanActive = false;
-          touchMoved = true;
-          pinchActive = true;
-          window.__graphTouchMoved = true;
-
-          const a = e.touches[0];
-          const b = e.touches[1];
-          pinchStartDistance = Math.max(1, touchDistance(a, b));
-          pinchStartZoom = state.zoom;
-
-          const mid = touchMidpoint(a, b, rect);
-          pinchStartWorldX = (mid.x - state.panX) / state.zoom;
-          pinchStartWorldY = (mid.y - state.panY) / state.zoom;
+        if (activePointers.size === 1) {
+          // After a pinch, seamlessly continue with the remaining finger as a pan.
+          const remaining = activePointers.values().next().value;
+          gestureStartX = remaining.x;
+          gestureStartY = remaining.y;
+          gestureStartPanX = state.panX;
+          gestureStartPanY = state.panY;
+          gestureMode = "pan";
           graphViewport.classList.add("dragging");
-          e.preventDefault();
           return;
         }
 
-        if (e.touches.length !== 1) return;
-        const t = e.touches[0];
-        pinchActive = false;
-        touchPanActive = true;
-        touchMoved = false;
-        window.__graphTouchMoved = false;
-        touchStartX = t.clientX;
-        touchStartY = t.clientY;
-        touchStartPanX = state.panX;
-        touchStartPanY = state.panY;
-        graphViewport.classList.add("dragging");
-      }, { passive: false });
-
-      graphViewport.addEventListener("touchmove", (e) => {
-        const rect = graphViewport.getBoundingClientRect();
-
-        if (e.touches.length === 2 && pinchActive) {
-          const a = e.touches[0];
-          const b = e.touches[1];
-          const distance = Math.max(1, touchDistance(a, b));
-          const mid = touchMidpoint(a, b, rect);
-          const scale = distance / pinchStartDistance;
-          const newZoom = Math.max(0.3, Math.min(1.5, pinchStartZoom * scale));
-
-          state.zoom = newZoom;
-          state.panX = mid.x - pinchStartWorldX * state.zoom;
-          state.panY = mid.y - pinchStartWorldY * state.zoom;
-          touchMoved = true;
+        if (gestureMoved) {
+          suppressNextGraphClick = true;
           window.__graphTouchMoved = true;
-          setTransform();
-          updateGraphScrollbars();
-          e.preventDefault();
-          return;
+          setTimeout(() => {
+            suppressNextGraphClick = false;
+            window.__graphTouchMoved = false;
+          }, 220);
+        } else {
+          suppressNextGraphClick = false;
+          window.__graphTouchMoved = false;
         }
 
-        if (!touchPanActive || e.touches.length !== 1) return;
-        const t = e.touches[0];
-        const dx = t.clientX - touchStartX;
-        const dy = t.clientY - touchStartY;
-        if (!touchMoved && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
-          touchMoved = true;
-          window.__graphTouchMoved = true;
-        }
-        if (!touchMoved) return;
-        e.preventDefault();
-        state.panX = touchStartPanX + dx;
-        state.panY = touchStartPanY + dy;
-        setTransform();
-        updateGraphScrollbars();
-      }, { passive: false });
-
-      const finishTouchPan = () => {
-        touchPanActive = false;
-        pinchActive = false;
+        gestureMode = null;
+        gestureMoved = false;
+        mousePointerId = null;
         graphViewport.classList.remove("dragging");
-        if (touchMoved) {
-          window.__graphTouchMoved = true;
-          setTimeout(() => { window.__graphTouchMoved = false; }, 180);
-        }
-        touchMoved = false;
-      };
+      }
 
-      graphViewport.addEventListener("touchend", (e) => {
-        // If a pinch ends with one finger still down, continue as a normal pan
-        // from the finger's current position instead of getting stuck.
-        if (e.touches.length === 1 && pinchActive) {
-          const t = e.touches[0];
-          pinchActive = false;
-          touchPanActive = true;
-          touchMoved = true;
-          window.__graphTouchMoved = true;
-          touchStartX = t.clientX;
-          touchStartY = t.clientY;
-          touchStartPanX = state.panX;
-          touchStartPanY = state.panY;
-          graphViewport.classList.add("dragging");
-          return;
-        }
-        if (e.touches.length === 0) finishTouchPan();
+      graphViewport.addEventListener("pointerup", finishPointer, { passive: false });
+      graphViewport.addEventListener("pointercancel", finishPointer, { passive: false });
+      graphViewport.addEventListener("lostpointercapture", (e) => {
+        if (activePointers.has(e.pointerId)) finishPointer(e);
       }, { passive: false });
 
-      graphViewport.addEventListener("touchcancel", finishTouchPan, { passive: true });
+      // Prevent a drag gesture from being interpreted as a course-card click.
+      graphViewport.addEventListener("click", (e) => {
+        if (!suppressNextGraphClick) return;
+        e.preventDefault();
+        e.stopPropagation();
+        suppressNextGraphClick = false;
+        window.__graphTouchMoved = false;
+      }, true);
+
+      graphViewport.style.touchAction = "none";
+      graphViewport.style.userSelect = "none";
+      graphViewport.style.webkitUserSelect = "none";
+      graphViewport.style.webkitTouchCallout = "none";
+      graphViewport.style.willChange = "contents";
 
       window.addEventListener("resize", () => {
         updateGraphScrollbars();
