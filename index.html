@@ -4185,7 +4185,7 @@
       if (conflicting) {
         return {
           allowed: false,
-          reason: `${entry.code} overlaps ${conflicting.code} on ${entry.day} (${formatDryRunTime(entry.start)}–${formatDryRunTime(entry.end)}).`
+          reason: `${entry.name} overlaps ${conflicting.code} on ${entry.day} (${formatDryRunTime(entry.start)}–${formatDryRunTime(entry.end)}).`
         };
       }
 
