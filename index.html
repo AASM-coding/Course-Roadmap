@@ -4788,17 +4788,34 @@
     // taken literally. This mirrors the convention already baked into the shipped
     // DRY_RUN_SCHEDULE fallback above.
     function dryRunParseCatalogTime(raw) {
-      if (raw == null) return null;
+      if (raw == null || raw === "") return null;
       let h, m;
-      if (raw instanceof Date) {
+
+      // SheetJS can return Excel times as fractions of a day (0..1),
+      // JavaScript Date objects, formatted strings, or occasionally numbers.
+      if (typeof raw === "number" && Number.isFinite(raw)) {
+        const totalMinutes = Math.round((raw % 1) * 24 * 60);
+        h = Math.floor(totalMinutes / 60) % 24;
+        m = totalMinutes % 60;
+        // Also support plain numeric hours such as 9 or 14.
+        if (raw >= 1 && raw <= 24 && Number.isInteger(raw)) { h = raw; m = 0; }
+      } else if (raw instanceof Date) {
+        h = raw.getHours(); m = raw.getMinutes();
+      } else if (typeof raw === "object" && typeof raw.getHours === "function") {
         h = raw.getHours(); m = raw.getMinutes();
       } else {
         const str = String(raw).trim();
-        const match = str.match(/^(\d{1,2}):(\d{2})/);
+        const match = str.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*(AM|PM))?$/i);
         if (!match) return null;
         h = parseInt(match[1], 10);
         m = parseInt(match[2], 10);
+        const meridiem = (match[4] || "").toUpperCase();
+        if (meridiem === "PM" && h < 12) h += 12;
+        if (meridiem === "AM" && h === 12) h = 0;
       }
+
+      if (!Number.isFinite(h) || !Number.isFinite(m) || h < 0 || h > 24 || m < 0 || m > 59) return null;
+      // Preserve the timetable's existing shorthand convention: 1-7 mean PM.
       if (h >= 1 && h <= 7) h += 12;
       return h * 60 + m;
     }
