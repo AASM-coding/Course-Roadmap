@@ -4788,17 +4788,57 @@
     // taken literally. This mirrors the convention already baked into the shipped
     // DRY_RUN_SCHEDULE fallback above.
     function dryRunParseCatalogTime(raw) {
-      if (raw == null) return null;
+      if (raw == null || raw === "") return null;
+
+      // Excel stores time-only cells as fractions of a 24-hour day in many
+      // workbooks (for example 09:00 = 0.375). SheetJS may therefore return
+      // either a Date, a numeric fraction, or a formatted string depending
+      // on workbook/cell settings. Accept all three forms.
       let h, m;
-      if (raw instanceof Date) {
-        h = raw.getHours(); m = raw.getMinutes();
+
+      if (raw instanceof Date && !isNaN(raw.getTime())) {
+        h = raw.getHours();
+        m = raw.getMinutes();
+      } else if (typeof raw === "number" && Number.isFinite(raw)) {
+        // Time-only Excel serial: fraction of one day.
+        if (raw >= 0 && raw < 1) {
+          const totalMinutes = Math.round(raw * 24 * 60);
+          h = Math.floor(totalMinutes / 60) % 24;
+          m = totalMinutes % 60;
+        } else {
+          // Also accept numeric hour values if a workbook has them as hours.
+          const wholeHours = Math.floor(raw);
+          const minutesPart = Math.round((raw - wholeHours) * 60);
+          h = wholeHours;
+          m = minutesPart;
+        }
       } else {
         const str = String(raw).trim();
-        const match = str.match(/^(\d{1,2}):(\d{2})/);
-        if (!match) return null;
-        h = parseInt(match[1], 10);
-        m = parseInt(match[2], 10);
+        let match = str.match(/^(\d{1,2}):(\d{2})(?::\d{2})?/);
+        if (match) {
+          h = parseInt(match[1], 10);
+          m = parseInt(match[2], 10);
+        } else if (/^\d+(?:\.\d+)?$/.test(str)) {
+          const numeric = Number(str);
+          if (!Number.isFinite(numeric)) return null;
+          if (numeric >= 0 && numeric < 1) {
+            const totalMinutes = Math.round(numeric * 24 * 60);
+            h = Math.floor(totalMinutes / 60) % 24;
+            m = totalMinutes % 60;
+          } else {
+            h = Math.floor(numeric);
+            m = Math.round((numeric - h) * 60);
+          }
+        } else {
+          return null;
+        }
       }
+
+      if (!Number.isFinite(h) || !Number.isFinite(m) || h < 0 || h > 23 || m < 0 || m > 59) {
+        return null;
+      }
+
+      // Existing timetable convention: afternoon values 1-7 mean 13:00-19:00.
       if (h >= 1 && h <= 7) h += 12;
       return h * 60 + m;
     }
@@ -4806,11 +4846,7 @@
     function dryRunFindKey(row, candidates) {
       const keys = Object.keys(row);
       for (const cand of candidates) {
-        const candNorm = cand.toLowerCase();
-        const hit = keys.find(k => {
-          const kNorm = k.trim().toLowerCase().replace(/\s*-\s*/g, ' ').trim();
-          return kNorm === candNorm;
-        });
+        const hit = keys.find(k => k.trim().toLowerCase() === cand.toLowerCase());
         if (hit) return hit;
       }
       return null;
