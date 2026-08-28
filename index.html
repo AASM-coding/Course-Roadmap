@@ -644,6 +644,7 @@
       z-index: 5;
       transition: opacity 0.16s ease, transform 0.15s ease, border-color 0.15s ease, box-shadow 0.16s ease;
       user-select: none;
+      cursor: pointer;
     }
 
     .course-node.cat-university-node { background: linear-gradient(145deg, #ff99cc, #ff80b3); border: 1.5px solid #d96b9f; color: #3b071a; }
@@ -795,7 +796,7 @@
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.46);
-      z-index: 99999;
+      z-index: 2147483000;
       opacity: 0;
       pointer-events: none;
       visibility: hidden;
@@ -819,7 +820,7 @@
       background: var(--drawer-bg);
       border-left: 1px solid var(--border);
       box-shadow: -18px 0 45px rgba(0, 0, 0, 0.42);
-      z-index: 100000;
+      z-index: 2147483001;
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
@@ -1557,10 +1558,6 @@
 
     <main class="workspace">
       <section class="graph-panel">
-        <div class="graph-help">
-          Hover = highlight paths · Click a course = inspect · Change semester slot from card dropdown
-        </div>
-
         <div id="graphViewport">
           <div id="graphWorld">
             <svg id="edgeSvg" viewBox="0 0 9000 1600" aria-hidden="true"></svg>
@@ -2008,6 +2005,13 @@
     const drawer = document.getElementById("courseDrawer");
     const drawerBackdrop = document.getElementById("drawerBackdrop");
     const drawerContent = document.getElementById("drawerContent");
+    // Move these to be direct children of <body>. Previously they lived inside
+    // <main class="workspace">; any ancestor gaining a transform/filter/will-change
+    // rule (now or in a future feature) would silently trap position:fixed
+    // descendants and bury the drawer behind other UI. Body-level parenting
+    // removes that failure mode entirely.
+    if (drawerBackdrop && drawerBackdrop.parentElement !== document.body) document.body.appendChild(drawerBackdrop);
+    if (drawer && drawer.parentElement !== document.body) document.body.appendChild(drawer);
     const toast = document.getElementById("toast");
 
     let isPanning = false;
@@ -3671,7 +3675,6 @@
         gestureStartY = pointer.y;
         gestureStartPanX = state.panX;
         gestureStartPanY = state.panY;
-        graphViewport.classList.add("dragging");
       }
 
       function beginPinch() {
@@ -3696,6 +3699,12 @@
         const dx = pointer.x - gestureStartX;
         const dy = pointer.y - gestureStartY;
         if (!gestureMoved && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) {
+          // Only now do we know this is a real drag, not a tap/click on a
+          // course box. Engage pointer capture and the grabbing cursor here,
+          // instead of on every pointerdown, so a plain click never gets
+          // hijacked into pan mode.
+          graphViewport.setPointerCapture?.(pointer.id);
+          graphViewport.classList.add("dragging");
           markGestureMoved();
         }
         if (!gestureMoved) return;
@@ -3739,12 +3748,14 @@
         if (e.pointerType === "mouse" && e.button !== 0) return;
         const point = graphPointFromEvent(e);
         activePointers.set(e.pointerId, { id: e.pointerId, x: point.x, y: point.y, type: e.pointerType });
-        graphViewport.setPointerCapture?.(e.pointerId);
 
         if (activePointers.size === 1) {
           mousePointerId = e.pointerType === "mouse" ? e.pointerId : mousePointerId;
           beginPan(activePointers.get(e.pointerId));
         } else if (activePointers.size === 2) {
+          // A second finger landing is unambiguously a pinch, never a tap —
+          // safe to capture both pointers and engage the gesture immediately.
+          activePointers.forEach(p => graphViewport.setPointerCapture?.(p.id));
           beginPinch();
         }
       }, { passive: false });
@@ -3824,10 +3835,16 @@
       // Reliable course click delegation. This capture-phase handler ensures the
       // drawer still opens even when the roadmap gesture handler has pointer
       // capture or a course card contains interactive controls.
+      // Hit-test via elementFromPoint(e.clientX, e.clientY) rather than e.target:
+      // graphViewport.setPointerCapture() runs on every pointerdown (not just
+      // drags), and some browsers retarget the resulting click's e.target to the
+      // capturing element instead of the actual node under the cursor, which
+      // silently breaks e.target.closest(".course-node") below.
       graphViewport.addEventListener("click", (e) => {
         if (suppressNextGraphClick || window.__graphTouchMoved) return;
         if (e.target.closest("select, button, input, textarea")) return;
-        const courseNode = e.target.closest(".course-node");
+        const hitEl = document.elementFromPoint(e.clientX, e.clientY);
+        const courseNode = (hitEl && hitEl.closest(".course-node")) || e.target.closest(".course-node");
         if (!courseNode || !graphViewport.contains(courseNode)) return;
         const code = courseNode.dataset.code;
         if (!code) return;
