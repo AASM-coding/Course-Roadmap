@@ -537,6 +537,7 @@
       width: 9000px;
       height: 1600px;
       transform-origin: 0 0;
+      will-change: transform;
     }
 
     #edgeSvg {
@@ -2017,6 +2018,10 @@
     let isPanning = false;
     let panStartX = 0, panStartY = 0, startPanX = 0, startPanY = 0;
     let toastTimer = null;
+    // Shared with the graph gesture code inside initApp() below — top-level
+    // so both setTransform()/updateGraphScrollbars() and the pointer handlers
+    // can read/invalidate the same cached rect.
+    let cachedViewportRect = null;
 
     function cloneObject(obj) { return JSON.parse(JSON.stringify(obj)); }
 
@@ -3269,7 +3274,7 @@
     }
 
     function updateGraphScrollbars() {
-      const viewportRect = graphViewport.getBoundingClientRect();
+      const viewportRect = cachedViewportRect || (cachedViewportRect = graphViewport.getBoundingClientRect());
       const scaledWidth = GRAPH_WORLD_WIDTH * state.zoom;
       const scaledHeight = GRAPH_WORLD_HEIGHT * state.zoom;
 
@@ -3352,7 +3357,7 @@
         if (vThumbDragging) { vThumbDragging = false; graphVScrollbarThumb.classList.remove("dragging"); }
       });
 
-      window.addEventListener("resize", () => updateGraphScrollbars());
+      window.addEventListener("resize", () => { cachedViewportRect = null; updateGraphScrollbars(); });
     }
 
     // ===== AUTH =====
@@ -3648,6 +3653,7 @@
       let pinchLastMidX = 0, pinchLastMidY = 0;
       let mousePointerId = null;
       let suppressNextGraphClick = false;
+      let gestureRafPending = false;
 
       function pointerDistance(a, b) {
         return Math.hypot(b.x - a.x, b.y - a.y);
@@ -3658,8 +3664,14 @@
       }
 
       function graphPointFromEvent(e) {
-        const rect = graphViewport.getBoundingClientRect();
-        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        // Cache the rect instead of calling getBoundingClientRect() on every
+        // pointermove. That forced-layout-read-per-move-event is the single
+        // biggest cause of touch jank — touchmove can fire 60-120x/sec, and
+        // each call was synchronously measuring the DOM. The rect only
+        // actually changes on resize/orientation change, so it's refreshed
+        // there and once at the start of every gesture, never mid-gesture.
+        if (!cachedViewportRect) cachedViewportRect = graphViewport.getBoundingClientRect();
+        return { x: e.clientX - cachedViewportRect.left, y: e.clientY - cachedViewportRect.top };
       }
 
       function markGestureMoved() {
@@ -3746,6 +3758,7 @@
       graphViewport.addEventListener("pointerdown", (e) => {
         // Only primary left mouse button participates in desktop dragging.
         if (e.pointerType === "mouse" && e.button !== 0) return;
+        if (activePointers.size === 0) cachedViewportRect = graphViewport.getBoundingClientRect();
         const point = graphPointFromEvent(e);
         activePointers.set(e.pointerId, { id: e.pointerId, x: point.x, y: point.y, type: e.pointerType });
 
@@ -3760,6 +3773,16 @@
         }
       }, { passive: false });
 
+      function runGestureFrame() {
+        gestureRafPending = false;
+        if (activePointers.size >= 2) {
+          if (gestureMode !== "pinch") beginPinch();
+          updatePinch();
+        } else if (gestureMode === "pan") {
+          updatePan();
+        }
+      }
+
       graphViewport.addEventListener("pointermove", (e) => {
         if (!activePointers.has(e.pointerId)) return;
         const point = graphPointFromEvent(e);
@@ -3768,13 +3791,22 @@
         current.y = point.y;
         activePointers.set(e.pointerId, current);
 
+        // preventDefault must happen synchronously in this handler (it has no
+        // effect if deferred to a later frame), so that check stays here even
+        // though the expensive work below is now batched to rAF.
         if (activePointers.size >= 2) {
-          if (gestureMode !== "pinch") beginPinch();
-          updatePinch();
           e.preventDefault();
-        } else if (gestureMode === "pan") {
-          updatePan();
-          if (gestureMoved) e.preventDefault();
+        } else if (gestureMode === "pan" && gestureMoved) {
+          e.preventDefault();
+        }
+
+        // Touch can deliver many pointermove events per frame; recomputing
+        // the transform and scrollbars for each one was the main source of
+        // the choppiness. Collapse them to a single update per animation
+        // frame — the last known pointer position is all that matters.
+        if (!gestureRafPending) {
+          gestureRafPending = true;
+          requestAnimationFrame(runGestureFrame);
         }
       }, { passive: false });
 
@@ -3861,6 +3893,7 @@
       graphViewport.style.willChange = "contents";
 
       window.addEventListener("resize", () => {
+        cachedViewportRect = null;
         updateGraphScrollbars();
       });
 
