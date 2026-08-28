@@ -4297,6 +4297,12 @@
       return String(code || "").toUpperCase().startsWith("CMPS");
     }
 
+    // GENS courses are selectable normally, but they do not participate in the
+    // Dry Run matching/alternative visual guidance or the pending red border.
+    function dryRunIsGENS(code) {
+      return String(code || "").toUpperCase().startsWith("GENS");
+    }
+
     function dryRunSelectionRule(entry, selectedEntries) {
       if (!entry) return { allowed: false, reason: "Invalid timetable block." };
       if (selectedEntries.some(e => e.id === entry.id)) return { allowed: true, reason: "" };
@@ -4414,14 +4420,14 @@
     }
 
     // Color 5 (pink): show every other lecture/tutorial period for the same course.
-    // Only an unfinished one-session course drives these guidance highlights.
+    // Only an unfinished one-session non-GENS course drives these guidance highlights.
     function dryRunAlternativeCourseIds(selectedEntries) {
       const alternatives = new Set();
       if (!selectedEntries || selectedEntries.length === 0) return alternatives;
       const counts = new Map();
       selectedEntries.forEach(selected => counts.set(selected.code, (counts.get(selected.code) || 0) + 1));
       selectedEntries.forEach(selected => {
-        if (counts.get(selected.code) !== 1) return;
+        if (counts.get(selected.code) !== 1 || dryRunIsGENS(selected.code)) return;
         DRY_RUN_SCHEDULE.forEach(candidate => {
           if (candidate.code === selected.code && candidate.id !== selected.id) {
             alternatives.add(candidate.id);
@@ -4432,15 +4438,15 @@
     }
 
     // Color 6 (purple): show the matching opposite-session period. Only an
-    // unfinished one-session course drives this guidance highlight; completed
-    // lecture+tutorial pairs stop generating guidance colors.
+    // unfinished one-session non-GENS course drives this guidance highlight;
+    // completed lecture+tutorial pairs stop generating guidance colors.
     function dryRunMatchingCounterpartIds(selectedEntries) {
       const matched = new Set();
       if (!selectedEntries || selectedEntries.length === 0) return matched;
       const counts = new Map();
       selectedEntries.forEach(selected => counts.set(selected.code, (counts.get(selected.code) || 0) + 1));
       selectedEntries.forEach(selected => {
-        if (counts.get(selected.code) !== 1) return;
+        if (counts.get(selected.code) !== 1 || dryRunIsGENS(selected.code)) return;
 
         const selectedSession = dryRunNormalizedSession(selected);
         const counterpartSession = selectedSession === "lecture" ? "tutorial" : "lecture";
@@ -4463,8 +4469,8 @@
       return matched;
     }
 
-    // A course is pending when exactly one session (lecture OR tutorial) is
-    // selected. The most recently clicked course is treated as the active
+    // A non-GENS course is pending when exactly one session (lecture OR tutorial)
+    // is selected. The most recently clicked course is treated as the active
     // decision; unfinished selections from earlier courses get a red border.
     function dryRunPendingCourseIds(selectedEntries) {
       const counts = new Map();
@@ -4473,7 +4479,7 @@
       });
       const pending = new Set();
       counts.forEach((count, code) => {
-        if (count === 1) pending.add(code);
+        if (count === 1 && !dryRunIsGENS(code)) pending.add(code);
       });
       return pending;
     }
