@@ -4378,7 +4378,8 @@
       const session = dryRunNormalizedSession(entry);
       // One tile is the current single-period course-box width.
       // Lectures span 2 tiles; tutorials span 3 tiles.
-      const spanTiles = session === "lecture" ? 2 : 3;
+      const durationHours = Math.max(1, Math.round((entry.end - entry.start) / 60));
+      const spanTiles = durationHours;
       const leftPct = (periodIndex / periodCount) * 100;
       const widthPct = (spanTiles / periodCount) * 100;
       const top = row * 26 + 1;
