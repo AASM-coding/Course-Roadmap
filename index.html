@@ -1195,6 +1195,122 @@
       font-size:10px; color:#666; text-align:center; padding:25px;
       background:#fff;
     }
+
+    /* Formal empty-state card shown when the submitted Dry Run has no courses.
+       The typography is intentionally serif/formal, while the surrounding
+       diamond/orbit geometry supplies the decorative character without external assets. */
+    .dry-empty-state {
+      min-height: min(62vh, 520px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 18px;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(34,211,238,0.06), transparent 38%),
+        #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    .dry-empty-state::before,
+    .dry-empty-state::after {
+      content: "";
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      border: 1px solid rgba(34, 211, 238, 0.18);
+      transform: rotate(45deg);
+      pointer-events: none;
+    }
+    .dry-empty-state::before {
+      left: -78px;
+      top: -75px;
+      border-radius: 20px;
+    }
+    .dry-empty-state::after {
+      right: -78px;
+      bottom: -75px;
+      border-radius: 20px;
+    }
+    .dry-empty-card {
+      position: relative;
+      width: min(620px, 94%);
+      padding: 40px 34px 34px;
+      text-align: center;
+      color: #1f2937;
+      border: 1px solid rgba(80, 92, 105, 0.35);
+      background: rgba(255,255,255,0.94);
+      box-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
+      font-family: Georgia, "Times New Roman", serif;
+      clip-path: polygon(0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px));
+    }
+    .dry-empty-ornament {
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 18px;
+      border: 1px solid rgba(15, 23, 42, 0.42);
+      position: relative;
+      transform: rotate(45deg);
+    }
+    .dry-empty-ornament::before,
+    .dry-empty-ornament::after {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border: 1px solid rgba(34, 211, 238, 0.55);
+    }
+    .dry-empty-ornament::after {
+      inset: 16px;
+      border-color: rgba(15, 23, 42, 0.30);
+    }
+    .dry-empty-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 10px;
+    }
+    .dry-empty-title {
+      font-size: clamp(22px, 4vw, 34px);
+      line-height: 1.15;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+    .dry-empty-subtitle {
+      margin: 12px auto 22px;
+      max-width: 470px;
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      font-size: 11px;
+      line-height: 1.6;
+      color: #64748b;
+    }
+    .dry-empty-register {
+      min-width: 150px;
+      min-height: 40px;
+      padding: 8px 18px;
+      border: 1px solid #1f2937;
+      border-radius: 999px;
+      background: #1f2937;
+      color: #fff;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      box-shadow: 0 8px 18px rgba(15,23,42,0.16);
+      transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+    }
+    .dry-empty-register:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(15,23,42,0.20);
+      background: #111827;
+    }
+    @media (max-width: 600px) {
+      .dry-empty-state { min-height: min(56vh, 460px); padding: 20px 10px; }
+      .dry-empty-card { padding: 32px 20px 26px; width: 96%; }
+      .dry-empty-title { font-size: 24px; }
+      .dry-empty-subtitle { font-size: 10px; }
+      .dry-empty-ornament { margin-bottom: 15px; }
+    }
     .dry-run-footer {
       border-top: 1px solid #777;
       padding: 7px 8px;
@@ -4552,13 +4668,35 @@
         if (dayList) dayList.push(e);
       });
 
+      if (mode === "preview" && selectedEntries.length === 0) {
+        content.innerHTML = `
+          <div class="dry-empty-state">
+            <div class="dry-empty-card">
+              <div class="dry-empty-ornament" aria-hidden="true"></div>
+              <div class="dry-empty-eyebrow">Dry Run</div>
+              <h2 class="dry-empty-title">You have no registered courses</h2>
+              <div class="dry-empty-subtitle">Your saved Dry Run timetable is currently empty. Choose your lecture and tutorial periods to build your schedule.</div>
+              <button class="dry-empty-register" id="dryEmptyRegisterBtn" type="button">Register</button>
+            </div>
+          </div>`;
+        footer.innerHTML = `
+          <div class="dry-run-footer-left"></div>
+          <div class="dry-run-footer-right">
+            <button class="dry-run-action" id="dryRunCloseBottom" type="button">Close</button>
+          </div>`;
+        document.getElementById("dryEmptyRegisterBtn").onclick = () => renderDryRunTable("select");
+        document.getElementById("dryRunCloseBottom").onclick = closeDryRun;
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+
       if (mode === "select" && entries.length === 0) {
         content.innerHTML = `
           <div class="dry-run-statusbar"><span class="dry-run-count">0 eligible courses with timetable data</span></div>
           <div class="dry-run-placeholder">There are no currently eligible, unpassed courses with matching timetable data.<br>Import grades and/or complete prerequisites first.</div>`;
         footer.innerHTML = `
-          <div class="dry-run-footer-left"><button class="dry-run-action" id="dryRunCloseBottom" type="button">Close</button></div>
-          <div class="dry-run-footer-right"></div>`;
+          <div class="dry-run-footer-left"></div>
+          <div class="dry-run-footer-right"><button class="dry-run-action" id="dryRunCloseBottom" type="button">Close</button></div>`;
         document.getElementById("dryRunCloseBottom").onclick = closeDryRun;
         return;
       }
