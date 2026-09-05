@@ -1931,7 +1931,7 @@
       <div class="dry-run-header">
         <div>
           <div class="dry-run-title" id="dryRunTitle">Dry Run · Upcoming Eligible Courses</div>
-          <div class="dry-run-subtitle" id="dryRunSubtitle">Only currently eligible, unpassed courses with timetable data are shown. Choose up to 1 lecture and 1 tutorial per course. For grouped non-CMPS courses, the lecture and tutorial must use the same group. Overlapping selections are blocked.</div>
+          <div class="dry-run-subtitle" id="dryRunSubtitle">Only currently eligible, unpassed courses with timetable data are shown. Choose up to 1 lecture and 1 tutorial per course. For grouped courses, the lecture and tutorial must use the same group unless the course has group-independent tutorials. Overlapping selections are blocked.</div>
         </div>
         <div class="dry-run-header-actions">
           <button class="dry-run-icon-btn" id="dryRunAdminBtn" type="button" title="Update Dry Run Catalog (Moderator)"><span class="icon" data-lucide="upload"></span></button>
@@ -4827,7 +4827,15 @@
     }
 
     // A grouped course uses the same group number for its lecture/tutorial pair.
-    // CMPS courses are intentionally exempt from this rule.
+    // CMPS courses and the listed courses below have tutorials that are NOT bound
+    // to lecture group numbers, so they are exempt from same-group pairing.
+    const DRY_RUN_GROUP_INDEPENDENT_TUTORIAL_CODES = new Set([
+      "EPES305",
+      "EPES201",
+      "MDPS251",
+      "MDPS217"
+    ]);
+
     function dryRunNormalizedSession(entry) {
       return String(entry.session || "").toLowerCase().startsWith("lecture") ? "lecture" : "tutorial";
     }
@@ -4843,6 +4851,11 @@
 
     function dryRunIsCMPS(code) {
       return String(code || "").toUpperCase().startsWith("CMPS");
+    }
+
+    function dryRunIsGroupIndependentTutorialCourse(code) {
+      const normalizedCode = String(code || "").toUpperCase();
+      return dryRunIsCMPS(normalizedCode) || DRY_RUN_GROUP_INDEPENDENT_TUTORIAL_CODES.has(normalizedCode);
     }
 
     // GENS courses are selectable normally, but they do not participate in the
@@ -4865,9 +4878,9 @@
         };
       }
 
-      // For every non-CMPS course that has group numbers in the Excel timetable,
-      // the lecture and tutorial must belong to the same group.
-      if (!dryRunIsCMPS(entry.code) && dryRunCourseHasGroups(entry.code)) {
+      // For grouped courses with timetable group numbers, the lecture and tutorial
+      // must belong to the same group unless the course is group-independent.
+      if (!dryRunIsGroupIndependentTutorialCourse(entry.code) && dryRunCourseHasGroups(entry.code)) {
         const counterpartSession = session === "lecture" ? "tutorial" : "lecture";
         const counterpart = sameCourse.find(e => dryRunNormalizedSession(e) === counterpartSession);
         if (counterpart) {
@@ -4999,7 +5012,7 @@
 
         const selectedSession = dryRunNormalizedSession(selected);
         const counterpartSession = selectedSession === "lecture" ? "tutorial" : "lecture";
-        const hasGroups = !dryRunIsCMPS(selected.code) && dryRunCourseHasGroups(selected.code);
+        const hasGroups = !dryRunIsGroupIndependentTutorialCourse(selected.code) && dryRunCourseHasGroups(selected.code);
         const selectedGroup = String(selected.group ?? "").trim();
 
         DRY_RUN_SCHEDULE.forEach(candidate => {
@@ -5057,7 +5070,7 @@
 
       if (mode === "select") {
         document.getElementById("dryRunTitle").textContent = "Dry Run · Upcoming Eligible Courses";
-        document.getElementById("dryRunSubtitle").textContent = "Only currently eligible, unpassed courses with timetable data are shown. Choose up to 1 lecture and 1 tutorial per course. For grouped non-CMPS courses, the lecture and tutorial must use the same group. Overlapping selections are blocked.";
+        document.getElementById("dryRunSubtitle").textContent = "Only currently eligible, unpassed courses with timetable data are shown. Choose up to 1 lecture and 1 tutorial per course. For grouped courses, the lecture and tutorial must use the same group unless the course has group-independent tutorials. Overlapping selections are blocked.";
       } else {
         document.getElementById("dryRunTitle").textContent = "Dry Run · Your Submitted Schedule";
         document.getElementById("dryRunSubtitle").textContent = "This is the submitted timetable preview. Press Edit to return to the eligible-course dry run and change selections.";
@@ -5259,7 +5272,7 @@
       }
 
       // Final validation: maximum one lecture + one tutorial per course,
-      // same-group pairing for non-CMPS grouped courses, and no time overlaps.
+      // same-group pairing for grouped courses, and no time overlaps.
       const byCourse = new Map();
       entries.forEach(e => {
         if (!byCourse.has(e.code)) byCourse.set(e.code, []);
@@ -5277,7 +5290,7 @@
           showToast(`${code}: choose only 1 tutorial.`);
           return;
         }
-        if (!dryRunIsCMPS(code) && dryRunCourseHasGroups(code) && lectures.length && tutorials.length) {
+        if (!dryRunIsGroupIndependentTutorialCourse(code) && dryRunCourseHasGroups(code) && lectures.length && tutorials.length) {
           const lg = String(lectures[0].group ?? "").trim();
           const tg = String(tutorials[0].group ?? "").trim();
           if (lg !== tg) {
