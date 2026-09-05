@@ -2625,6 +2625,10 @@
     }
 
     function buildPositions() {
+      // Rebuild positions from scratch on every render. The roadmap catalog is
+      // independent from the Dry Run timetable, so stale positions must never
+      // leak across renders.
+      for (const key of Object.keys(nodePositions)) delete nodePositions[key];
       const catalog = getFullActiveCatalog();
       const grouped = {};
       const termDefs = getTermDefinitionList();
@@ -3313,8 +3317,8 @@
                 state.selectedElectives.E2.length > 0 ||
                 state.selectedElectives.E3.length > 0
               );
-          state.willingList = saved.willingList || [];
-          state.willingTermCap = saved.willingTermCap || 18;
+          state.willingList = Array.isArray(saved.willingList) ? saved.willingList : [];
+          state.willingTermCap = Number(saved.willingTermCap) || 18;
           state.dryRunSelections = Array.isArray(saved.dryRunSelections) ? saved.dryRunSelections : [];
           state.dryRunSubmitted = !!saved.dryRunSubmitted;
           state.retakeSuggestionCode = saved.retakeSuggestionCode || null;
@@ -3787,6 +3791,9 @@
     }
 
     async function initApp() {
+      // Keep the original startup ordering: finish loading the shared Dry Run
+      // catalog before the app UI is wired and the roadmap is rendered. This
+      // prevents asynchronous Dry Run work from racing the roadmap renderer.
       await loadDryRunCatalogFromSupabase();
       document.getElementById("yearsFilter").value = state.totalYears;
       document.getElementById("startYearInput").value = state.startYear;
@@ -4254,10 +4261,18 @@
       setupPathwayUI();
       setupRetakeUI();
       setupWillingUI();
-      setupDryRunUI();
       setupGraphScrollbarDrag();
 
+      // The academic roadmap is the primary UI. Render it before the optional
+      // Dry Run controls are initialized so a Dry Run setup problem cannot blank
+      // the 8/12-term course map.
       renderAll();
+
+      try {
+        setupDryRunUI();
+      } catch (dryRunSetupError) {
+        console.error("Dry Run UI setup failed:", dryRunSetupError);
+      }
       resetGraphView();
     }
 
