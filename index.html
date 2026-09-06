@@ -1834,22 +1834,43 @@
       <div class="modal-body">
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
           <div>
-            <div class="filter-label" style="margin-bottom:4px;">Planning Window</div>
-            <div class="control" style="width:90px; display:flex; align-items:center; min-height:34px; box-sizing:border-box;">1 Term</div>
+            <div class="filter-label" style="margin-bottom:4px;">Credit Hours Needed</div>
+            <input id="pathwayNeededCHInput" class="control" type="number" min="1" max="21" value="18" style="width:120px;">
           </div>
           <div>
-            <div class="filter-label" style="margin-bottom:4px;">Max CH per term</div>
-            <input id="pathwayCapInput" class="control" type="number" min="1" max="21" value="18" style="width:90px;">
+            <div class="filter-label" style="margin-bottom:4px;">Max CH in term</div>
+            <input id="pathwayCapInput" class="control" type="number" min="1" max="21" value="18" style="width:105px;">
+          </div>
+          <div>
+            <div class="filter-label" style="margin-bottom:4px;">Combinations</div>
+            <select id="pathwayCombinationCount" class="control" style="width:105px;">
+              <option value="3">3</option>
+              <option value="5">5</option>
+              <option value="8" selected>8</option>
+            </select>
           </div>
           <button class="action-button primary" id="generatePathwayBtn" type="button">
             <span class="icon" data-lucide="sparkles"></span>
-            Generate Suggestion
+            Find Combinations
           </button>
           <button class="action-button" id="clearPathwayBtn" type="button">
             <span class="icon" data-lucide="x"></span>
             Clear Highlight
           </button>
         </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+          <div>
+            <div class="filter-label" style="margin-bottom:4px;">Must Have This Term <span style="font-weight:600;color:#64748b;">(select multiple)</span></div>
+            <select id="pathwayMustHave" class="control" multiple size="5" style="width:100%;min-height:112px;"></select>
+            <div class="drawer-note" style="margin-top:4px;">Required in every generated combination. Use Ctrl/Cmd-click (or Shift-click) to select multiple courses.</div>
+          </div>
+          <div>
+            <div class="filter-label" style="margin-bottom:4px;">Eliminate / Lower Priority <span style="font-weight:600;color:#64748b;">(select multiple)</span></div>
+            <select id="pathwayEliminate" class="control" multiple size="5" style="width:100%;min-height:112px;"></select>
+            <div class="drawer-note" style="margin-top:4px;">Preferred to avoid, but may still be used when needed. Use Ctrl/Cmd-click (or Shift-click) to select multiple courses.</div>
+          </div>
+        </div>
+        <div class="drawer-note" style="margin-top:8px;">Auto-selection considers only currently eligible courses, your explicitly selected electives, and courses with at least one open timetable option. Closed groups marked with a red <strong>*</strong> are never automatically selected.</div>
         <div class="pathway-panel" id="pathwayResults" style="margin-top:14px;"></div>
       </div>
     </div>
@@ -4475,101 +4496,365 @@
       activePathwayCodesSet.clear();
     }
 
-    function computeSuggestedPathway(numTerms, capCH) {
+    function getPathwayEligibleCourses() {
       const catalog = getFullActiveCatalog();
-      const simPassed = new Set(catalog.filter(c => isPassed(c.code)).map(c => c.code));
-      let simCompletedCH = getCompletedCredits();
-      const remaining = catalog.filter(c => !simPassed.has(c.code));
-      const dependentCount = {};
-      catalog.forEach(c => c.prereqs.forEach(p => { dependentCount[p] = (dependentCount[p] || 0) + 1; }));
+      const selectedElectiveCodes = new Set([
+        state.selectedElectives?.E1,
+        ...(Array.isArray(state.selectedElectives?.E2) ? state.selectedElectives.E2 : []),
+        ...(Array.isArray(state.selectedElectives?.E3) ? state.selectedElectives.E3 : []),
+        ...(Array.isArray(state.importedElectiveCodes) ? state.importedElectiveCodes : [])
+      ].filter(Boolean));
 
-      const plan = [];
-      for (let term = 1; term <= numTerms; term++) {
-        const eligible = remaining.filter(c => {
-          if (simPassed.has(c.code)) return false;
-          if (c.minCredits && simCompletedCH < c.minCredits) return false;
-          return c.prereqs.every(p => simPassed.has(p));
+      return catalog.filter(course => {
+        if (!course || isPassed(course.code)) return false;
+        if (course.cat === "Elective" && !selectedElectiveCodes.has(course.code)) return false;
+        if (!isEligible(course)) return false;
+        return DRY_RUN_SCHEDULE.some(entry => entry.code === course.code && !dryRunIsClosed(entry));
+      });
+    }
+
+    function pathwayCombinationSignature(courses) {
+      return courses.map(c => c.code).sort().join("|");
+    }
+
+    function buildPathwayCombinationPool(courses, targetCH, capCH, maxResults, mustHaveCodes = [], eliminateCodes = []) {
+      const mustSet = new Set(mustHaveCodes || []);
+      const eliminateSet = new Set(eliminateCodes || []);
+      const usable = [...courses]
+        .filter(c => (Number(c.ch) || 0) > 0 && (Number(c.ch) || 0) <= capCH)
+        .sort((a, b) => {
+          const aMust = mustSet.has(a.code) ? 0 : 1;
+          const bMust = mustSet.has(b.code) ? 0 : 1;
+          if (aMust !== bMust) return aMust - bMust;
+          const aAvoid = eliminateSet.has(a.code) ? 1 : 0;
+          const bAvoid = eliminateSet.has(b.code) ? 1 : 0;
+          if (aAvoid !== bAvoid) return aAvoid - bAvoid;
+          return String(a.defaultTerm || '').localeCompare(String(b.defaultTerm || '')) || a.code.localeCompare(b.code);
         });
 
-        eligible.sort((a, b) => (dependentCount[b.code] || 0) - (dependentCount[a.code] || 0));
+      const requestedResults = Math.max(1, Math.min(8, Number(maxResults) || 8));
+      const results = [];
+      const seen = new Set();
+      const rejectedTimetable = new Set();
+      const maxNeed = Math.min(Number(targetCH) || 0, Number(capCH) || 21);
 
-        const chosen = [];
-        let termCH = 0;
-        eligible.forEach(c => {
-          const ch = Number(c.ch) || 0;
-          if (termCH + ch <= capCH) {
-            chosen.push(c);
-            termCH += ch;
-          }
-        });
+      const mustCourses = usable.filter(c => mustSet.has(c.code));
+      const missingMust = [...mustSet].filter(code => !courses.some(c => c.code === code));
+      const mustCH = mustCourses.reduce((sum, c) => sum + (Number(c.ch) || 0), 0);
 
-        chosen.forEach(c => {
-          simPassed.add(c.code);
-          simCompletedCH += Number(c.ch) || 0;
-          const idx = remaining.indexOf(c);
-          if (idx >= 0) remaining.splice(idx, 1);
-        });
-
-        plan.push({ term, courses: chosen, ch: termCH });
+      if (missingMust.length || mustCH > maxNeed) {
+        return {
+          combinations: [],
+          rejectedTimetableCount: 0,
+          missingMustCodes: missingMust,
+          mustCH,
+          impossibleMustCH: !missingMust.length && mustCH > maxNeed
+        };
       }
 
-      return { plan, leftoverCount: remaining.length };
+      function score(combo, ch) {
+        const avoidCount = combo.reduce((n, c) => n + (eliminateSet.has(c.code) ? 1 : 0), 0);
+        const gap = maxNeed - ch;
+        return [gap, avoidCount, combo.length, pathwayCombinationSignature(combo)];
+      }
+
+      function pushCandidate(combo, ch) {
+        if (!combo.length || ch > maxNeed || ch < mustCH) return false;
+        if (!mustCourses.every(c => combo.some(x => x.code === c.code))) return false;
+        const sig = pathwayCombinationSignature(combo);
+        if (seen.has(sig)) return false;
+        seen.add(sig);
+
+        const openArrangement = chooseOpenDryRunEntriesForCourses(combo);
+        if (!openArrangement.length) {
+          rejectedTimetable.add(sig);
+          return false;
+        }
+
+        const avoidCount = combo.reduce((n, c) => n + (eliminateSet.has(c.code) ? 1 : 0), 0);
+        results.push({
+          courses: [...combo],
+          ch,
+          gap: maxNeed - ch,
+          avoidCount,
+          timetableEntries: openArrangement
+        });
+        return false;
+      }
+
+      const initialPassed = new Set(getFullActiveCatalog().filter(c => isPassed(c.code)).map(c => c.code));
+
+      // Must-have courses are seeded first. Their prerequisites still need to be
+      // satisfied by the user's current transcript; the generator never invents
+      // prerequisite courses just to satisfy a must-have request.
+      if (mustCourses.some(c => (c.prereqs || []).some(p => !initialPassed.has(p)))) {
+        const invalidMust = mustCourses
+          .filter(c => (c.prereqs || []).some(p => !initialPassed.has(p)))
+          .map(c => c.code);
+        return {
+          combinations: [],
+          rejectedTimetableCount: 0,
+          missingMustCodes: invalidMust,
+          mustCH,
+          impossibleMustCH: false,
+          invalidMustPrereqCodes: invalidMust
+        };
+      }
+
+      const seed = [];
+      let seedCH = 0;
+      const seedPassed = new Set(initialPassed);
+      for (const c of mustCourses) {
+        seed.push(c);
+        seedCH += Number(c.ch) || 0;
+        seedPassed.add(c.code);
+      }
+
+      function dfs(start, combo, ch, simPassed) {
+        pushCandidate(combo, ch);
+        if (results.length >= requestedResults) return;
+        for (let i = start; i < usable.length && results.length < requestedResults; i++) {
+          const c = usable[i];
+          if (combo.some(x => x.code === c.code)) continue;
+          const cCH = Number(c.ch) || 0;
+          if (ch + cCH > maxNeed) continue;
+          if ((c.prereqs || []).some(p => !simPassed.has(p))) continue;
+          combo.push(c);
+          const nextPassed = new Set(simPassed);
+          nextPassed.add(c.code);
+          dfs(i + 1, combo, ch + cCH, nextPassed);
+          combo.pop();
+        }
+      }
+
+      dfs(0, seed, seedCH, seedPassed);
+
+      results.sort((a, b) => {
+        const sa = score(a.courses, a.ch);
+        const sb = score(b.courses, b.ch);
+        for (let i = 0; i < 3; i++) if (sa[i] !== sb[i]) return sa[i] - sb[i];
+        return sa[3].localeCompare(sb[3]);
+      });
+
+      return {
+        combinations: results.slice(0, requestedResults),
+        rejectedTimetableCount: rejectedTimetable.size,
+        missingMustCodes: [],
+        mustCH,
+        impossibleMustCH: false
+      };
+    }
+
+    function chooseOpenDryRunEntriesForCourses(courses) {
+      const options = courses.map(course => {
+        const entries = DRY_RUN_SCHEDULE.filter(e => e.code === course.code && !dryRunIsClosed(e));
+        const lectures = entries.filter(e => dryRunNormalizedSession(e) === "lecture");
+        const tutorials = entries.filter(e => dryRunNormalizedSession(e) === "tutorial");
+        const pairs = [];
+
+        if (lectures.length && tutorials.length) {
+          lectures.forEach(l => tutorials.forEach(t => {
+            if (dryRunOverlap(l, t)) return;
+            if (!dryRunIsCMPS(course.code) && !DRY_RUN_GROUP_INDEPENDENT_TUTORIAL_CODES.has(course.code) && dryRunCourseHasGroups(course.code)) {
+              if (String(l.group ?? "").trim() !== String(t.group ?? "").trim()) return;
+            }
+            pairs.push([l, t]);
+          }));
+        } else if (lectures.length) {
+          lectures.forEach(l => pairs.push([l, null]));
+        } else if (tutorials.length) {
+          tutorials.forEach(t => pairs.push([null, t]));
+        }
+        return pairs;
+      });
+
+      if (options.some(p => p.length === 0)) return [];
+      const chosen = [];
+      function conflicts(entry) { return chosen.some(other => dryRunOverlap(entry, other)); }
+      function dfs(index) {
+        if (index === options.length) return true;
+        for (const pair of options[index]) {
+          const additions = pair.filter(Boolean);
+          if (additions.some(conflicts)) continue;
+          chosen.push(...additions);
+          if (dfs(index + 1)) return true;
+          chosen.splice(chosen.length - additions.length, additions.length);
+        }
+        return false;
+      }
+      return dfs(0) ? [...chosen] : [];
+    }
+
+    function autoApplyPathwayCombination(combination) {
+      const entries = chooseOpenDryRunEntriesForCourses(combination.courses);
+      if (!entries.length && combination.courses.length) {
+        showToast("No non-overlapping open timetable arrangement was found for that combination.");
+        return false;
+      }
+      state.dryRunSelections = [];
+      const selected = [];
+      entries.forEach(entry => {
+        if (dryRunIsClosed(entry)) return;
+        const rule = dryRunSelectionRule(entry, selected);
+        if (rule.allowed) selected.push(entry);
+      });
+      state.dryRunSelections = selected.map(e => e.id);
+      state.dryRunFocusCourseCode = selected.length ? selected[selected.length - 1].code : null;
+      state.dryRunSubmitted = false;
+      saveState();
+      clearPathwayHighlight();
+      combination.courses.forEach(c => activePathwayCodesSet.add(c.code));
+      renderAll();
+      showToast(`Auto-selected ${selected.length} open timetable blocks for ${combination.ch} CH.`);
+      return true;
+    }
+
+    function computeSuggestedPathway(numTerms, targetCH, capCH, combinationCount, mustHaveCodes = [], eliminateCodes = []) {
+      const eligible = getPathwayEligibleCourses();
+      const usableCap = Math.max(1, Math.min(21, Number(capCH) || 18));
+      const needed = Math.max(1, Math.min(21, Number(targetCH) || usableCap));
+      const count = Math.max(1, Math.min(8, Number(combinationCount) || 8));
+      const pool = buildPathwayCombinationPool(eligible, needed, usableCap, count, mustHaveCodes, eliminateCodes);
+      return {
+        combinations: pool.combinations,
+        rejectedTimetableCount: pool.rejectedTimetableCount,
+        requestedCombinationCount: count,
+        eligibleCount: eligible.length,
+        targetCH: needed,
+        capCH: usableCap,
+        mustHaveCodes: [...mustHaveCodes],
+        eliminateCodes: [...eliminateCodes],
+        missingMustCodes: pool.missingMustCodes || [],
+        invalidMustPrereqCodes: pool.invalidMustPrereqCodes || [],
+        mustCH: pool.mustCH || 0,
+        impossibleMustCH: !!pool.impossibleMustCH
+      };
     }
 
     function renderPathwayResults(result) {
       const el = document.getElementById("pathwayResults");
-      let html = "";
-      result.plan.forEach(t => {
-        html += `
-          <div class="pathway-term-block">
-            <div class="pathway-term-title"><span>Term ${t.term}</span><span>${t.ch} CH · ${t.courses.length} courses</span></div>
-            <div class="pathway-term-courses">
-              ${t.courses.length === 0
-                ? '<span class="drawer-note">No new eligible courses fit this term.</span>'
-                : t.courses.map(c => `<span class="course-badge">${c.code} · ${c.ch} CH</span>`).join('')}
-            </div>
-          </div>`;
-      });
-      if (result.leftoverCount > 0) {
-        html += `<div class="drawer-note">${result.leftoverCount} remaining courses didn't fit in this window — add more terms or raise the CH cap.</div>`;
+      let html = `<div class="pathway-term-block"><div class="pathway-term-title"><span>Auto-selection results</span><span>${result.combinations.length} combination${result.combinations.length === 1 ? "" : "s"}</span></div>`;
+      html += `<div class="drawer-note" style="margin-top:6px;">Target: ${result.targetCH} CH · Term cap: ${result.capCH} CH · ${result.eligibleCount} eligible/open courses considered.</div>`;
+      if (result.rejectedTimetableCount > 0) {
+        html += `<div class="drawer-note" style="margin-top:6px;">Disclaimer: ${result.rejectedTimetableCount} otherwise-eligible combination${result.rejectedTimetableCount === 1 ? " was" : "s were"} automatically removed because no non-overlapping open timetable arrangement exists for all courses in that combination. Closed <strong>*</strong> groups are excluded.</div>`;
+      }
+      html += `</div>`;
+      if (!result.combinations.length) {
+        html += `<div class="pathway-term-block"><div class="drawer-note">No valid combination could fill up to ${result.targetCH} CH from the currently eligible/open courses. Combinations with timetable overlaps were automatically eliminated, and closed-group entries were excluded.</div></div>`;
+      } else {
+        result.combinations.forEach((combo, index) => {
+          html += `<div class="pathway-term-block">`;
+          html += `<div class="pathway-term-title"><span>Combination ${index + 1}</span><span>${combo.ch} / ${result.targetCH} CH · ${combo.courses.length} courses</span></div>`;
+          html += `<div class="pathway-term-courses">${combo.courses.map(c => `<span class="course-badge">${c.code} · ${c.ch} CH</span>`).join("")}</div>`;
+          html += `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">`;
+          html += `<button class="action-button primary pathway-use-combo-btn" data-pathway-combo="${index}" type="button"><span class="icon" data-lucide="check-circle-2"></span>Use & Auto-Fill Dry Run</button>`;
+          html += `<button class="action-button pathway-highlight-combo-btn" data-pathway-combo="${index}" type="button"><span class="icon" data-lucide="map"></span>Highlight Courses</button>`;
+          html += `</div></div>`;
+        });
       }
       el.innerHTML = html;
-
       clearPathwayHighlight();
-      result.plan.forEach((t) => {
-        t.courses.forEach(c => {
-          activePathwayCodesSet.add(c.code);
-          const node = document.querySelector(`.course-node[data-code="${c.code}"]`);
-          if (node) {
-            node.classList.add("pathway-card-highlight");
-            const badge = document.createElement("div");
-            badge.className = "plan-badge";
-            badge.style.background = "#c084fc";
-            badge.textContent = "T" + t.term;
-            node.style.position = "absolute";
-            node.appendChild(badge);
-          }
+      if (result.combinations[0]) result.combinations[0].courses.forEach(c => activePathwayCodesSet.add(c.code));
+
+      el.querySelectorAll(".pathway-use-combo-btn").forEach(btn => btn.addEventListener("click", () => {
+        const combo = result.combinations[Number(btn.dataset.pathwayCombo)];
+        if (combo) autoApplyPathwayCombination(combo);
+      }));
+      el.querySelectorAll(".pathway-highlight-combo-btn").forEach(btn => btn.addEventListener("click", () => {
+        const combo = result.combinations[Number(btn.dataset.pathwayCombo)];
+        if (!combo) return;
+        clearPathwayHighlight();
+        combo.courses.forEach(c => activePathwayCodesSet.add(c.code));
+        renderNodes();
+      }));
+      if (window.lucide) lucide.createIcons();
+      renderNodes();
+    }
+
+    function pathwayPopulateCourseSelectors(courses) {
+      const mustEl = document.getElementById("pathwayMustHave");
+      const eliminateEl = document.getElementById("pathwayEliminate");
+      if (!mustEl || !eliminateEl) return;
+      const previousMust = new Set([...mustEl.selectedOptions].map(o => o.value));
+      const previousEliminate = new Set([...eliminateEl.selectedOptions].map(o => o.value));
+      const options = courses.slice().sort((a, b) => a.code.localeCompare(b.code));
+      const makeOptions = selectedSet => options.map(c => `<option value="${c.code}" ${selectedSet.has(c.code) ? "selected" : ""}>${c.code} · ${c.ch} CH — ${c.title}</option>`).join("");
+      mustEl.innerHTML = makeOptions(previousMust);
+      eliminateEl.innerHTML = makeOptions(previousEliminate);
+      const sync = (source, other) => {
+        const selected = new Set([...source.selectedOptions].map(o => o.value));
+        [...other.options].forEach(o => {
+          o.disabled = selected.has(o.value);
         });
-      });
+      };
+      sync(mustEl, eliminateEl);
+      sync(eliminateEl, mustEl);
+      mustEl.addEventListener("change", () => sync(mustEl, eliminateEl));
+      eliminateEl.addEventListener("change", () => sync(eliminateEl, mustEl));
+    }
+
+    function renderPathwayResults(result) {
+      const el = document.getElementById("pathwayResults");
+      let html = `<div class="pathway-term-block"><div class="pathway-term-title"><span>Auto-selection results</span><span>${result.combinations.length} / ${result.requestedCombinationCount} combinations</span></div>`;
+      html += `<div class="drawer-note" style="margin-top:6px;">Target: ${result.targetCH} CH · Term cap: ${result.capCH} CH · ${result.eligibleCount} eligible/open courses considered.</div>`;
+      if (result.mustHaveCodes.length) html += `<div class="drawer-note" style="margin-top:6px;"><strong>Must Have:</strong> ${result.mustHaveCodes.join(", ")}</div>`;
+      if (result.eliminateCodes.length) html += `<div class="drawer-note" style="margin-top:6px;"><strong>Eliminate / Lower Priority:</strong> ${result.eliminateCodes.join(", ")}. These courses are only used when they help satisfy the requested CH.</div>`;
+      if (result.missingMustCodes.length) html += `<div class="drawer-note" style="margin-top:6px;">Cannot satisfy Must Have: ${result.missingMustCodes.join(", ")} is not currently eligible/open.</div>`;
+      if (result.invalidMustPrereqCodes.length) html += `<div class="drawer-note" style="margin-top:6px;">Cannot satisfy Must Have: ${result.invalidMustPrereqCodes.join(", ")} still has unmet prerequisite(s).</div>`;
+      if (result.impossibleMustCH) html += `<div class="drawer-note" style="margin-top:6px;">Your Must Have courses require ${result.mustCH} CH, which exceeds the ${result.targetCH} CH target / term cap.</div>`;
+      if (result.rejectedTimetableCount > 0) html += `<div class="drawer-note" style="margin-top:6px;">Disclaimer: ${result.rejectedTimetableCount} otherwise-eligible combination${result.rejectedTimetableCount === 1 ? " was" : "s were"} automatically removed because no non-overlapping open timetable arrangement exists for all courses in that combination. Closed <strong>*</strong> groups are excluded.</div>`;
+      html += `</div>`;
+      if (!result.combinations.length && !result.missingMustCodes.length && !result.invalidMustPrereqCodes.length && !result.impossibleMustCH) {
+        html += `<div class="pathway-term-block"><div class="drawer-note">No valid combination could fill up to ${result.targetCH} CH from the currently eligible/open courses. Combinations with timetable overlaps were automatically eliminated, and closed-group entries were excluded.</div></div>`;
+      } else {
+        result.combinations.forEach((combo, index) => {
+          html += `<div class="pathway-term-block">`;
+          html += `<div class="pathway-term-title"><span>Combination ${index + 1}</span><span>${combo.ch} / ${result.targetCH} CH · ${combo.courses.length} courses</span></div>`;
+          html += `<div class="pathway-term-courses">${combo.courses.map(c => `<span class="course-badge">${c.code} · ${c.ch} CH${result.eliminateCodes.includes(c.code) ? " · lower priority" : ""}</span>`).join("")}</div>`;
+          html += `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">`;
+          html += `<button class="action-button primary pathway-use-combo-btn" data-pathway-combo="${index}" type="button"><span class="icon" data-lucide="check-circle-2"></span>Use & Auto-Fill Dry Run</button>`;
+          html += `<button class="action-button pathway-highlight-combo-btn" data-pathway-combo="${index}" type="button"><span class="icon" data-lucide="map"></span>Highlight Courses</button>`;
+          html += `</div></div>`;
+        });
+      }
+      el.innerHTML = html;
+      clearPathwayHighlight();
+      if (result.combinations[0]) result.combinations[0].courses.forEach(c => activePathwayCodesSet.add(c.code));
+
+      el.querySelectorAll(".pathway-use-combo-btn").forEach(btn => btn.addEventListener("click", () => {
+        const combo = result.combinations[Number(btn.dataset.pathwayCombo)];
+        if (combo) autoApplyPathwayCombination(combo);
+      }));
+      el.querySelectorAll(".pathway-highlight-combo-btn").forEach(btn => btn.addEventListener("click", () => {
+        const combo = result.combinations[Number(btn.dataset.pathwayCombo)];
+        if (!combo) return;
+        clearPathwayHighlight();
+        combo.courses.forEach(c => activePathwayCodesSet.add(c.code));
+        renderNodes();
+      }));
+      if (window.lucide) lucide.createIcons();
+      renderNodes();
     }
 
     function setupPathwayUI() {
       document.getElementById("pathwayBtn").addEventListener("click", () => {
         document.getElementById("pathwayModal").classList.add("open");
+        pathwayPopulateCourseSelectors(getPathwayEligibleCourses());
       });
-      document.getElementById("closePathwayModal").addEventListener("click", () => {
-        document.getElementById("pathwayModal").classList.remove("open");
-      });
+      document.getElementById("closePathwayModal").addEventListener("click", () => document.getElementById("pathwayModal").classList.remove("open"));
       document.getElementById("generatePathwayBtn").addEventListener("click", () => {
-        // Suggested Pathway is intentionally limited to the next single term.
-        const numTerms = 1;
-        const capCH = Math.max(1, Math.min(21, Number(document.getElementById("pathwayCapInput").value) || 18));
-        const result = computeSuggestedPathway(numTerms, capCH);
-        renderPathwayResults(result);
+        const neededCH = Math.max(1, Math.min(21, Number(document.getElementById("pathwayNeededCHInput").value) || 18));
+        const capCH = Math.max(1, Math.min(21, Number(document.getElementById("pathwayCapInput").value) || neededCH));
+        const comboCount = Number(document.getElementById("pathwayCombinationCount").value) || 5;
+        const mustHaveCodes = [...document.getElementById("pathwayMustHave").selectedOptions].map(o => o.value);
+        const eliminateCodes = [...document.getElementById("pathwayEliminate").selectedOptions].map(o => o.value);
+        if (neededCH > capCH) { showToast("Credit Hours Needed cannot exceed the Max CH in term."); return; }
+        renderPathwayResults(computeSuggestedPathway(1, neededCH, capCH, comboCount, mustHaveCodes, eliminateCodes));
       });
       document.getElementById("clearPathwayBtn").addEventListener("click", () => {
         clearPathwayHighlight();
         document.getElementById("pathwayResults").innerHTML = "";
+        renderNodes();
       });
     }
 
